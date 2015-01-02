@@ -1,16 +1,14 @@
 tp-link TL-WR841n/d 改機筆記
 
 目標：
-硬改64Mb ram
-硬改16MB flash
-然後刷上OpenWRT firmware (從主要開發分支trunk自行編譯)
-uboot換成pepe2k的
+硬改64Mb ram : (HY5DU121622DTP-D43)
+硬改16MB flash : (MX25L12835F)
+firmware : OpenWRT(從主要開發分支trunk自行編譯)
+uboot : pepe2k的版本
 
 工作列表：
 
 0.認識編程器固件的分區布局方式
-參考資料：
-http://wiki.openwrt.org/doc/techref/file_system
 
 1.使用tp-link的web interface刷上官方預編譯好的OpenWRT firmware
 （openwrt-ar71xx-generic-tl-wr841n-v8-squashfs-factory.bin）
