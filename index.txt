@@ -10,27 +10,61 @@ uboot : pepe2k的版本
 
 0.認識編程器固件的分割區布局及寫入Flash ROM的方式
 
-1.使用tp-link的web interface刷上官方預編譯好的OpenWRT firmware
-（openwrt-ar71xx-generic-tl-wr841n-v8-squashfs-factory.bin）
+1.準備需要的硬體及材料
 
-2.把WR841開機，telnet進去後設定root密碼，然後把路由器上ROM裡的uboot和art備份下來
+2.觀察原廠固件輸出的serial console訊息
+     2.1 硬體連接
+     2.2 連線軟體PuTTY安裝及設定
+     2.3 開啟路由器電源，使用PuTTY連線後，觀察serial console的輸出訊息
+
+3.備份ROM裡的重要資料（第2個64k和最後的64k）
+     3.1 透過路由器原廠的網頁操作介面，刷上OpenWRT官方預編譯好的factory固件
+     3.2 （first login）設定root密碼
+     3.3 ssh連線到路由器，備份u-boot和art資料到筆記型電腦上
+
+4.了解u-boot console刷固件的方式
+     4.1 在筆記型電腦上安裝並設定TFTP服務器
+     4.2 強迫路由器進入u-boot console
+     4.3 命令路由器刷回原廠固件，重新將路由器開機後，觀察是否回到原廠固件？
+     4.4 以同樣方式再刷回OpenWRT factory固件，重新將路由器開機後，觀察是否變成OpenWRT固件？
+
+5.製作我們自已的TL-WR841Nv8編程器固件
+     5.1 編譯16MB Flash專用的OpenWRT firmware
+     5.2 編譯pepe2k版本的u-boot
+     5.3 勞作時間，使用hex editor將uboot、firmware、art資料弄成一整個16MB的編程器固件影像檔
+
+6.測試CH341A編程器讀寫均正常
+
+10.寫入我們剛才產生的16MB編程器固件到ROM裡
+
+11.取下舊的RAM，焊上新的64MB RAM，將路由器開機觀察是否行為正常？
+
+12.取下舊的ROM，焊上新的16MB ROM，將路由器開機觀察是否行為正常？
+
+13.換上新ROM之後的OpenWRT的第一次開機（First Login）
+     13.1 設定root密碼
+     13.2 設定網路環境
+
+14.了解FailSafe模式
+
+15.了解如何使用pepe2k不死u-boot刷其他固件
+
+
+
+
+
+
+
+
+
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+
+把WR841開機，telnet進去後設定root密碼，然後把路由器上ROM裡的uboot和art備份下來
 參考資料
 http://wiki.openwrt.org/doc/howto/generic.backup
 http://lirobo.blogspot.tw/2012/10/tp-link-tl-wr703n.html
-
-3.在筆記型電腦上安裝TFTP服務器
-
-4.使用TFTP方式刷回tp-link原廠firmware
-
-5.使用TFTP方式再刷回OpenWRT官方的WR841N-v8的firmware
-
-6.編譯16MB Flash專用的OpenWRT firmware
-
-7.編譯WR841N/D專用的pepe2k版本的uboot
-
-8.勞作時間，使用hex editor將uboot、firmware、art資料弄成一整個16MB的編程器固件
-
-9.測試CH341A編程器讀寫均正常
-
-10.寫入我們剛才產生的16MB編程器固件到ROM裡
 
