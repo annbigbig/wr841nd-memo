@@ -1,4 +1,4 @@
-0.認識編程器固件的分割區布局方式
+0.認識編程器固件的分割區布局及寫入Flash ROM的方式
 
 參考資料：
 http://wiki.openwrt.org/doc/techref/file_system
@@ -8,12 +8,15 @@ http://wiki.openwrt.org/doc/techref/file_system
 ｜　１２８ｋｂ　　｜　　　　　　　　　　　　　　　　｜　６４ｋｂ　｜
 －－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
 
+首先我要說明我不是唸電子的，我完全是硬體門外漢，
+以下只是我的理解，可能和最精確的ROM的定義會有出入
 路由器的電路板上有一個東西叫EEPROM，網路上的文章如果講到什麼分享器還是路由器有4M flash、8M flash
-就是在講這個東西，也可以叫它ROM，你可以直接把它想成是個人電腦上的硬碟
-這裡存放著路由器的作業系統，ROM在路由器上並不是絕對read-only的
+就是在講這個東西，也可以叫它ROM，網路上我看到也有叫spi flash講的都是同一個東西
+你可以直接把它想成是個人電腦上的硬碟，以下開始為了敘述方便我一律叫它作ROM
+ROM裡存放著路由器的作業系統，ROM在路由器上並不是絕對read-only的
 有以下幾種方式可以寫入它：
 
-方式1
+方式1：路由器的網頁操作介面
 =============================================================
 路由器自帶的運行於tcp port 80的網頁操作介面
 可以透過該路由器的廠商出廠時預設的網頁操作介面，上傳某個firmware（可以是OpenWRT的factory固件，也可以是原廠的固件）
@@ -23,7 +26,7 @@ http://wiki.openwrt.org/doc/techref/file_system
 那麼很可能路由器就會變成一塊磚磚（brick）
 這也算是一個術語，意思是你的路由器就這麼廢掉了，不能再開機，不過也沒那麼嚴重，還是有得救
 
-方式2
+方式2：uboot console
 =============================================================
 強迫路由器進入uboot-console，去抓另一台TFTP服務器上放置的firmware影像檔，然後寫入ROM
 透過接上ttl-usb線，一邊是路由器，一邊假設是安裝了Linux作業系統的筆記型電腦，
@@ -39,7 +42,7 @@ http://wiki.openwrt.org/doc/techref/file_system
 然後載入RAM，清除flash上面從某個特定位址開始算起，和這個影像檔一樣的大小，
 然後再把這個firmware影像檔寫入ROM裡面，這也是常見的解磚（unbrick）方式之一
 
-方式3
+方式3：取下路由器電路板上的原來的ROM，然後把我們自已的已經燒好編程器固件的焊上去
 =============================================================
 在任何一台安裝了Linux系統的電腦上，安裝好bless hex editor（16進制檔案編輯器）
 然後照著上面我畫的那個簡單的layout圖，弄出一個所謂的「編程器固件」的，檔案內容都是16進制數據的影像檔
@@ -50,7 +53,7 @@ http://wiki.openwrt.org/doc/techref/file_system
 這樣子就拼成了一個「編程器固件」，然後我們再用CH341A這樣的可以插在筆記型電腦上的USB接口的燒錄器
 把「編程器固件」影像檔燒到EEPROM裡，之後拔下路由器上面那顆舊的，再把這顆燒好的新的EEPROM焊上去
 
-方式4
+方式4：使用路由器電路板上的JTag接口
 =============================================================
 透過路由器上的JTag接口，不過我不是電子科本科系的，我根本不會用
 我看到那麼多規格8-pin、10-pin、12-pin、14-pin、16-pin到底要怎麼接我頭都暈了
@@ -62,14 +65,112 @@ http://wiki.openwrt.org/toh/tp-link/tl-wr1043nd#jtag
 如果只是接ttl-usb，路由器上的電路版頂多就是接RX、TX和GND只接三條，相對簡單的多
 OpenWRT官網的tl-wr1043nd的那一頁說不可能使用JTag來解磚，因為沒有寫入flashrom的權限
 可是Google關鍵字JTag unbrick一堆頁面都跑出來說可以啊用JTag這樣解磚啊
+（Google關鍵字：JTag 磚，然後跑一堆網頁出來大家都在用JTag解磚）
 所以事實還要再查證一下，不過我是不會去用這個功能的啦（懶）
 
 ＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
 
 上面是我畫的簡化了之後的分割區layout圖
 大致上分成三個部分
-
+－－－－－－－－－－－－－－－
 u-boot : 
+－－－－－－－－－－－－－－－
 這裡有128 kb的大小，嚴格來說，其中第一個64kb才是u-boot
-第二個64kb裡會有該路由器的mac address、model、wps pin等資訊
-u-boot可以換掉，例如tp-link官方的u-boot有內建一些功能，像是
+第二個64kb裡存放的是該路由器的mac address、model、wps pin等資訊
+u-boot可以換掉，把原先廠商內建於路由器的u-boot換成社群開發的u-boot
+例如pepe2k修改的u-boot版本
+github源碼庫在這裡
+https://github.com/pepe2k/u-boot_mod
+沒事好好的u-boot幹麻要換掉它呢？
+因為pepe2k改出的u-boot有刷不死的功能
+它可以啟用一個web server(按住reset鍵3秒鐘)
+讓你可以使用網頁操作介面，直接昇級u-boot或是firmware或是art資料的任何一個
+不用再去接那該死的ttl-usb線了，光憑這一點就值得你把原來的u-boot換掉
+除了這個還有其他的像是network console的功能
+這些都可以在pepe2k上面那個github源碼庫的說明文件找到相關資訊
+還有一定要注意的是，u-boot第二個64k的區塊你一定要把它備份下來，再開始亂搞
+這64k剛才我說了，裡面有你這台路由器的mac address、model、wps pin等資訊
+它和ROM最後面的64k的art資料一樣重要
+記住：整個ROM的第二個64k（包含了mac address）和最後面的64k（art校正資料）一定要備份下來
+如果沒備份，最糟的情況就是到論壇還是網路上找同樣型號路由器的編程器固件
+然後自已動手用hex editor剪出來用，但是請記得
+mac address或許可以改
+tp-link的路由器的外殼上應該有貼著mac address的地址
+剪別人的編程器固件的第2個64k的地方，然後mac address用hex editor換掉是可行的
+但是art無線網路校正資料，即使你從網路上真的給你找到了同一個型號路由器的編程器固件
+也不要以為就這麼剪下來最後64k的地方，放在自已作的編程器固件的同一個地方
+一切就會像以前一樣正常，不是
+每一台路由器的art資料都是獨一無二的，就算從同一個型號的其他路由器上面複製下來，搞了個自已的編程器固件
+然後燒進新的ROM裡，再把這顆剛燒好的新的ROM焊在路由器的電路版上
+它的無線網路的功能也不會像以前一樣那麼好，應該還是會作用，但是不像它原來的那麼好
+這不是我說的，是OpenWRT官網說的
+在這裡
+http://wiki.openwrt.org/doc/howto/restore_art_partition
+這裡這段
+ART partition contains calibration data 
+so if you didn't make a backup of your own 
+than your radios might not perform as well as before 
+(I still think it's better to have radios performing not 100% than not performing at all :) ).
+
+－－－－－－－－－－－－－－－
+firmware
+－－－－－－－－－－－－－－－
+就是我們的OpenWRT的固件
+值得注意的是通常同一個路由器型號
+在OpenWRT官網的下載點會有兩個版本
+一個會是
+openwrt-ar71xx-generic-tl-wr841n-v8-squashfs-factory.bin
+另一個會是
+openwrt-ar71xx-generic-tl-wr841n-v8-squashfs-sysupgrade.bin
+這兩個固件都是給同一台TP-Link TL-WR841N/D用的
+差別在於
+如果你現在路由器上還是原廠的firmware，然後你想把firmware的地方刷入OpenWRT的影像檔
+那麼就要用factory的那個影像檔
+如果你的路由器的firmware已經是OpenWRT了，那麼就可以刷sysupgrade的影像檔
+兩個影像檔的內容基本上一樣
+差別的地方在factory的那個影像檔比sysupgrade的影像檔多了一些東西
+不過我不知道到底多出來的那些東西是什麼
+森亮號的船長說反正不管什麼時候，用factory都是沒錯的
+參考來源：
+http://see.sl088.com/wiki/Openwrt_factory%E5%9B%BA%E4%BB%B6/%E4%B8%BA%E4%BD%95%E5%85%88%E5%88%B7factory
+
+官網上關於factory和sysupgrade影像檔不同的敘述
+資料來源
+http://wiki.openwrt.org/doc/faq/before.installation
+
+這一段
+What is the difference between the different image formats?
+
+a factory image is one built for the bootloader flasher or stock software flasher
+a sysupgrade image (previously named trx image) is designed to be flashed from within openwrt itself
+The two have the same content, but a factory image would have extra header information or whatever the platform needs. 
+Generally speaking, the factory image is to be used with the OEM GUI or OEM flashing utilities to convert the device to OpenWrt. 
+After that, use the sysupgrade images.
+
+還有一點要注意
+就拿我待會兒要動手硬改的TP-Link TL-WR841NDv8來說
+因為我要把原廠的硬體 (RAM/ROM)
+32MB/4MB
+改成
+64MB/16MB
+所以OpenWRT官網上那個已經編譯好的固件
+openwrt-ar71xx-generic-tl-wr841n-v8-squashfs-factory.bin
+與我無緣
+那是給原廠機4MB ROM用的固件
+我必須要自已再編譯出16MB ROM的OpenWRT固件才行
+還有為什麼u-boot要換成pepe2k的
+那是因為pepe2k的u-boot支持16MB的Flash ROM
+它在它github源碼庫的說明檔README.md裡有寫
+支持的16 MB Flash廠牌及型號
+16 MiB:
+Winbond W25Q128 (16 MB, JEDEC ID: EF 4018)*
+Macronix MX25L128 (16 MB, JEDEC ID: C2 2018, C2 2618)
+Spansion S25FL127S (16 MB, JEDEC ID: 01 2018)*
+
+－－－－－－－－－－－－－－－
+art
+－－－－－－－－－－－－－－－
+前面那一段講了，和路由器上的無線網路功能有關的校正資料
+在ROM的最後64k（TP-Link是這樣，別的廠牌不一定）
+一定要記得備份，再開始亂搞
+備份的方式稍後的步驟裡會講到

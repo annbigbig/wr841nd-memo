@@ -8,7 +8,7 @@ uboot : pepe2k的版本
 
 工作列表：
 
-0.認識編程器固件的分區布局方式
+0.認識編程器固件的分割區布局及寫入Flash ROM的方式
 
 1.使用tp-link的web interface刷上官方預編譯好的OpenWRT firmware
 （openwrt-ar71xx-generic-tl-wr841n-v8-squashfs-factory.bin）
