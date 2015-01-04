@@ -1,0 +1,82 @@
+2.觀察原廠固件輸出的serial console訊息
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+工作列表：
+     2.1 硬體連接
+     2.2 連線軟體PuTTY安裝及設定
+     2.3 開啟路由器電源，使用PuTTY連線後，觀察serial console的輸出訊息
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+細節：
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+2.1 硬體連接
+
+參考資料：
+（照片很多）
+http://zmt.me/post/72.html
+
+官網參考資料：
+http://wiki.openwrt.org/doc/hardware/port.serial#usb-serial_parts
+
+拍賣網站搜尋關鍵字：
+usb ttl
+CP2102
+FT232RL
+
+基本上就是：
+　　TL-WR841Nv8路由器　　　　　　　　　　　　　　　　　　　　CP2102
+十－－－－－－－－－－－十　　　　　　　　　　　　　　十－－－－－－－－－－－十
+｜　　　　ＴＸ　　　　　｜－－－－杜－邦－線－－－－－｜　　　　ＲＸ　　　　　｜
+十－－－－－－－－－－－十　　　　　　　　　　　　　　十－－－－－－－－－－－十－－－－－十
+｜　　　　ＲＸ　　　　　｜－－－－杜－邦－線－－－－－｜　　　　ＴＸ　　　　　｜ＵＳＢ公頭｜　　插那裡？當然是插個人電腦或筆記型電腦的USB母插座
+十－－－－－－－－－－－十　　　　　　　　　　　　　　十－－－－－－－－－－－十－－－－－十　　　　　因為懶得再畫了，藝術天份不是很高高
+｜　　　　ＧＮＤ　　　　｜－－－－杜－邦－線－－－－－｜　　　　ＧＮＤ　　　　｜
+十－－－－－－－－－－－十　　　　　　　　　　　　　　十－－－－－－－－－－－十
+
+先把四支腳的單排針焊在TL-WR841n8路由器的電路板上
+焊在這個位置
+（這是路由器電路板上的TX、RX、GND那個地方的照片）
+http://wiki.openwrt.org/_detail/media/toh/tp-link/tl-wr841nd.v8.4.serial.jpg?id=toh%3Atp-link%3Atl-wr841nd
+
+值得注意的是，有某些牌子的小小板
+（對不起我不是很了解它的學名，OpenWRT官網上稱呼它是USB to RS232 TTL Converter Module）
+板子上標示的TX和RX可能不是真的表示它們就是TX和RX
+而是「嘿！路由器的TX應該接在這裡」「嘿！路由器的RX應該接在這裡」
+所以如果你接上了路由器和筆記型電腦的USB埠，但是無法用PuTTY去連/dev/ttyUSB0的時候
+試著把TX接在TX，RX接在RX再試試看
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+2.2 連線軟體PuTTY安裝及設定
+
+參考資料：
+https://forum.openwrt.org/viewtopic.php?id=51405
+
+在筆記型電腦上（Linux Mint 17）安裝串列埠連線軟體PuTTY
+以root用戶執行
+# apt-get install putty
+
+安裝完成後，開啟PuTTY，在桌面左下角 Menu -> 網際網路 -> PuTTY SSH Client
+然後在左邊的Category > Connection > Serial
+設定如下：
+Serial line to connect to : /dev/ttyUSB0
+Speed (baud) : 115200
+Data bits : 8
+Stop bits : 1
+Parity : none
+Flow control : none
+
+如果不想每一次進PuTTY都要再囉哩八嗦重新指定一次設定值
+就把這些設定值存起來
+在左邊的Category > Session
+也是我們最初進來PuTTY看到的操作介面，右邊中間的
+Saved Sessions下面的文字輸入框
+給這一組設定值隨便取個代號，例如
+connect_to_my_ttyUSB0_115200_8n1
+然後按下右邊那顆「Save」鈕就把設定值存好了
+下次再打開PuTTY的時候，就直接選剛才存好的設定值connect_to_my_ttyUSB0_115200_8n1
+然後按下右邊那顆「Load」鈕，就直接把上面的設定值拉出來使用了
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+2.3 開啟路由器電源，使用PuTTY連線後，觀察serial console的輸出訊息
+
