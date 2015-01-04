@@ -14,62 +14,93 @@ http://wiki.openwrt.org/toh/tp-link/tl-wr841nd
 Note1: The TL-WR841N is identical except that the antennas are not detachable. 
 TP-Link naming scheme is, that devices ending in a D have detachable antennas
 而v8表示第8版，而v8.1、v8.2、v8.3、v8.4它們之間的差異是固件（Firmware），硬體配置都是一樣的
-OpenWRT官網的TL-WR841N的頁面上，這裡也有寫
+OpenWRT官網的TL-WR841N的頁面上，這裡也有寫，這是TP-Link的路由器型號命名規則，其他廠牌不一定是如此
 major-number.minor-number, where the major-number refers to hardware changes, 
 and the minor-number refer to software (firmware) changes; this includes the bootloader!
 
 ＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
-ttl-usb小板板：
+ttl-usb小小板：
 學名：USB to RS232 TTL Converter Module
 露天搜尋關鍵字：
 usb ttl
 CP2102
 FT232RL
-其它還有很多選擇，不一定要選這兩個型號的小板板，
+其它還有很多選擇，不一定要選這兩個型號的小小板，
 在OpenWRT官網上關於serial console的敘述裡
 
 參考資料：
 http://wiki.openwrt.org/doc/hardware/port.serial#usb
 
-可以知道除了上面用小板板還有三條杜邦線這樣子接，
-也有賣那種已經把USB公頭、小板板、杜邦線合為一體的一整條usb-ttl線材
+可以知道除了上面用小小板還有三條杜邦線這樣子接，
+也有賣那種已經把USB公頭、小小板、杜邦線合為一體的一整條usb-ttl線材
 甚至可以用某些廠牌的PDA還是手機用的連接線來用
-選擇很多，而且可以用的小板板也不只CP2102和FT232RL這兩個型號，
+選擇很多，而且可以用的小小板也不只CP2102和FT232RL這兩個型號，
 因為我是硬體完全不懂，我就選一個比較多人用的CP2102好了
 
 ＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
-
 杜邦線：要接TX、RX、GND所以要三條
 
 ＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
-
 單排針：4支腳 x1，要焊在路由器電路板上
 
 ＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+電烙鐵工具組：
 
-編程器：CH341A
+慘的是我從沒用過這個插了電就會產生高溫的恐怖東西…
+Youtube搜尋關鍵字：
+remove spi rom from pcb
+remove ram from pcb
+how to solder ic on pcb
+慢慢看吧，順便找一塊廢電路板
+好歹試焊試拆幾個IC之後，再對路由器下手，才是明智的決擇
+
+拍賣網站頁面：
+http://goods.ruten.com.tw/item/show?21403089071342
 
 ＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+編程器：CH341A
+拍賣網站頁面：
+http://goods.ruten.com.tw/item/show?21442510420342
 
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+一台安裝了Windows XP/7/8的桌上型電腦或是筆記型電腦：
+這是為了要使用CH341A編程器，它只有Windows版本的驅動程式
+當然也可以想辦法自已生出Linux驅動程式
+但是那太費勁了，而且已經偏離我的主題
+我只是要把作好的16MB編程器固件燒進SPI Flash ROM
+我不想再花力氣去搞其他的
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+工業用熱風槍：
+為了把電路板上的RAM和ROM取下
+
+拍賣網站頁面：
+http://goods.ruten.com.tw/item/show?21209106057564
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
 RAM： 
 可用的型號1：HY5DU121622DTP-D43
+可用的型號2：HY5DU121622CTP-J
 容量：64 MB
 數量：1
 參考資料：
 http://m.oschina.net/blog/282141
 
-＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+淘寶商品頁面：
+http://tw.taobao.com/item/37981358349.htm?spm=a1z3o.7406521.0.0.qviGUZ&abtest=_AB-LR492-LR501-LR517-PR492-PV501_1146-PV517_1206
 
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
 ROM：
 規格：SOP8 SPI Flash
-可用的型號1：W25Q128FVSSIG
+可用的型號1：MX25L12835F
 可用的型號2：MX25L12835FM2I
-可用的型號3：MX25L12835F
+可用的型號3：W25Q128FVSSIG
 容量：16MB
 數量：1
 參考資料：
 http://see.sl088.com/wiki/16M_SOP8_Flash
 
-＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+淘寶商品頁面：
+http://tw.taobao.com/item/37536565136.htm?spm=a1z3o.7406521.0.0.HdigTG&abtest=_AB-LR492-LR501-LR517-PR492-PV501_1146-PV517_1206
 
 ＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
