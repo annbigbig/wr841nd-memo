@@ -1,0 +1,75 @@
+1.準備需要的硬體及材料
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+路由器：
+TP-Link TL-WR841NDv8
+或
+TP-Link TL-WR841Nv8
+
+參考資料：
+http://wiki.openwrt.org/toh/tp-link/tl-wr841nd
+
+型號有多個D，表示無線的天線可以拆下來
+兩者硬體配置是相同的
+Note1: The TL-WR841N is identical except that the antennas are not detachable. 
+TP-Link naming scheme is, that devices ending in a D have detachable antennas
+而v8表示第8版，而v8.1、v8.2、v8.3、v8.4它們之間的差異是固件（Firmware），硬體配置都是一樣的
+OpenWRT官網的TL-WR841N的頁面上，這裡也有寫
+major-number.minor-number, where the major-number refers to hardware changes, 
+and the minor-number refer to software (firmware) changes; this includes the bootloader!
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+ttl-usb小板板：
+學名：USB to RS232 TTL Converter Module
+露天搜尋關鍵字：
+usb ttl
+CP2102
+FT232RL
+其它還有很多選擇，不一定要選這兩個型號的小板板，
+在OpenWRT官網上關於serial console的敘述裡
+
+參考資料：
+http://wiki.openwrt.org/doc/hardware/port.serial#usb
+
+可以知道除了上面用小板板還有三條杜邦線這樣子接，
+也有賣那種已經把USB公頭、小板板、杜邦線合為一體的一整條usb-ttl線材
+甚至可以用某些廠牌的PDA還是手機用的連接線來用
+選擇很多，而且可以用的小板板也不只CP2102和FT232RL這兩個型號，
+因為我是硬體完全不懂，我就選一個比較多人用的CP2102好了
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+
+杜邦線：要接TX、RX、GND所以要三條
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+
+單排針：4支腳 x1，要焊在路由器電路板上
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+
+編程器：CH341A
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+
+RAM： 
+可用的型號1：HY5DU121622DTP-D43
+容量：64 MB
+數量：1
+參考資料：
+http://m.oschina.net/blog/282141
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+
+ROM：
+規格：SOP8 SPI Flash
+可用的型號1：W25Q128FVSSIG
+可用的型號2：MX25L12835FM2I
+可用的型號3：MX25L12835F
+容量：16MB
+數量：1
+參考資料：
+http://see.sl088.com/wiki/16M_SOP8_Flash
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
