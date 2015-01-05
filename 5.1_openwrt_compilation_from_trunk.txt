@@ -22,6 +22,7 @@ Linux anntony-Lenovo-B590 3.13.0-24-generic #47-Ubuntu SMP Fri May 2 23:30:00 UT
           5.1.5.1 修改~/openwrt/trunk/target/linux/ar71xx/base-files/etc/uci-defaults/01_leds
           5.1.5.2 修改~/openwrt/trunk/target/linux/ar71xx/base-files/etc/uci-defaults/02_network
           5.1.5.3 修改~/openwrt/trunk/target/linux/ar71xx/image/Makefile
+          5.1.5.4 修改~/openwrt/trunk/tools/firmware-utils/src/mktplinkfw.c
      5.1.6 修改固件預設的環境配置
          5.1.6.1 預設的root密碼
          5.1.6.2 預設的無線網路配置
@@ -193,6 +194,12 @@ openwrt-ar71xx-generic-tl-wr841n-v8-squashfs-factory.bin
 要不就是編譯出來的影像檔，燒進ROM裡有問題
 繼續弄下去好了，這不是ERROR而是WARNING，雖然看了不是很舒服
 
+搜尋關鍵字：
+openwrt WARNING: No feed for package
+
+參考資料：
+https://dev.openwrt.org.cn/wiki/installfeeds
+
 ＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
 5.1.5 修改源代碼以符合我們16MB Flash固件需求
 ＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
@@ -284,8 +291,115 @@ $(eval $(call SingleProfile,TPLINK-LZMA,64kraw,TLWR841NV8,tl-wr841n-v8,TL-WR841N
 $(eval $(call SingleProfile,TPLINK-LZMA,64kraw,TLWR841NV8,tl-wr841n-v8,TL-WR841N-v8,ttyS0,115200,0x08410008,1,16Mlzma))
 
 ＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+5.1.5.4 修改~/openwrt/trunk/tools/firmware-utils/src/mktplinkfw.c
 
+原來的檔案裡沒有TL_WR841ND_V8的定義
+開啟vi文字編輯器
+$ vi ~/openwrt/trunk/tools/firmware-utils/src/mktplinkfw.c
 
+找到這個區塊
+#define HWID_TL_WR841N_V1_5     0x08410002
+#define HWID_TL_WR841ND_V3      0x08410003
+#define HWID_TL_WR841ND_V5      0x08410005
+#define HWID_TL_WR841ND_V7      0x08410007
+#define HWID_TL_WR941ND_V2      0x09410002
+
+在中間插入一行，變成這樣
+#define HWID_TL_WR841N_V1_5     0x08410002
+#define HWID_TL_WR841ND_V3      0x08410003
+#define HWID_TL_WR841ND_V5      0x08410005
+#define HWID_TL_WR841ND_V7      0x08410007
+#define HWID_TL_WR841ND_V8      0x08410008
+#define HWID_TL_WR941ND_V2      0x09410002
+
+再找到這個區塊
+        }, {
+                .id             = "16M",
+                .fw_max_len     = 0xf80000,
+                .kernel_la      = 0x80060000,
+                .kernel_ep      = 0x80060000,
+                .rootfs_ofs     = 0x140000,
+        }, {
+                .id             = "16Mlzma",
+                .fw_max_len     = 0xf80000,
+                .kernel_la      = 0x80060000,
+                .kernel_ep      = 0x80060000,
+                .rootfs_ofs     = 0x100000,
+        }, {
+                .id             = "16Mppc",
+                .fw_max_len     = 0xf80000,
+                .kernel_la      = 0x00000000,
+                .kernel_ep      = 0xc0000000,
+                .rootfs_ofs     = 0x2a0000,
+        }, {
+                /* terminating entry */
+        }
+};
+
+把和16M有關係的.fw_max_len都改了，改成這樣
+       }, {
+                .id             = "16M",
+                .fw_max_len     = 0xfc0000,
+                .kernel_la      = 0x80060000,
+                .kernel_ep      = 0x80060000,
+                .rootfs_ofs     = 0x140000,
+        }, {
+                .id             = "16Mlzma",
+                .fw_max_len     = 0xfc0000,
+                .kernel_la      = 0x80060000,
+                .kernel_ep      = 0x80060000,
+                .rootfs_ofs     = 0x100000,
+        }, {
+                .id             = "16Mppc",
+                .fw_max_len     = 0xfc0000,
+                .kernel_la      = 0x00000000,
+                .kernel_ep      = 0xc0000000,
+                .rootfs_ofs     = 0x2a0000,
+        }, {
+                /* terminating entry */
+        }
+};
+
+然後再找到這個區塊
+        }, {
+                .id             = "TL-WR841NDv5",
+                .hw_id          = HWID_TL_WR841ND_V5,
+                .hw_rev         = 1,
+                .layout_id      = "4M",
+        }, {
+                .id             = "TL-WR841NDv7",
+                .hw_id          = HWID_TL_WR841ND_V7,
+                .hw_rev         = 1,
+                .layout_id      = "4M",
+        }, {
+                .id             = "TL-WR941NDv2",
+                .hw_id          = HWID_TL_WR941ND_V2,
+                .hw_rev         = 2,
+                .layout_id      = "4M",
+        }, {
+
+在TL-WR941NDv2前面插入一個TL-WR841NDv8的區塊，變成這個樣子
+        }, {
+                .id             = "TL-WR841NDv5",
+                .hw_id          = HWID_TL_WR841ND_V5,
+                .hw_rev         = 1,
+                .layout_id      = "4M",
+        }, {
+                .id             = "TL-WR841NDv7",
+                .hw_id          = HWID_TL_WR841ND_V7,
+                .hw_rev         = 1,
+                .layout_id      = "4M",
+        }, {
+                .id             = "TL-WR841NDv8",
+                .hw_id          = HWID_TL_WR841ND_V8,
+                .hw_rev         = 1,
+                .layout_id      = "16Mlzma",
+        }, {
+                .id             = "TL-WR941NDv2",
+                .hw_id          = HWID_TL_WR941ND_V2,
+                .hw_rev         = 2,
+                .layout_id      = "4M",
+        }, {
 
 ＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
 
