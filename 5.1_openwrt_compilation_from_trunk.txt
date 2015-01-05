@@ -1,19 +1,206 @@
 5.1 編譯16MB Flash專用的OpenWRT firmware
 
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
 參考資料：
 http://wiki.openwrt.org/zh-tw/doc/howto/build#清除
 http://coderazzi.net/howto/openwrt/tl841n/install.htm
 http://m.oschina.net/blog/282141
+http://my.oschina.net/osbin/blog/278782
 
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+編譯環境：運行X86_64版本的Linux Mint 17，筆記型電腦
+anntony-Lenovo-B590 ~ # uname -a
+Linux anntony-Lenovo-B590 3.13.0-24-generic #47-Ubuntu SMP Fri May 2 23:30:00 UTC 2014 x86_64 x86_64 x86_64 GNU/Linux
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
 工作列表：
+     5.1.1 使用svn拉下trunk分支的OpenWRT源代碼
+     5.1.2 看一下trunk/README 寫什麼
+     5.1.3 確認編譯固件所需的依賴套件是否全裝上了？
+     5.1.4 更新feeds
+     5.1.5 修改源代碼以符合我們16MB Flash固件需求
+          5.1.5.1 修改
+          5.1.5.2 修改
+          5.1.5.3 修改
+     5.1.6 修改固件預設的環境配置
+          5.1.6.1 預設的root密碼
+         5.1.6.2 預設的無線網路配置
+         5.1.6.3 預設的主機名、時區、ntp校時服務器
+         5.1.6.4 預設的語言環境
+     5.1.7 進入make menuconfig 設定畫面
+     5.1.8 開始編譯
+     5.1.9 編譯好的影像檔在那兒？
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+細節：
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
 5.1.1 使用svn拉下trunk分支的OpenWRT源代碼
+
+確認一下你已經安裝好svn了
+$ which svn
+
+已經安裝好的話，就會看到終端機回答
+/usr/bin/svn
+
+如果沒有安裝，請切換到root用戶，安裝
+$ sudo -i
+# apt-get install subversion
+
+待會的動作都是用一般用戶的身分執行，問一下終端機我是誰？
+$ whoami
+
+終端機說我是
+anntony
+
+切換到我的家目錄/home/anntony
+$ cd /home/anntony
+
+新增一個openwrt目錄
+$ mkdir openwrt
+
+進入該目錄
+$ cd openwrt
+
+問卦一下我人現在在那裡？
+$ pwd
+
+終端機告訴我
+/home/anntony/openwrt
+
+接著在這個目錄裡，把openwrt的源代碼拉下來
+先看一下OpenWRT官方的GetSource的網頁
+https://dev.openwrt.org/wiki/GetSource
+
+有很多版本，有trunk、有14.07 Barrier Breaker、有12.09 Attitude Adjustment
+我們去拉主要的開發分支trunk，執行
+$ svn co svn://svn.openwrt.org/openwrt/trunk/
+
+然後耐心等一下，終端機會輸出很多下載了什麼檔案的訊息
+（終端機超長的輸出訊息省略…）
+A    trunk/config/Config-kernel.in
+A    trunk/BSDmakefile
+A    trunk/.gitattributes
+A    trunk/Config.in
+A    trunk/Makefile
+ U   trunk
+取出修訂版 43853.
+
+終端機輸出的訊息很長，所以我只放上最後幾行
+最後一行很重要，它告訴我們取出來修訂版是43853
+svn我根本不熟，這裡的修訂版43853我想應該和git的commit是同樣的東西吧？
+
+剛才的svn指令成功的在/home/anntony/openwrt目錄裡，拉下了trunk目錄
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
 5.1.2 看一下trunk/README 寫什麼
+
+原諒我這個懶鬼
+anntony@anntony-Lenovo-B590 ~/openwrt $ pwd
+/home/anntony/openwrt
+anntony@anntony-Lenovo-B590 ~/openwrt $ ls
+trunk
+anntony@anntony-Lenovo-B590 ~/openwrt $ cd trunk
+anntony@anntony-Lenovo-B590 ~/openwrt/trunk $ ls
+BSDmakefile  config  Config.in  docs  feeds.conf.default  include  LICENSE  Makefile  package  README  rules.mk  scripts  target  toolchain  tools
+anntony@anntony-Lenovo-B590 ~/openwrt/trunk $ cat ./README 
+This is the buildsystem for the OpenWrt Linux distribution.
+
+Please use "make menuconfig" to configure your appreciated
+configuration for the toolchain and firmware.
+
+You need to have installed gcc, binutils, bzip2, flex, python, perl, make,
+find, grep, diff, unzip, gawk, getopt, subversion, libz-dev and libc headers.
+
+Run "./scripts/feeds update -a" to get all the latest package definitions
+defined in feeds.conf / feeds.conf.default respectively
+and "./scripts/feeds install -a" to install symlinks of all of them into
+package/feeds/.
+
+Use "make menuconfig" to configure your image.
+
+Simply running "make" will build your firmware.
+It will download all sources, build the cross-compile toolchain, 
+the kernel and all choosen applications.
+
+You can use "scripts/flashing/flash.sh" for remotely updating your embedded
+system via tftp.
+
+The OpenWrt system is documented in docs/. You will need a LaTeX distribution
+and the tex4ht package to build the documentation. Type "make -C docs/" to build it.
+
+To build your own firmware you need to have access to a Linux, BSD or MacOSX system
+(case-sensitive filesystem required). Cygwin will not be supported because of
+the lack of case sensitiveness in the file system.
+
+
+Sunshine!
+	Your OpenWrt Project
+	http://openwrt.org
+
+
+anntony@anntony-Lenovo-B590 ~/openwrt/trunk $
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
 5.1.3 確認編譯固件所需的依賴套件是否全裝上了？
-5.1.4 更新feeds
+
+上面的README裡寫著
+You need to have installed gcc, binutils, bzip2, flex, python, perl, make,
+find, grep, diff, unzip, gawk, getopt, subversion, libz-dev and libc headers.
+
+所以打開Synaptic套件管理員
+一個一個把它們裝上去
+如果不小心漏了也沒關係
+之後的步驟裡如果發現編譯平台上少安裝了什麼套件或是lib
+會發出警告訊息，明確告訴你少安裝了什麼套件
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+ 5.1.4 更新feeds
+
+anntony@anntony-Lenovo-B590 ~/openwrt/trunk $ pwd
+/home/anntony/openwrt/trunk
+anntony@anntony-Lenovo-B590 ~/openwrt/trunk $ ls
+BSDmakefile  config  Config.in  docs  feeds.conf.default  include  LICENSE  Makefile  package  README  rules.mk  scripts  target  toolchain  tools
+anntony@anntony-Lenovo-B590 ~/openwrt/trunk $ ./scripts/feeds update -a
+（終端機輸出很長，不放上，大致上是執行git去拉一些放在github上的依賴套件的源碼repo）
+anntony@anntony-Lenovo-B590 ~/openwrt/trunk $ ./scripts/feeds install -a
+（一樣終端機輸出很長，不放上）
+
+我有點在意的是，在執行
+$ ./scripts/feeds install -a
+之後
+出現了很多的WARNING訊息，像是
+WARNING: No feed for package 'libcrypto' found, maybe it's already part of the standard packages?
+WARNING: No feed for package 'kmod-siit' found, maybe it's already part of the standard packages?
+WARNING: No feed for package 'smap' found, maybe it's already part of the standard packages?
+WARNING: No feed for package 'netdiscover' found, maybe it's already part of the standard packages?
+WARNING: No feed for package 'mac-to-devinfo' found, maybe it's already part of the standard packages?
+WARNING: No feed for package 'httping' found, maybe it's already part of the standard packages?
+WARNING: No feed for package 'smap-to-devinfo' found, maybe it's already part of the standard packages?
+WARNING: No feed for package 'netdiscover-to-devinfo' found, maybe it's already part of the standard packages?
+
+一狗串，可是最後幾行的地方終端機輸出的訊息像這樣
+Installing package 'freenetconfd'
+Installing package 'libssh'
+Installing package 'freesub'
+Installing package 'libev'
+Installing package 'libnetconf'
+Installing package 'shtool'
+anntony@anntony-Lenovo-B590 ~/openwrt/trunk $
+
+感覺好像沒關係，沒關係，繼續弄下去就知道了
+如果真的有問題，那麼要不是沒辦法編譯出
+openwrt-ar93xx-generic-tl-wr841n-v8-squashfs-factory.bin
+要不就是編譯出來的影像檔，燒進ROM裡有問題
+繼續弄下去好了，這不是ERROR而是WARNING，雖然看了不是很舒服
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
 5.1.5 修改源代碼以符合我們16MB Flash固件需求
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
 5.1.5.1 修改
-5.1.5.2 修改
-5.1.5.3 修改
-5.1.6 進入make menuconfig 設定畫面
-5.1.7 開始編譯
-5.1.8 編譯好的影像檔在那兒？
+
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+
+
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
