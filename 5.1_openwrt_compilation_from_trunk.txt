@@ -1,0 +1,19 @@
+5.1 編譯16MB Flash專用的OpenWRT firmware
+
+參考資料：
+http://wiki.openwrt.org/zh-tw/doc/howto/build#清除
+http://coderazzi.net/howto/openwrt/tl841n/install.htm
+http://m.oschina.net/blog/282141
+
+工作列表：
+5.1.1 使用svn拉下trunk分支的OpenWRT源代碼
+5.1.2 看一下trunk/README 寫什麼
+5.1.3 確認編譯固件所需的依賴套件是否全裝上了？
+5.1.4 更新feeds
+5.1.5 修改源代碼以符合我們16MB Flash固件需求
+5.1.5.1 修改
+5.1.5.2 修改
+5.1.5.3 修改
+5.1.6 進入make menuconfig 設定畫面
+5.1.7 開始編譯
+5.1.8 編譯好的影像檔在那兒？
