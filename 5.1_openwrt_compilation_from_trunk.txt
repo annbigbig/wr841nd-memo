@@ -24,10 +24,10 @@ Linux anntony-Lenovo-B590 3.13.0-24-generic #47-Ubuntu SMP Fri May 2 23:30:00 UT
           5.1.5.3 修改~/openwrt/trunk/target/linux/ar71xx/image/Makefile
           5.1.5.4 修改~/openwrt/trunk/tools/firmware-utils/src/mktplinkfw.c
      5.1.6 修改固件預設的環境配置
-         5.1.6.1 預設的root密碼
-         5.1.6.2 預設的無線網路配置
-         5.1.6.3 預設的主機名、時區、ntp校時服務器
-         5.1.6.4 預設的語言環境
+          5.1.6.1 預設的Lan IP
+          5.1.6.2 預設的無線網路配置
+          5.1.6.3 預設的主機名、時區、ntp校時服務器
+          5.1.6.4 預設的語言環境
      5.1.7 進入make menuconfig 設定畫面
      5.1.8 開始編譯
      5.1.9 編譯好的影像檔在那兒？
@@ -279,6 +279,19 @@ static void __init tl_ap123_setup(void)
         ath79_register_wmac(ee, mac);
 }
 
+不只是TL-WR841N/D，只要SoC是AR9341的路由器，
+刷上了OpenWRT都會有燈號或是WAN-LAN接口錯置的問題
+Google關鍵字：
+ar9341 網口 修正
+ar9341 wan lan lan
+
+參考資料：
+http://www.right.com.cn/forum/thread-121913-2-1.html
+
+這個網友有另一個修改方式
+https://github.com/qianguozheng/qsdk/commit/11c4ee98ae56a425b35082a15bdd6a1ddb341487
+但是中文論壇上有其他網友回報說，照著改的話，PPPoe的功能會失去作用，所以我沒採用，但可以參考
+
 ＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
 5.1.5.3 修改~/openwrt/trunk/target/linux/ar71xx/image/Makefile
 
@@ -402,7 +415,282 @@ $ vi ~/openwrt/trunk/tools/firmware-utils/src/mktplinkfw.c
         }, {
 
 ＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+5.1.6 修改固件預設的環境配置
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+5.1.6.1 預設的Lan IP
 
+$ vi ~/openwrt/trunk/package/base-files/files/lib/functions/uci-defaults.sh
+
+找到這一行
+set network.lan.ipaddr='192.168.1.1'
+
+預設的Lan IP就很合用，我不想改，如果你要改就是改這裡
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+5.1.6.2 預設的無線網路配置
+
+我希望wifi的功能預設是開啟的
+ssid叫作OpenWrt_kashu
+使用psk2加密
+連線密碼是12345678
+
+參考資料：
+http://my.oschina.net/osbin/blog/278782
+http://wiki.openwrt.org/doc/uci/wireless#wpamodes
+
+打開vi文字編輯器修改檔案
+$ vi ~/openwrt/trunk/package/kernel/mac80211/files/lib/wifi/mac80211.sh
+
+把原來的這個地方
+        # REMOVE THIS LINE TO ENABLE WIFI:
+        option disabled 1
+
+config wifi-iface
+        option device   radio$devidx
+        option network  lan
+        option mode     ap
+        option ssid     OpenWrt
+        option encryption none
+
+改成這樣
+        # REMOVE THIS LINE TO ENABLE WIFI:
+        # option disabled 1
+
+config wifi-iface
+        option device   radio$devidx
+        option network  lan
+        option mode     ap
+        option ssid     OpenWrt_kashu
+        option encryption psk2
+        option key 12345678
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+5.1.6.3 預設的主機名、時區、ntp校時服務器
+
+參考資料：
+http://wiki.openwrt.org/doc/uci/system
+http://my.oschina.net/osbin/blog/278782
+
+我希望預設的路由器主機名叫作wr841n
+時區是Asia/Taipei
+ntp校時服務器換成我們比較近的台灣的服務器
+
+打開vi文字編輯器修改檔案
+$ vi ~/openwrt/trunk/package/base-files/files/etc/config/system
+
+原來的檔案內容長這樣
+config system
+        option hostname OpenWrt
+        option timezone UTC
+
+config timeserver ntp
+        list server     0.openwrt.pool.ntp.org
+        list server     1.openwrt.pool.ntp.org
+        list server     2.openwrt.pool.ntp.org
+        list server     3.openwrt.pool.ntp.org
+        option enabled 1
+        option enable_server 0
+
+把它改成這樣
+config system
+        option hostname wr841n
+        option zonename Asia/Taipei
+        option timezone CST-8
+
+config timeserver ntp
+        list server     0.asia.pool.ntp.org
+        list server     1.asia.pool.ntp.org
+        list server     2.asia.pool.ntp.org
+        list server     3.asia.pool.ntp.org
+        option enable_server 0
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+5.1.6.4 預設的語言環境
+
+打開vi文字編輯器修改檔案
+$ vi ~/openwrt/trunk/feeds/luci/modules/base/root/etc/config/luci
+
+原來的檔案是
+config core main
+        option lang auto
+        option mediaurlbase /luci-static/openwrt.org
+        option resourcebase /luci-static/resources
+
+config extern flash_keep
+        option uci              "/etc/config/"
+        option dropbear "/etc/dropbear/"
+        option openvpn  "/etc/openvpn/"
+        option passwd   "/etc/passwd"
+        option opkg             "/etc/opkg.conf"
+        option firewall "/etc/firewall.user"
+        option uploads  "/lib/uci/upload/"
+
+config internal languages
+
+config internal sauth
+        option sessionpath "/tmp/luci-sessions"
+        option sessiontime 3600
+
+config internal ccache
+        option enable 1
+
+config internal themes
+
+改成這樣
+config core main
+        option lang en
+        option mediaurlbase /luci-static/openwrt.org
+        option resourcebase /luci-static/resources
+
+config extern flash_keep
+        option uci              "/etc/config/"
+        option dropbear "/etc/dropbear/"
+        option openvpn  "/etc/openvpn/"
+        option passwd   "/etc/passwd"
+        option opkg             "/etc/opkg.conf"
+        option firewall "/etc/firewall.user"
+        option uploads  "/lib/uci/upload/"
+
+config internal languages
+        option en "English"
+        option zh_tw "Chinese"
+
+config internal sauth
+        option sessionpath "/tmp/luci-sessions"
+        option sessiontime 3600
+
+config internal ccache
+        option enable 1
+
+config internal themes
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+5.1.7 進入make menuconfig 設定畫面
+
+參考資料：
+http://my.oschina.net/osbin/blog/278782
+https://forum.openwrt.org/viewtopic.php?pid=140470#p140470
+http://coderazzi.net/howto/openwrt/tl841n/install.htm
+
+我發現少裝了一個依賴套件，先裝上它
+$ sudo apt-get install libssl-dev
+
+然後就
+$ cd ~/openwrt/trunk
+$ make clean
+
+接著我居然就進入了OpenWrt Configuration的類DOS藍底選單
+我還沒跑make menuconfig就進來了
+選定一個target，這個意思是我們要選擇要編譯出的影像檔是給那一台路由器用的
+這裡當然是選擇
+Target System (Atheros AR7xxx/AR9xxx)  --->
+(X) Atheros AR7xxx/AR9xxx
+
+然後先離開一下，選Exit
+Do you wish to save your new configuration ? 
+選< Yes >離開
+
+$ make defconfig
+$ make menuconfig
+
+然後又回到了類DOS藍底選單
+我是這樣選擇的
+
+依晶片分類的Target System (剛才已經選好了)
+Target System (Atheros AR7xxx/AR9xxx)  --->   (X) Atheros AR7xxx/AR9xxx
+
+路由器型號
+Target Profile    --->  (X) TP-LINK TL-WR841N/ND 
+
+需要編譯的影像檔類型，只要squashfs就行了
+Target Images  --->  [*] squashfs  ---> 
+
+這裡有五個最上層的選項，要用空白鍵來選，我只有選第四個Toolchain的那個
+ [ ] Advanced configuration options (for developers)  --->   
+ [ ] Build the OpenWrt Image Builder
+ [ ] Build the OpenWrt SDK  
+ [*] Package the OpenWrt-based Toolchain    
+ [ ] Image configuration  --->  
+
+基本上保持原樣，不過加選了一個
+Base system  ---> wireless-tools
+
+加選一個zabbix的所有功能，那是個監控軟體
+Administration  --->zabbix  --->
+Administration  --->zabbix  ---> zabbix-agent
+Administration  --->zabbix  ---> zabbix-agentd
+Administration  --->zabbix  ---> zabbix-extra-mac80211
+Administration  --->zabbix  ---> zabbix-extra-network
+Administration  --->zabbix  ---> zabbix-extra-wifi
+Administration  --->zabbix  ---> zabbix-get
+Administration  --->zabbix  ---> zabbix-proxy
+Administration  --->zabbix  ---> zabbix-sender
+Administration  --->zabbix  ---> zabbix-server
+
+檔案系統 （我也沒改可以加掛USB碟…該加上嗎？想想還是加了，多裝總比少裝好）
+Kernel modules  --->Filesystems  --->kmod-fs-ext4
+Kernel modules  --->Filesystems  --->kmod-fs-msdos
+Kernel modules  --->Filesystems  --->kmod-fs-vfat
+
+語言支持
+Kernel modules  --->Native Language Support  --->kmod-nls-utf8
+
+USB支持 (只列出我加選的)
+Kernel modules  --->USB Support  --->kmod-usb-serial   --->kmod-usb-serial-ch341
+Kernel modules  --->USB Support  --->kmod-usb-serial   --->kmod-usb-serial-cp210x
+
+外國人說要選的，我不知道選來幹麻，同個原則，多裝總比少裝好
+Kernel modules  --->Cryptographic API modules  --->kmod-crypto-manager
+
+防火牆
+Network  --->Firewall  --->ip6tables
+Network  --->Firewall  --->ip6tables   --->ip6tables-extra
+Network  --->Firewall  --->ip6tables   --->ip6tables-mod-nat
+Network  --->Firewall  --->iptables
+Network  --->Firewall  --->iptables   --->iptables-mod-account
+Network  --->Firewall  --->iptables   --->iptables-mod-chaos
+Network  --->Firewall  --->iptables   --->iptables-mod-cluster
+（底下太多了大概三四十個有，全部選上就是了）
+
+SSH的功能，一樣全選上
+Network  --->SSH  --->
+Network  --->SSH  --->openssh-client
+Network  --->SSH  --->openssh-client-utils
+Network  --->SSH  --->openssh-keygen
+Network  --->SSH  --->openssh-moduli
+Network  --->SSH  --->openssh-server
+Network  --->SSH  --->openssh-server-pam
+Network  --->SSH  --->openssh-sftp-avahi-service
+Network  --->SSH  --->openssh-sftp-client
+Network  --->SSH  --->openssh-sftp-server
+Network  --->SSH  --->sshtunnel
+
+NTP的功能，除了ntp server其他都選上
+Network  --->Time Synchronization  --->ntp-keygen
+Network  --->Time Synchronization  --->ntp-utils
+Network  --->Time Synchronization  --->ntpclient
+Network  --->Time Synchronization  --->ntpdate
+
+關於openvpn-openssl的全都選上
+Network  --->VPN  --->openvpn-openssl   --->
+Network  --->VPN  --->openvpn-openssl   --->Enable LZO compression support (NEW) 
+Network  --->VPN  --->openvpn-openssl   --->Enable the --x509-username-field feature
+（下面還有大概十幾個…全選上）
+
+luci網頁操作GUI介面
+LuCI  --->Collections  --->luci
+LuCI  --->Collections  --->luci-ssl
+LuCI  --->Translations  --->luci-i18n-chinese
+LuCI  --->Translations  --->luci-i18n-english
+LuCI  --->Applications  --->
+（爆多的，我全選算了）
+
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+
+
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
 
 
 
@@ -411,3 +699,4 @@ $ vi ~/openwrt/trunk/tools/firmware-utils/src/mktplinkfw.c
 
 
 ＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+
