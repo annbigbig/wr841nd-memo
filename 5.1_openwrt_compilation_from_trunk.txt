@@ -672,14 +672,238 @@ $ make V=s
 然後就是等等等
 
 ＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
-
-
-
-＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
-
+/home/anntony/openwrt/trunk/scripts/download.pl "/home/anntony/openwrt/trunk/dl" "gengetopt-2.22.6.tar.gz" "29749a48dda69277ab969c510597a14e" "@GNU/gengetopt
 
 
 ＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+install -d -m0755 /home/anntony/openwrt/trunk/build_dir/target-mips_34kc_uClibc-0.9.33.2/ntp-4.2.8/ipkg-ar71xx/ntpdate/usr/sbin
+install -m0755 /home/anntony/openwrt/trunk/build_dir/target-mips_34kc_uClibc-0.9.33.2/ntp-4.2.8/ntpdate/ntpdate /home/anntony/openwrt/trunk/build_dir/target-mips_34kc_uClibc-0.9.33.2/ntp-4.2.8/ipkg-ar71xx/ntpdate/usr/sbin/
+install -d -m0755 /home/anntony/openwrt/trunk/build_dir/target-mips_34kc_uClibc-0.9.33.2/ntp-4.2.8/ipkg-ar71xx/ntpdate/etc/init.d
+install -m0755 ./files/ntpdate.init /home/anntony/openwrt/trunk/build_dir/target-mips_34kc_uClibc-0.9.33.2/ntp-4.2.8/ipkg-ar71xx/ntpdate/etc/init.d/ntpdate
+find /home/anntony/openwrt/trunk/build_dir/target-mips_34kc_uClibc-0.9.33.2/ntp-4.2.8/ipkg-ar71xx/ntpdate -name 'CVS' -o -name '.svn' -o -name '.#*' -o -name '*~'| xargs -r rm -rf
+Package ntpdate is missing dependencies for the following libraries:
+libcrypto.so.1.0.0
+libpthread.so.0
+make[3]: *** [/home/anntony/openwrt/trunk/bin/ar71xx/packages/packages/ntpdate_4.2.8-1_ar71xx.ipk] Error 1
+make[3]: Leaving directory `/home/anntony/openwrt/trunk/feeds/packages/net/ntpd'
+make[2]: *** [package/feeds/packages/ntpd/compile] Error 2
+make[2]: Leaving directory `/home/anntony/openwrt/trunk'
+make[1]: *** [/home/anntony/openwrt/trunk/staging_dir/target-mips_34kc_uClibc-0.9.33.2/stamp/.package_compile] Error 2
+make[1]: Leaving directory `/home/anntony/openwrt/trunk'
+make: *** [world] Error 2
+
+我的Linux Mint 17已經安裝了libssl1.0.0套件
+居然放在這裡
+/lib/x86_64-linux-gnu/libcrypto.so.1.0.0
+
+還有libpthread.so.0
+anntony@anntony-Lenovo-B590 /lib/x86_64-linux-gnu $ ls -al|grep thr
+-rwxr-xr-x  1 root root  141574 12月  2 03:45 libpthread-2.19.so
+lrwxrwxrwx  1 root root      18 12月  2 03:44 libpthread.so.0 -> libpthread-2.19.so
+-rw-r--r--  1 root root   35640 12月  2 03:45 libthread_db-1.0.so
+lrwxrwxrwx  1 root root      19 12月  2 03:44 libthread_db.so.1 -> libthread_db-1.0.so
+
+所以我必須
+sudo ln -s /lib/x86_64-linux-gnu/libcrypto.so.1.0.0 /lib/libcrypto.so.1.0.0
+sudo ln -s /lib/x86_64-linux-gnu/libcrypto.so.1.0.0 /usr/lib/libcrypto.so.1.0.0
+
+sudo ln -s /lib/x86_64-linux-gnu/libpthread-2.19.so /lib/libpthread.so.0
+sudo ln -s /lib/x86_64-linux-gnu/libpthread-2.19.so /usr/lib/libpthread.so.0
+
+第二次編譯還是不行
+一樣死在這個地方
+搜尋關鍵字
+openwrt Package ntpdate is missing dependencies libcrypto.so.1.0.0 libpthread.so.0
+找到了參考資料
+討論頁
+https://github.com/openwrt/packages/pull/747
+
+代碼修正歷史
+https://github.com/thess/OpenWrt-packages/commit/50b5fe2e46c82987594dda3d4e206cd184826a43
+下載這個新的Makefile
+原生格式
+https://raw.githubusercontent.com/thess/OpenWrt-packages/50b5fe2e46c82987594dda3d4e206cd184826a43/net/ntpd/Makefile
+放在
+~/openwrt/trunk/feeds/packages/net/ntpd
+這個目錄裡，置換掉舊的Makefile
+
+這裡給出新的改好的正常的Makefile
+如下
+#
+# Copyright (C) 2006-2015 OpenWrt.org
+#
+# This is free software, licensed under the GNU General Public License v2.
+# See /LICENSE for more information.
+#
+
+include $(TOPDIR)/rules.mk
+
+PKG_NAME:=ntp
+PKG_VERSION:=4.2.8
+PKG_RELEASE:=2
+
+PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
+PKG_SOURCE_URL:=http://www.eecis.udel.edu/~ntp/ntp_spool/ntp4/ntp-4.2/
+PKG_MD5SUM:=6972a626be6150db8cfbd0b63d8719e7
+
+PKG_LICENSE:=Unique
+PKG_LICENSE_FILES:=COPYRIGHT html/copyright.html
+
+PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)
+
+PKG_FIXUP:=autoreconf
+PKG_LIBTOOL_PATHS:=. sntp
+PKG_CHECK_FORMAT_SECURITY:=0
+
+include $(INCLUDE_DIR)/package.mk
+
+define Package/ntpd/Default
+  SUBMENU:=Time Synchronization
+  SECTION:=net
+  CATEGORY:=Network
+  TITLE:=ISC ntp
+  MAINTAINER:=Peter Wagner <tripolar@gmx.at>
+  URL:=http://www.ntp.org/
+  DEPENDS:=+libcap
+endef
+
+define Package/ntpd/Default/description
+ The ISC ntp suite is a collection of tools used to synchronize the
+ system clock with remote NTP time servers and run/monitor local NTP
+ servers.
+endef
+
+define Package/ntpd
+$(call Package/ntpd/Default)
+  TITLE+= server
+  DEPENDS+= +libopenssl +libpthread
+  USERID:=ntp=123:ntp=123
+endef
+
+define Package/ntpd/description
+$(call Package/ntpd/Default/description)
+ .
+ This package contains the ntpd server.
+endef
+
+define Package/ntpdate
+$(call Package/ntpd/Default)
+  TITLE+=date
+  DEPENDS+= +libpthread +libopenssl
+endef
+
+define Package/ntpdate/description
+$(call Package/ntpd/Default/description)
+ .
+ This package contains ntpdate.
+endef
+
+define Package/ntp-utils
+$(call Package/ntpd/Default)
+  TITLE+= utilities
+  DEPENDS+= +libpthread +libopenssl
+endef
+
+define Package/ntp-utils/description
+$(call Package/ntpd/Default/description)
+ .
+ This package contains ntpdc, ntpq and ntptime.
+endef
+
+define Package/ntp-keygen
+$(call Package/ntpd/Default)
+  TITLE+=keygen
+  DEPENDS+= +libopenssl +libpthread
+endef
+
+define Package/ntp-keygen/description
+$(call Package/ntpd/Default/description)
+ .
+ This package contains the ntp-keygen.
+endef
+
+define Package/ntpd/conffiles
+/etc/ntp.conf
+endef
+
+CONFIGURE_VARS += \
+	ac_cv_header_md5_h=no \
+	ac_cv_lib_rt_sched_setscheduler=no \
+	ac_cv_header_dns_sd_h=no
+
+CONFIGURE_ARGS += \
+	--disable-all-clocks \
+	--disable-parse-clocks \
+	--without-ntpsnmpd \
+	--without-lineeditlibs \
+	--enable-NMEA \
+	--enable-LOCAL-CLOCK \
+	--enable-SHM \
+	--enable-linuxcaps \
+	--with-yielding-select=yes \
+	--with-crypto \
+	--with-openssl-incdir="$(STAGING_DIR)/usr/include" \
+	--with-openssl-libdir="$(STAGING_DIR)/usr/lib"
+
+define Package/ntpd/install
+	$(INSTALL_DIR) $(1)/sbin
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/ntpd/ntpd $(1)/sbin/
+	$(INSTALL_DIR) $(1)/etc
+	$(INSTALL_CONF) ./files/ntp.conf $(1)/etc/
+	$(INSTALL_DIR) $(1)/etc/init.d
+	$(INSTALL_BIN) ./files/ntpd.init $(1)/etc/init.d/ntpd
+	$(INSTALL_DIR) $(1)/etc/hotplug.d/iface
+	$(INSTALL_BIN) ./files/ntpd.hotplug $(1)/etc/hotplug.d/iface/20-ntpd
+endef
+
+define Package/ntpd/postinst
+#!/bin/sh
+[ -L "$${IPKG_INSTROOT}/usr/sbin/ntpd" ] && rm -f "$${IPKG_INSTROOT}/usr/sbin/ntpd"
+exit 0
+endef
+
+define Package/ntpd/postrm
+#!/bin/sh
+/bin/busybox ntpd -h 2>&1 | grep -q BusyBox && ln -sf ../../bin/busybox /usr/sbin/ntpd
+exit 0
+endef
+
+define Package/ntpdate/install
+	$(INSTALL_DIR) $(1)/usr/sbin
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/ntpdate/ntpdate $(1)/usr/sbin/
+	$(INSTALL_DIR) $(1)/etc/init.d
+	$(INSTALL_BIN) ./files/ntpdate.init $(1)/etc/init.d/ntpdate
+endef
+
+define Package/ntp-utils/install
+	$(INSTALL_DIR) $(1)/usr/sbin
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/ntpdc/ntpdc $(1)/usr/sbin/
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/ntpq/ntpq $(1)/usr/sbin/
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/util/ntptime $(1)/usr/sbin/
+endef
+
+define Package/ntp-keygen/install
+	$(INSTALL_DIR) $(1)/usr/sbin
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/util/ntp-keygen $(1)/usr/sbin/
+endef
+
+$(eval $(call BuildPackage,ntpd))
+$(eval $(call BuildPackage,ntpdate))
+$(eval $(call BuildPackage,ntp-utils))
+$(eval $(call BuildPackage,ntp-keygen))
+
+
+然後重新編譯，我TM重編第三次了
+$ cd ~/openwrt/trunk
+$ make clean
+$ make V=s
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+Openwrt 的FTP上面有些檔案不知道為什麼抓不下來，還是消失了
+所以在
+~/openwrt/trunk/dl
+目錄裡面
+有很多.tar.gz要手動下載
 
 
 
