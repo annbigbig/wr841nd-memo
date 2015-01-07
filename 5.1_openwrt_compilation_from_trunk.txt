@@ -579,80 +579,44 @@ $ sudo apt-get install libssl-dev
 $ cd ~/openwrt/trunk
 $ make clean
 
-接著我居然就進入了OpenWrt Configuration的類DOS藍底選單
+接著我居然就進入了OpenWrt Configuration的藍底GUI操作選單
 我還沒跑make menuconfig就進來了
 選定一個target，這個意思是我們要選擇要編譯出的影像檔是給那一台路由器用的
 這裡當然是選擇
-Target System (Atheros AR7xxx/AR9xxx)  --->
-(X) Atheros AR7xxx/AR9xxx
+Target System (Atheros AR7xxx/AR9xxx)  --->Atheros AR7xxx/AR9xxx
+還有
+Target Profile (Default Profile (all drivers))  --->TP-LINK TL-WR841N/ND
 
 然後先離開一下，選Exit
 Do you wish to save your new configuration ? 
 選< Yes >離開
 
+使用預設的選項
 $ make defconfig
+
+再次叫出藍底GUI操作選單
 $ make menuconfig
 
-然後又回到了類DOS藍底選單
+然後又回到了藍底GUI操作選單
 我是這樣選擇的
 
-依晶片分類的Target System (剛才已經選好了)
+依晶片分類的Target System及路由器型號 (剛才已經選好了)
 Target System (Atheros AR7xxx/AR9xxx)  --->   (X) Atheros AR7xxx/AR9xxx
+Target Profile (TP-LINK TL-WR841N/ND)  --->TP-LINK TL-WR841N/ND
 
-路由器型號
-Target Profile    --->  (X) TP-LINK TL-WR841N/ND 
-
-需要編譯的影像檔類型，只要squashfs就行了
-Target Images  --->  [*] squashfs  ---> 
-
-這裡有五個最上層的選項，要用空白鍵來選，我只有選第四個Toolchain的那個
- [ ] Advanced configuration options (for developers)  --->   
- [ ] Build the OpenWrt Image Builder
- [ ] Build the OpenWrt SDK  
+Toolchain選起來
  [*] Package the OpenWrt-based Toolchain    
- [ ] Image configuration  --->  
 
 基本上保持原樣，不過加選了一個
 Base system  ---> wireless-tools
-
-加選一個zabbix的所有功能，那是個監控軟體
-Administration  --->zabbix  --->
-Administration  --->zabbix  ---> zabbix-agent
-Administration  --->zabbix  ---> zabbix-agentd
-Administration  --->zabbix  ---> zabbix-extra-mac80211
-Administration  --->zabbix  ---> zabbix-extra-network
-Administration  --->zabbix  ---> zabbix-extra-wifi
-Administration  --->zabbix  ---> zabbix-get
-Administration  --->zabbix  ---> zabbix-proxy
-Administration  --->zabbix  ---> zabbix-sender
-Administration  --->zabbix  ---> zabbix-server
-
-檔案系統 （我也沒改可以加掛USB碟…該加上嗎？想想還是加了，多裝總比少裝好）
-Kernel modules  --->Filesystems  --->kmod-fs-ext4
-Kernel modules  --->Filesystems  --->kmod-fs-msdos
-Kernel modules  --->Filesystems  --->kmod-fs-vfat
 
 語言支持
 Kernel modules  --->Native Language Support  --->kmod-nls-utf8
 
 USB支持 (只列出我加選的)
-Kernel modules  --->USB Support  --->kmod-usb-serial   --->kmod-usb-serial-ch341
 Kernel modules  --->USB Support  --->kmod-usb-serial   --->kmod-usb-serial-cp210x
 
-外國人說要選的，我不知道選來幹麻，同個原則，多裝總比少裝好
-Kernel modules  --->Cryptographic API modules  --->kmod-crypto-manager
-
-防火牆
-Network  --->Firewall  --->ip6tables
-Network  --->Firewall  --->ip6tables   --->ip6tables-extra
-Network  --->Firewall  --->ip6tables   --->ip6tables-mod-nat
-Network  --->Firewall  --->iptables
-Network  --->Firewall  --->iptables   --->iptables-mod-account
-Network  --->Firewall  --->iptables   --->iptables-mod-chaos
-Network  --->Firewall  --->iptables   --->iptables-mod-cluster
-（底下太多了大概三四十個有，全部選上就是了）
-
-SSH的功能，一樣全選上
+SSH的功能，全選上
 Network  --->SSH  --->
 Network  --->SSH  --->openssh-client
 Network  --->SSH  --->openssh-client-utils
@@ -680,11 +644,32 @@ Network  --->VPN  --->openvpn-openssl   --->Enable the --x509-username-field fea
 luci網頁操作GUI介面
 LuCI  --->Collections  --->luci
 LuCI  --->Collections  --->luci-ssl
+LuCI  --->Applications  --->luci-app-ddns
+LuCI  --->Applications  --->luci-app-diag-core
+LuCI  --->Applications  --->luci-app-diag-devinfo
+LuCI  --->Applications  --->luci-app-multiwan
+LuCI  --->Applications  --->luci-app-ntpc
+LuCI  --->Applications  --->luci-app-qos
+LuCI  --->Applications  --->luci-app-statistics
+LuCI  --->Themes  --->luci-theme-openwrt
+LuCI  --->Libraries  --->TLS Provider (Disabled)  --->OpenSSL
+LuCI  --->Libraries  --->luci-lib-px5g
 LuCI  --->Translations  --->luci-i18n-chinese
 LuCI  --->Translations  --->luci-i18n-english
 LuCI  --->Applications  --->
-（爆多的，我全選算了）
 
+全都選好了，就選< Exit >退出藍底GUI操作選單
+Do you wish to save your new configuration ? 
+選< Yes >儲存剛才選得半死的設定值
+設定值會存在
+~/openwrt/trunk/.config
+
+回到了終端機，開始編譯了
+$ cd ~/openwrt/trunk
+$ make V=s
+
+記得保持網路有連線的狀態，因為編譯期間會從網路上抓一些檔案下來
+然後就是等等等
 
 ＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
 
