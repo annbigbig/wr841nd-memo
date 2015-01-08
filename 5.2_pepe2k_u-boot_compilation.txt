@@ -1,0 +1,82 @@
+5.2 編譯pepe2k版本的u-boot
+
+工作列表：
+5.2.1 從github拉下源代碼的git repository
+5.2.2 把OpenWrt-Toolchain放到剛拉下的repo的toolchain子目錄下
+5.2.3 修改Makefile
+5.2.4 執行編譯指令
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+細節：
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+5.2.1 從github拉下源代碼的git repository
+
+$ cd /home/anntony
+$ git clone https://github.com/pepe2k/u-boot_mod.git
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+5.2.2 把OpenWrt-Toolchain放到剛拉下的repo的toolchain子目錄下
+
+$ cd /home/anntony/u-boot_mod/
+$ mkdir toolchain
+$ cd toolchain
+$ pwd
+$ cp cp /home/anntony/openwrt/trunk/bin/ar71xx/OpenWrt-Toolchain-ar71xx-for-mips_34kc-gcc-4.8-linaro_uClibc-0.9.33.2.tar.bz2 .
+$ tar -xvjpf ./OpenWrt-Toolchain-ar71xx-for-mips_34kc-gcc-4.8-linaro_uClibc-0.9.33.2.tar.bz2
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+5.2.3 修改Makefile
+
+$ cd /home/anntony/u-boot_mod/
+$ vi Makefile
+
+原來的檔案前幾行長得這樣子
+export BUILD_TOPDIR=$(PWD)
+export STAGING_DIR=$(BUILD_TOPDIR)/tmp
+
+export MAKECMD=make --silent --no-print-directory ARCH=mips CROSS_COMPILE=mips-linux-gnu-
+
+把它改成這樣
+export BUILD_TOPDIR=$(PWD)
+export STAGING_DIR=$(BUILD_TOPDIR)/tmp
+
+#export MAKECMD=make --silent --no-print-directory ARCH=mips CROSS_COMPILE=mips-linux-gnu-
+export MAKECMD=make --silent ARCH=mips CROSS_COMPILE=mips-openwrt-linux-uclibc-
+export PATH:=$(BUILD_TOPDIR)/toolchain/bin/:$(PATH)
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+5.2.4 執行編譯指令
+
+$ cd /home/anntony/u-boot_mod/
+$ make tplink_wr841n_v8
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+
+
+
+
+
+
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+踢了個鐵板
+
+anntony@anntony-Lenovo-B590 ~/u-boot_mod $ make tplink_wr841n_v8
+> Configuring for TP-Link TL-WR841N/D v8 at: 四 1月 8 16:39:22 CST 2015 
+make[1]: mips-openwrt-linux-uclibc-gcc: Command not found
+Makefile:147: warning: overriding commands for target `.PHONY'
+Makefile:145: warning: ignoring old commands for target `.PHONY'
+Makefile:233: warning: overriding commands for target `board/ar7240/db12x/libdb12x.a'
+Makefile:201: warning: ignoring old commands for target `board/ar7240/db12x/libdb12x.a'
+Makefile:233: warning: overriding commands for target `cpu/mips/libmips.a'
+Makefile:201: warning: ignoring old commands for target `cpu/mips/libmips.a'
+Makefile:233: warning: overriding commands for target `cpu/mips/ar7240/libar7240.a'
+Makefile:201: warning: ignoring old commands for target `cpu/mips/ar7240/libar7240.a'
+make[2]: mips-openwrt-linux-uclibc-gcc: Command not found
+/bin/sh: 1: mips-openwrt-linux-uclibc-gcc: not found
+make[2]: *** No rule to make target `.depend'.  Stop.
+make[1]: *** [depend] Error 2
+make: *** [tplink_wr841n_v8] Error 2
+anntony@anntony-Lenovo-B590 ~/u-boot_mod $
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊

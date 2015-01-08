@@ -31,6 +31,10 @@ Linux anntony-Lenovo-B590 3.13.0-24-generic #47-Ubuntu SMP Fri May 2 23:30:00 UT
      5.1.7 進入make menuconfig 設定畫面
      5.1.8 開始編譯
      5.1.9 編譯好的影像檔在那兒？
+     5.1.10 雜記：編譯過程中產生的一些訊息
+          5.1.10.1 這個檔案裡放置著很多ftp站台的網址
+          5.1.10.2 找不到ntpdate套件的依賴函式庫因此編譯失敗x2
+          5.1.10.3 某些放置依賴套件的FTP站台一直連不上
 
 ＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
 細節：
@@ -670,12 +674,57 @@ $ make V=s
 
 記得保持網路有連線的狀態，因為編譯期間會從網路上抓一些檔案下來
 然後就是等等等
+編譯過程大概有一小時
+手氣好的話
+一次就編譯出來
+我有點衰小
+第三次才成功
 
 ＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
-/home/anntony/openwrt/trunk/scripts/download.pl "/home/anntony/openwrt/trunk/dl" "gengetopt-2.22.6.tar.gz" "29749a48dda69277ab969c510597a14e" "@GNU/gengetopt
+ 5.1.9 編譯好的影像檔在那兒？
 
+anntony@anntony-Lenovo-B590 ~/openwrt/trunk/bin/ar71xx $ pwd
+/home/anntony/openwrt/trunk/bin/ar71xx
+anntony@anntony-Lenovo-B590 ~/openwrt/trunk/bin/ar71xx $ ls -al
+總計 78328
+drwxr-xr-x 4 anntony anntony     4096  1月  8 01:49 .
+drwxr-xr-x 3 anntony anntony     4096  1月  8 01:02 ..
+-rw-r--r-- 1 anntony anntony      914  1月  8 01:49 md5sums
+-rwxr-xr-x 1 anntony anntony   160200  1月  8 01:09 openwrt-ar71xx-generic-nbg460n_550n_550nh-u-boot.bin
+-rw-r--r-- 1 anntony anntony  5636096  1月  8 01:49 openwrt-ar71xx-generic-root.squashfs
+-rw-r--r-- 1 anntony anntony  5505028  1月  8 01:49 openwrt-ar71xx-generic-root.squashfs-64k
+-rw-r--r-- 1 anntony anntony 16515072  1月  8 01:49 openwrt-ar71xx-generic-tl-wr841n-v8-squashfs-factory.bin
+-rw-r--r-- 1 anntony anntony  6619140  1月  8 01:49 openwrt-ar71xx-generic-tl-wr841n-v8-squashfs-sysupgrade.bin
+-rw-r--r-- 1 anntony anntony  1559264  1月  8 01:49 openwrt-ar71xx-generic-uImage-gzip.bin
+-rw-r--r-- 1 anntony anntony  1110000  1月  8 01:49 openwrt-ar71xx-generic-uImage-lzma.bin
+-rwxr-xr-x 1 anntony anntony  3287716  1月  8 01:49 openwrt-ar71xx-generic-vmlinux.bin
+-rwxr-xr-x 1 anntony anntony  3292780  1月  8 01:49 openwrt-ar71xx-generic-vmlinux.elf
+-rw-r--r-- 1 anntony anntony  1572864  1月  8 01:49 openwrt-ar71xx-generic-vmlinux.gz
+-rw-r--r-- 1 anntony anntony  1114112  1月  8 01:49 openwrt-ar71xx-generic-vmlinux.lzma
+-rwxr-xr-x 1 anntony anntony  1181965  1月  8 01:49 openwrt-ar71xx-generic-vmlinux-lzma.elf
+-rw-r--r-- 1 anntony anntony 32674027  1月  8 01:50 OpenWrt-Toolchain-ar71xx-for-mips_34kc-gcc-4.8-linaro_uClibc-0.9.33.2.tar.bz2
+drwxr-xr-x 5 anntony anntony     4096  1月  8 01:17 packages
+drwxr-xr-x 2 anntony anntony     4096  1月  8 01:09 uboot-ar71xx-nbg460n_550n_550nh
+anntony@anntony-Lenovo-B590 ~/openwrt/trunk/bin/ar71xx $
+
+上面的
+openwrt-ar71xx-generic-tl-wr841n-v8-squashfs-factory.bin
+我們要拿來製作編程器固件
+而
+OpenWrt-Toolchain-ar71xx-for-mips_34kc-gcc-4.8-linaro_uClibc-0.9.33.2.tar.bz2
+是編譯出的Toolchain
+稍後要編譯pepe2k的u-boot的時候，會用得到
 
 ＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+5.1.10 雜記：編譯過程中產生的一些訊息
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+5.1.10.1 這個檔案裡放置著很多ftp站台的網址
+
+/home/anntony/openwrt/trunk/scripts/download.pl
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+5.1.10.2 找不到ntpdate套件的依賴函式庫因此編譯失敗x2
+
 install -d -m0755 /home/anntony/openwrt/trunk/build_dir/target-mips_34kc_uClibc-0.9.33.2/ntp-4.2.8/ipkg-ar71xx/ntpdate/usr/sbin
 install -m0755 /home/anntony/openwrt/trunk/build_dir/target-mips_34kc_uClibc-0.9.33.2/ntp-4.2.8/ntpdate/ntpdate /home/anntony/openwrt/trunk/build_dir/target-mips_34kc_uClibc-0.9.33.2/ntp-4.2.8/ipkg-ar71xx/ntpdate/usr/sbin/
 install -d -m0755 /home/anntony/openwrt/trunk/build_dir/target-mips_34kc_uClibc-0.9.33.2/ntp-4.2.8/ipkg-ar71xx/ntpdate/etc/init.d
@@ -710,6 +759,7 @@ sudo ln -s /lib/x86_64-linux-gnu/libcrypto.so.1.0.0 /usr/lib/libcrypto.so.1.0.0
 sudo ln -s /lib/x86_64-linux-gnu/libpthread-2.19.so /lib/libpthread.so.0
 sudo ln -s /lib/x86_64-linux-gnu/libpthread-2.19.so /usr/lib/libpthread.so.0
 
+作了上述的symbolic link
 第二次編譯還是不行
 一樣死在這個地方
 搜尋關鍵字
@@ -892,20 +942,158 @@ $(eval $(call BuildPackage,ntpdate))
 $(eval $(call BuildPackage,ntp-utils))
 $(eval $(call BuildPackage,ntp-keygen))
 
-
-然後重新編譯，我TM重編第三次了
+然後再重新編譯，我TM重編第三次了
 $ cd ~/openwrt/trunk
 $ make clean
 $ make V=s
 
 ＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+5.1.10.3 某些放置依賴套件的FTP站台一直連不上
+
 Openwrt 的FTP上面有些檔案不知道為什麼抓不下來，還是消失了
 所以在
 ~/openwrt/trunk/dl
 目錄裡面
 有很多.tar.gz要手動下載
 
+編譯成功後
+我查看了
+~/openwrt/trunk/dl
+裡面有這些檔案
+anntony@anntony-Lenovo-B590 ~/openwrt/trunk/dl $ ls -al
+總計 359568
+drwxr-xr-x  2 anntony anntony     4096  1月  8 01:41 .
+drwxr-xr-x 17 anntony anntony     4096  1月  7 18:44 ..
+-rw-r--r--  1 anntony anntony    93996  1月  7 18:57 1.0.4.3.arm
+-rw-r--r--  1 anntony anntony    30888  1月  8 01:35 2.13.0.0.a.13.14.arm
+-rw-r--r--  1 anntony anntony    29036  1月  8 01:35 2.13.12.0.arm
+-rw-r--r--  1 anntony anntony    29736  1月  8 01:35 2.13.24.0.lm87.arm
+-rw-r--r--  1 anntony anntony   953667  1月  8 01:35 ath10k-firmware-232b419e71dab27b52b96e80ea7649ed67bdac77.tar.bz2
+-rw-r--r--  1 anntony anntony  1214744  1月  7 16:33 autoconf-2.69.tar.xz
+-rw-r--r--  1 anntony anntony  1092908  1月  7 16:45 automake-1.11.6.tar.xz
+-rw-r--r--  1 anntony anntony  1268686  1月  7 19:13 avahi-0.6.31.tar.gz
+-rw-r--r--  1 anntony anntony   290069  1月  7 17:31 bc-1.06.95.tar.bz2
+-rw-r--r--  1 anntony anntony 16461100  1月  7 17:50 binutils-linaro-2.24.0-2014.09.tar.xz
+-rw-r--r--  1 anntony anntony  1927296  1月  7 16:53 bison-3.0.2.tar.xz
+-rw-r--r--  1 anntony anntony  3888794  1月  8 01:35 broadcom-wl-4.150.10.5.tar.bz2
+-rw-r--r--  1 anntony anntony 13514651  1月  8 01:36 broadcom-wl-5.100.138.tar.bz2
+-rw-r--r--  1 anntony anntony  2218650  1月  8 01:41 busybox-1.22.1.tar.bz2
+-rw-r--r--  1 anntony anntony  6068231  1月  7 17:03 cmake-2.8.12.2.tar.gz
+-rw-r--r--  1 anntony anntony  1521907  1月  7 19:05 collectd-5.4.1.tar.bz2
+-rw-r--r--  1 anntony anntony 10875711  1月  8 01:36 compat-wireless-2014-11-04.tar.bz2
+-rw-r--r--  1 anntony anntony  1870607  1月  7 19:08 dbus-1.9.4.tar.gz
+-rw-r--r--  1 anntony anntony   654739  1月  8 01:38 dnsmasq-2.72.tar.gz
+-rw-r--r--  1 anntony anntony  1604532  1月  8 01:38 dropbear-2014.65.tar.bz2
+-rw-r--r--  1 anntony anntony  5990116  1月  7 16:55 e2fsprogs-1.42.8.tar.gz
+-rw-r--r--  1 anntony anntony   562616  1月  7 19:08 expat-2.1.0.tar.gz
+-rw-r--r--  1 anntony anntony  2149838  1月  7 17:00 findutils-4.4.2.tar.gz
+-rw-r--r--  1 anntony anntony    43232  1月  7 18:59 firewall-2014-09-19-50e97c52e75bdfd325cf20d43b32d294ff84d92f.tar.gz
+-rw-r--r--  1 anntony anntony  1612101  1月  7 16:51 flex-2.5.39.tar.bz2
+-rw-r--r--  1 anntony anntony    68173  1月  7 18:54 fstools-2014-12-15-83cf8896a598fb9fc58da0a9bb4f137695f78853.tar.gz
+-rw-r--r--  1 anntony anntony 69941456  1月  7 17:55 gcc-linaro-4.8-2014.04.tar.xz
+-rw-r--r--  1 anntony anntony 24112160  1月  7 17:45 gdb-linaro-7.6-2013.05.tar.bz2
+-rw-r-----  1 anntony anntony   811662  1月  7 19:11 gdbm-1.11.tar.gz
+-rw-r--r--  1 anntony anntony   103283  1月  7 16:55 genext2fs-1.4.1.tar.gz
+-rw-r--r--  1 anntony anntony  1056293  1月  7 17:41 gengetopt-2.22.6.tar.gz
+-rw-r--r--  1 anntony anntony  1818812  1月  7 16:47 gmp-5.1.3.tar.xz
+-rw-r--r--  1 anntony anntony  2345302  1月  8 01:33 hostapd-2014-10-25.tar.bz2
+-rw-r--r--  1 anntony anntony   140340  1月  7 19:12 intltool-0.40.6.tar.bz2
+-rw-r--r--  1 anntony anntony    19480  1月  7 16:55 ipkg-utils-1.7.tar.gz
+-rw-r--r--  1 anntony anntony   440188  1月  7 18:59 iproute2-3.17.0.tar.xz
+-rw-r--r--  1 anntony anntony   547439  1月  7 18:58 iptables-1.4.21.tar.bz2
+-rw-r--r--  1 anntony anntony   248471  1月  8 01:35 ipw2100-fw-1.3.tgz
+-rw-r--r--  1 anntony anntony   270042  1月  8 01:35 ipw2200-fw-3.1.tgz
+-rw-r--r--  1 anntony anntony    89120  1月  8 01:34 iw-3.15.tar.xz
+-rw-r--r--  1 anntony anntony   557263  1月  7 18:44 json-c-0.11.tar.gz
+-rw-r--r--  1 anntony anntony    53176  1月  7 18:53 jsonfilter-2014-06-19-cdc760c58077f44fc40adbbe41e1556a67c1b9a9.tar.gz
+-rw-r--r--  1 anntony anntony    63412  1月  7 19:14 libcap-2.24.tar.xz
+-rw-r--r--  1 anntony anntony   340474  1月  7 19:12 libdaemon-0.14.tar.gz
+-rw-r--r--  1 anntony anntony   148529  1月  7 16:50 libelf-0.8.13.tar.gz
+-rw-r--r--  1 anntony anntony   118367  1月  7 18:58 libiwinfo-2015-01-04-c9fd399316003040825dfbd9700488b621bd990e.tar.gz
+-rw-r--r--  1 anntony anntony   642352  1月  8 01:39 libpcap-1.5.3.tar.gz
+-rw-r--r--  1 anntony anntony  2580417  1月  7 16:40 libtool-2.4.tar.gz
+-rw-r--r--  1 anntony anntony    49461  1月  7 18:44 libubox-2014-11-23-f09ae76445e32511433fdab0a1bcda73aa84986d.tar.gz
+-rw-r--r--  1 anntony anntony  5444991  1月  7 18:54 libxml2-2.9.2.tar.gz
+-rw-r--r--  1 anntony anntony 78468340  1月  7 18:08 linux-3.14.27.tar.xz
+-rw-r--r--  1 anntony anntony  1082256  1月  8 01:39 linux-atm-2.5.2.tar.gz
+-rw-r--r--  1 anntony anntony 39556960  1月  8 01:35 linux-firmware-2014-06-04-7f388b4885cf64d6b7833612052d20d4197af96f.tar.bz2
+-rw-r--r--  1 anntony anntony  1148944  1月  7 19:14 Linux-PAM-1.1.8.tar.bz2
+-rw-r--r--  1 anntony anntony   221213  1月  7 18:44 lua-5.1.5.tar.gz
+-rw-r--r--  1 anntony anntony   130347  1月  7 17:44 lzma-4.32.tar.bz2
+-rw-r--r--  1 anntony anntony   252395  1月  7 17:44 lzma-4.65.tar.bz2
+-rw-r--r--  1 anntony anntony   589045  1月  7 18:46 lzo-2.08.tar.gz
+-rw-r--r--  1 anntony anntony  1149088  1月  7 16:30 m4-1.4.17.tar.xz
+-rw-r--r--  1 anntony anntony    24121  1月  7 16:55 mklibs_0.1.35.tar.gz
+-rw-r--r--  1 anntony anntony   569264  1月  7 17:03 mm-common-0.9.6.tar.xz
+-rw-r--r--  1 anntony anntony   633173  1月  7 16:50 mpc-1.0.2.tar.gz
+-rw-r--r--  1 anntony anntony  1225496  1月  7 16:49 mpfr-3.1.2.tar.bz2
+-rw-r--r--  1 anntony anntony   337100  1月  7 16:56 mtd-utils-1.4.5.tar.gz
+-rw-r--r--  1 anntony anntony  2826473  1月  7 18:48 ncurses-5.9.tar.gz
+-rw-r--r--  1 anntony anntony    82901  1月  7 18:45 netifd-2014-12-23-e9d2014a478807c7fac0581bb4a145901a3f23b4.tar.gz
+-rw-r--r--  1 anntony anntony  6750364  1月  7 19:16 ntp-4.2.8.tar.gz
+-rw-r--r--  1 anntony anntony    30423  1月  7 19:03 ntpclient_2010_365.tar.gz
+-rw-r--r--  1 anntony anntony    32259  1月  8 01:38 odhcp6c-2014-12-10.tar.bz2
+-rw-r--r--  1 anntony anntony    40412  1月  8 01:39 odhcpd-2014-11-06.tar.bz2
+-rw-r--r--  1 anntony anntony  1351367  1月  8 01:30 openssh-6.7p1.tar.gz
+-rw-r--r--  1 anntony anntony  4432964  1月  7 19:00 openssl-1.0.1j.tar.gz
+-rw-r--r--  1 anntony anntony  1213272  1月  7 19:03 openvpn-2.3.6.tar.gz
+-rw-r--r--  1 anntony anntony   172799  1月  7 18:45 opkg-9c97d5ecd795709c8584e972bfdf3aee3a5b846d.tar.gz
+-rw-r--r--  1 anntony anntony   675896  1月  7 16:27 patch-2.7.1.tar.xz
+-rw-r--r--  1 anntony anntony  1931203  1月  7 16:36 pkg-config-0.28.tar.gz
+-rw-r--r--  1 anntony anntony  1741396  1月  7 18:57 polarssl-1.3.9-gpl.tgz
+-rw-r--r--  1 anntony anntony   688117  1月  8 01:40 ppp-2.4.7.tar.gz
+-rw-r--r--  1 anntony anntony    30055  1月  7 18:53 procd-2014-12-15-61cfe0d093056b85a311f06d44ac149e5dbb4d1a.tar.gz
+-rw-r--r--  1 anntony anntony   389593  1月  7 17:02 quilt-0.63.tar.gz
+-rw-r--r--  1 anntony anntony  1474200  1月  7 19:04 rrdtool-1.0.50.tar.gz
+-rw-r--r--  1 anntony anntony   499037  1月  7 17:10 scons-2.3.1.tar.gz
+-rw-r--r--  1 anntony anntony  1059414  1月  7 16:35 sed-4.2.2.tar.bz2
+-rw-r--r--  1 anntony anntony   384917  1月  7 17:44 squashfs3.0.tar.gz
+-rw-r--r--  1 anntony anntony   133173  1月  7 17:45 squashfs4.2.tar.gz
+-rw-r--r--  1 anntony anntony  8844729  1月  7 18:53 u-boot-2010.03.tar.bz2
+-rw-r--r--  1 anntony anntony 10217685  1月  7 16:57 u-boot-2014.10.tar.bz2
+-rw-r--r--  1 anntony anntony    17483  1月  7 18:46 ubox-2014-10-06-0b274c16a3f9d235735a4b84215071e1e004caa9.tar.gz
+-rw-r--r--  1 anntony anntony    29991  1月  7 18:45 ubus-2014-09-17-4c4f35cf2230d70b9ddd87638ca911e8a563f2f3.tar.gz
+-rw-r--r--  1 anntony anntony    50563  1月  7 18:45 uci-2014-04-11.1.tar.gz
+-rw-r--r--  1 anntony anntony  2834029  1月  7 18:09 uClibc-0.9.33.2.tar.bz2
+-rw-r--r--  1 anntony anntony    28998  1月  7 18:58 uhttpd-2014-10-27-fd8e5e379c23c5fbcec3e76894b839233df09067.tar.gz
+-rw-r--r--  1 anntony anntony     9760  1月  7 18:58 ustream-ssl-2014-03-25-fc0b5ec804ee43c532978dd04ab0509c34baefb0.tar.gz
+-rw-r--r--  1 anntony anntony  3703644  1月  7 18:50 util-linux-2.25.2.tar.xz
+-rw-r--r--  1 anntony anntony    67786  1月  7 17:03 util-macros-1.11.0.tar.bz2
+-rw-r--r--  1 anntony anntony   294417  1月  8 01:41 wireless_tools.29.tar.gz
+-rw-r--r--  1 anntony anntony   652866  1月  8 01:36 wl_apsta-3.130.20.0.o
+-rw-r--r--  1 anntony anntony    77707  1月  7 17:03 xfce4-dev-tools-4.8.0.tar.bz2
+-rw-r--r--  1 anntony anntony  1060649  1月  7 16:37 xz-5.0.5.tar.bz2
+-rw-r--r--  1 anntony anntony    90735  1月  7 17:03 yaffs2_android-2008-12-18.tar.bz2
+-rw-r--r--  1 anntony anntony    86538  1月  7 18:57 zd1201-0.14-fw.tar.gz
+-rw-r--r--  1 anntony anntony    39061  1月  8 01:35 zd1211-firmware-1.4.tar.bz2
+-rw-r--r--  1 anntony anntony   571091  1月  7 18:47 zlib-1.2.8.tar.gz
+anntony@anntony-Lenovo-B590 ~/openwrt/trunk/dl $ ls -al|wc -l
+106
+anntony@anntony-Lenovo-B590 ~/openwrt/trunk/dl $
 
+如果一直連不上這些FTP站台
+一直沒辦法取得上面其中的任何一個xxxxx.tar.gz或是yyyyy.tar.bz2的話
+編譯程序就會中止
+編譯期間我一直死盯著終端機輸出
+同一個FTP站台好像會retry個5次才放棄
+如果我看到在下載xxxxx.tar.gz的時候
+一直連不上該FTP站台一直在retry
+我就會直接開Google瀏覽器，搜尋該xxxxx.tar.gz
+然後下載好，再手動丟到
+~/openwrt/trunk/dl
+這個子目錄下
+整個動作
+也就是「發現好像連不上某FTP站台」－＞「打開Google瀏覽器搜尋該依賴套件的tar.gz」－＞「下載它」－＞「迅速丟進~/openwrt/trunk/dl子目錄」
+這個動作很趕
+要在大概一分半裡面完成
+也就是要在第5次嘗試連接該FTP站台，然後失敗之前完成
+我在想可不可以一開始編譯之前
+就把這106個檔案先找好，然後先丟在
+~/openwrt/trunk/dl
+子目錄底下
+不過我沒這麼作
+我就是呆呆的死盯終端機
+少一個我手動下載手動補上一個
 
 ＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
 
