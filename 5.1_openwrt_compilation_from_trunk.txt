@@ -660,7 +660,6 @@ LuCI  --->Libraries  --->TLS Provider (Disabled)  --->OpenSSL
 LuCI  --->Libraries  --->luci-lib-px5g
 LuCI  --->Translations  --->luci-i18n-chinese
 LuCI  --->Translations  --->luci-i18n-english
-LuCI  --->Applications  --->
 
 全都選好了，就選< Exit >退出藍底GUI操作選單
 Do you wish to save your new configuration ? 

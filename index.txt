@@ -74,3 +74,10 @@ http://lirobo.blogspot.tw/2012/10/tp-link-tl-wr703n.html
 進階的安全設定
 參考資料
 http://wiki.openwrt.org/doc/howto/secure.access
+
+First Login
+http://wiki.openwrt.org/doc/howto/firstlogin
+
+basic configuration
+http://wiki.openwrt.org/doc/howto/basic.config
+
