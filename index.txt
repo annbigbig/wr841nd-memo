@@ -34,6 +34,15 @@ uboot : pepe2k的版本
      5.3 勞作時間，使用hex editor將uboot、firmware、art資料弄成一整個16MB的編程器固件影像檔
 
 6.測試CH341A編程器讀寫均正常
+     6.1 上淘寶買編程器
+     6.2 淘寶賣家給的編程器資料
+     6.3 準備WindowsXP電腦，安裝編程器的驅動程式與燒錄軟件
+     6.4 將SOP8芯片插上DIP8轉接座，再插上編程器，試著識別芯片型號
+     6.5 產生一個16MB大小，測試用的影像檔test.bin
+     6.6 將test.bin燒錄進SOP8 Flash ROM
+     6.7 讀取剛才燒錄完成的芯片內容，將內容轉存成finished.bin
+     6.8 比對test.bin和finished.bin內容是否一致？
+     6.9 將剛才燒錄好的芯片內容抹除
 
 7.寫入我們剛才產生的16MB編程器固件到ROM裡
 
@@ -41,7 +50,22 @@ uboot : pepe2k的版本
 
 9.取下舊的ROM，焊上新的16MB ROM，將路由器開機觀察是否行為正常？
 
-10.換上新ROM之後的OpenWRT的第一次開機（First Login）
+10.換上新ROM之後或是刷上OpenWRT之後的設定
+     10.1 必要的設定 - 刷上OpenWRT之後最需要的設定
+          10.1.1 完成First Login
+          10.1.2 備份分享器上的重要資料
+          10.1.3 網路連線設定
+               10.1.3.1 wan接口設定
+               10.1.3.2 lan接口設定
+               10.1.3.3 重啟network daemon 讓設定生效
+     10.2 基本設定
+          10.2.1 登入路由器的相關安全設定
+          10.2.2 QoS (服務品質 Quality of Service) 相關設定
+
+     10.3 進階設定
+
+     10.1 完成First Login
+          10.1.1 
      10.1 設定root密碼
      10.2 設定網路環境
      10.3 進階的安全設定
