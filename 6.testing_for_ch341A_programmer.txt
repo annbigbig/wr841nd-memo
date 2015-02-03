@@ -9,6 +9,7 @@
 6.6 將test.bin燒錄進SOP8 Flash ROM
 6.7 讀取剛才燒錄完成的芯片內容，將內容轉存成finished.bin
 6.8 比對test.bin和finished.bin內容是否一致？
+6.9 將剛才燒錄好的芯片內容抹除
 
 ＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
 6.1 上淘寶買編程器
@@ -105,6 +106,9 @@ http://goods.ruten.com.tw/item/show?21311118884200
 ＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
 6.5 產生一個16MB大小，測試用的影像檔test.bin
 
+以下兩個方法都可以產生測試用的16MB二進制文件，自已挑一個喜歡的用
+
+（方法一：借一下森亮號船長的16MB編程器固件）
 使用「16MB tp-link 編程器固件下載」當作關鍵字
 Google搜尋後
 找到這個網頁（森亮號）
@@ -119,4 +123,35 @@ test.bin
 並放置在/home/anntony/downloads
 子目錄中待用
 
+（方法二：自已使用指令產生檔案大小為16MB的隨機內容binary資料）
+搜尋關鍵字：how to generate a binary file in linux
+參考資料
+http://stackoverflow.com/questions/1462893/generating-a-random-binary-file
+
+指令與終端機輸出
+anntony@anntony-Lenovo-B590 /tmp $ time dd if=/dev/urandom of=random-file bs=1M count=16
+輸入 16+0 個紀錄
+輸出 16+0 個紀錄
+複製了 16777216 個位元組 (17 MB), 1.61623 s, 10.4 MB/s
+
+real	0m1.618s
+user	0m0.001s
+sys	0m1.616s
+anntony@anntony-Lenovo-B590 /tmp $ man hexdump
+anntony@anntony-Lenovo-B590 /tmp $ hexdump -n 128 /tmp/random-file 
+0000000 b953 abe0 08f3 26e2 fcec 4437 f320 345c
+0000010 36bd b23c acaf 1220 e4b1 f836 384f ccea
+0000020 62d3 529c 1782 2685 f22b 5b56 2d58 83bf
+0000030 8aa8 5a06 1674 656b f98f 98c2 7a9a 6219
+0000040 dfb7 0325 e716 9ac3 7b77 2f06 2311 cb26
+0000050 a014 ced2 198e 722f b094 6e78 d4fb f317
+0000060 db62 2a8c b054 ac92 d2a8 48a1 0b14 14a0
+0000070 8ba9 0523 ee80 5645 d039 44e8 fe06 5cce
+0000080
+anntony@anntony-Lenovo-B590 /tmp $ mv /tmp/random-file /tmp/test.bin
+anntony@anntony-Lenovo-B590 /tmp $ ls -al|grep test.bin
+-rw-r--r--  1 anntony anntony 16777216  2月  3 19:53 test.bin
+anntony@anntony-Lenovo-B590 /tmp $
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
 ＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
