@@ -55,20 +55,18 @@ uboot : pepe2k的版本
           10.1.1 完成First Login
           10.1.2 備份分享器上的重要資料
           10.1.3 網路連線設定
-               10.1.3.1 wan接口設定
-               10.1.3.2 lan接口設定
-               10.1.3.3 重啟network daemon 讓設定生效
+               10.1.3.1 /etc/config/network
+               10.1.3.2 /etc/config/wireless
+               10.1.3.3 /etc/config/dhcp
+               10.1.3.4 /etc/config/firewall
      10.2 基本設定
           10.2.1 登入路由器的相關安全設定
           10.2.2 QoS (服務品質 Quality of Service) 相關設定
+          10.2.3 設定排程工作crond
 
      10.3 進階設定
-
-     10.1 完成First Login
-          10.1.1 
-     10.1 設定root密碼
-     10.2 設定網路環境
-     10.3 進階的安全設定
+          10.3.1 vpn
+          10.3.2 掛載遠端檔案系統
 
 11.了解FailSafe模式
 

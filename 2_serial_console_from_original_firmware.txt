@@ -47,6 +47,27 @@ http://wiki.openwrt.org/_detail/media/toh/tp-link/tl-wr841nd.v8.4.serial.jpg?id=
 試著把TX接在TX，RX接在RX再試試看
 還有就接這三條線就好，其他的不要接上
 
+把cp2102小板子插在筆記型電腦上
+然後執行
+anntony@anntony-Lenovo-B590 ~ $ lsusb
+Bus 002 Device 003: ID 046d:c05a Logitech, Inc. M90/M100 Optical Mouse
+Bus 002 Device 002: ID 8087:0024 Intel Corp. Integrated Rate Matching Hub
+Bus 002 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+Bus 001 Device 004: ID 058f:6366 Alcor Micro Corp. Multi Flash Reader
+Bus 001 Device 006: ID 10c4:ea60 Cygnal Integrated Products, Inc. CP210x UART Bridge / myAVR mySmartUSB light
+Bus 001 Device 003: ID 04f2:b2fa Chicony Electronics Co., Ltd 
+Bus 001 Device 002: ID 8087:0024 Intel Corp. Integrated Rate Matching Hub
+Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+Bus 004 Device 001: ID 1d6b:0003 Linux Foundation 3.0 root hub
+Bus 003 Device 002: ID 046d:c31c Logitech, Inc. Keyboard K120 for Business
+Bus 003 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+anntony@anntony-Lenovo-B590 ~ $ ls -al /dev | grep -i usb
+crw-rw----   1 root dialout   188,   0  2月  5 22:36 ttyUSB0
+drwxr-x---   5 root vboxusers      100  2月  5 18:17 vboxusb
+anntony@anntony-Lenovo-B590 ~ $ 
+
+出現了，這樣就確認cp2102小板子的裝置代號是/dev/ttyUSB0
+
 ＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
 2.2 連線軟體PuTTY安裝及設定
 
