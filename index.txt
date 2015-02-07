@@ -55,10 +55,10 @@ uboot : pepe2k的版本
           10.1.1 完成First Login
           10.1.2 備份分享器上的重要資料
           10.1.3 網路連線設定
-               10.1.3.1 /etc/config/network
-               10.1.3.2 /etc/config/wireless
-               10.1.3.3 /etc/config/dhcp
-               10.1.3.4 /etc/config/firewall
+               10.1.3.1 設定wan和lan接口
+               10.1.3.2 設定無線網路
+               10.1.3.3 設定dhcp服務器
+               10.1.3.4 設定防火牆
      10.2 基本設定
           10.2.1 登入路由器的相關安全設定
           10.2.2 QoS (服務品質 Quality of Service) 相關設定

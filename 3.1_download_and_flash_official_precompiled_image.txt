@@ -1,0 +1,91 @@
+ 3.1 透過路由器原廠的網頁操作介面，刷上OpenWRT官方預編譯好的factory固件
+
+工作列表
+3.1.1 下載OpenWRT官方預編譯好的factory固件
+3.1.2 進入wr841分享器的web interface刷上剛才下載的OpenWRT固件
+
+細節
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+3.1.1 下載OpenWRT官方預編譯好的factory固件
+
+關鍵字搜尋 TP-Link wr841n openwrt
+來到OpenWRT專門為wr841n路由器寫的網頁
+http://wiki.openwrt.org/toh/tp-link/tl-wr841nd
+
+捲下來一點，在v8.x(international)的附近
+可以找到一個下載連結
+http://downloads.openwrt.org/barrier_breaker/14.07/ar71xx/generic/openwrt-ar71xx-generic-tl-wr841n-v8-squashfs-factory.bin
+
+按下之後
+會下載
+openwrt-ar71xx-generic-tl-wr841n-v8-squashfs-factory.bin
+在我寫這份筆記的時候
+這個網頁上放的固件是14.07 barrier breaker的版本
+下載完成後
+我固件的完整路徑在
+/home/anntony/下載/openwrt-ar71xx-generic-tl-wr841n-v8-squashfs-factory.bin
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+3.1.2 進入wr841n分享器的web interface刷上剛才下載的OpenWRT固件
+
+將筆記型電腦的lan網口與wr841n路由器的lan1網口用網路線對接
+wr841n路由器的出廠預設的IP是192.168.0.1
+它預設有開DHCP Server
+所以我把筆記型電腦的eth0設置成使用DHCP取得IP即可
+我的筆記型電腦是Linux Mint 17
+在左下角的Menu > 控制台 > Network Connections > 有線網路連線1 > 編輯... > IPV4設定 > 方法 (M) 自動(DHCP)
+將wr841n路由器開機之後
+筆記型電腦自動分配到了一個IP是192.168.0.100
+打開Chrome瀏覽器
+使用以下網址進入wr841n路由器設定的網頁介面
+http://192.168.0.1/
+
+TP-Link原廠固件的
+登入帳號是admin密碼也是admin
+登入之後
+在左邊的「系統工具」>「韌體升級」>「選擇檔案」
+選擇前一個步驟下載的
+/home/anntony/下載/openwrt-ar71xx-generic-tl-wr841n-v8-squashfs-factory.bin
+按下「開啟」再按下「韌體升級」
+您確定要升級韌體嗎？選「確定」
+等了十幾秒之後
+韌體更新成功！重新開機中...
+重新開機完成 100%
+
+現在再把eth0的IP釋放 (在桌面右下角停用網路，再重新啟用它)
+wr841n路由器的DHCP服務重新發了一個192.168.1.248的IP給筆記型電腦
+anntony@anntony-Lenovo-B590 ~ $ ifconfig eth0
+eth0      Link encap:Ethernet  HWaddr 54:ee:75:09:dc:3e  
+          inet addr:192.168.1.248  Bcast:192.168.1.255  Mask:255.255.255.0
+          inet6 addr: fe80::56ee:75ff:fe09:dc3e/64 Scope:Link
+          inet6 addr: fdeb:70cc:e1cf:0:56ee:75ff:fe09:dc3e/64 Scope:Global
+          inet6 addr: fdeb:70cc:e1cf::cf4/128 Scope:Global
+          inet6 addr: fdeb:70cc:e1cf:0:f853:dc94:6d5c:ec93/64 Scope:Global
+          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+          RX packets:5797 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:7661 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:1000 
+          RX bytes:2363624 (2.3 MB)  TX bytes:4598498 (4.5 MB)
+
+anntony@anntony-Lenovo-B590 ~ $ route -n
+Kernel IP routing table
+Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
+0.0.0.0         192.168.1.1     0.0.0.0         UG    0      0        0 eth0
+192.168.1.0     0.0.0.0         255.255.255.0   U     1      0        0 eth0
+anntony@anntony-Lenovo-B590 ~ $
+
+這個時候可以在筆記型電腦上
+用Chrome瀏覽器直接連
+http://192.168.1.1
+
+因為剛刷好OpenWRT
+還沒有設定root密碼
+所以登入密碼是空的
+按下Login可以登入Luci網頁設定介面先瞧瞧
+
+進去了耶
+好神奇
+好興奮
+我是個阿宅
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊

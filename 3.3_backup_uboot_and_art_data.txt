@@ -1,0 +1,73 @@
+3.3 ssh連線到路由器，備份u-boot和art資料到筆記型電腦上
+
+anntony@anntony-Lenovo-B590 ~ $ ssh root@192.168.1.1
+root@192.168.1.1's password: 
+
+
+BusyBox v1.22.1 (2014-09-20 22:01:35 CEST) built-in shell (ash)
+Enter 'help' for a list of built-in commands.
+
+  _______                     ________        __
+ |       |.-----.-----.-----.|  |  |  |.----.|  |_
+ |   -   ||  _  |  -__|     ||  |  |  ||   _||   _|
+ |_______||   __|_____|__|__||________||__|  |____|
+          |__| W I R E L E S S   F R E E D O M
+ -----------------------------------------------------
+ BARRIER BREAKER (14.07, r42625)
+ -----------------------------------------------------
+  * 1/2 oz Galliano         Pour all ingredients into
+  * 4 oz cold Coffee        an irish coffee mug filled
+  * 1 1/2 oz Dark Rum       with crushed ice. Stir.
+  * 2 tsp. Creme de Cacao
+ -----------------------------------------------------
+root@OpenWrt:~# cat /proc/mtd 
+dev:    size   erasesize  name
+mtd0: 00020000 00010000 "u-boot"
+mtd1: 0010e660 00010000 "kernel"
+mtd2: 002c19a0 00010000 "rootfs"
+mtd3: 000b0000 00010000 "rootfs_data"
+mtd4: 00010000 00010000 "art"
+mtd5: 003d0000 00010000 "firmware"
+root@OpenWrt:~# cd /tmp
+root@OpenWrt:/tmp# dd if=/dev/mtd0 of=uboot_bak.bin
+256+0 records in
+256+0 records out
+root@OpenWrt:/tmp# dd if=/dev/mtd4 of=art_bak.bin
+128+0 records in
+128+0 records out
+root@OpenWrt:/tmp# ls -al|grep bin
+-rw-r--r--    1 root     root         65536 Oct  1 12:50 art_bak.bin
+-rw-r--r--    1 root     root        131072 Oct  1 12:49 uboot_bak.bin
+root@OpenWrt:/tmp# exit
+Connection to 192.168.1.1 closed.
+anntony@anntony-Lenovo-B590 ~ $ 
+
+注意，現在已經回到筆記型電腦上了
+使用scp指令，將wr841n路由器裡剛才備份在/tmp目錄的兩個檔案給複製出來
+
+anntony@anntony-Lenovo-B590 ~ $ pwd
+/home/anntony
+anntony@anntony-Lenovo-B590 ~ $ mkdir wr841n_backup
+anntony@anntony-Lenovo-B590 ~ $ cd wr841n_backup/
+anntony@anntony-Lenovo-B590 ~/wr841n_backup $ pwd
+/home/anntony/wr841n_backup
+anntony@anntony-Lenovo-B590 ~/wr841n_backup $ scp root@192.168.1.1:/tmp/uboot_bak.bin .
+root@192.168.1.1's password: 
+uboot_bak.bin                                                                                       100%  128KB 128.0KB/s   00:00    
+anntony@anntony-Lenovo-B590 ~/wr841n_backup $ scp root@192.168.1.1:/tmp/art_bak.bin .
+root@192.168.1.1's password: 
+art_bak.bin                                                                                         100%   64KB  64.0KB/s   00:00    
+anntony@anntony-Lenovo-B590 ~/wr841n_backup $ ls -al|grep bin
+-rw-r--r--  1 anntony anntony  65536  2月  8 03:18 art_bak.bin
+-rw-r--r--  1 anntony anntony 131072  2月  8 03:17 uboot_bak.bin
+anntony@anntony-Lenovo-B590 ~/wr841n_backup $ 
+
+這樣就把wr841n路由器的uboot和art資料備份到筆記型電腦上了
+接下來可以盡情亂搞了耶耶耶
+不管再怎麼樣亂搞
+只要有備份這兩個分割區的資料
+最壞的情況，大不了自已再重新燒錄SOP8 Flash ROM再重新焊一個新的上去
+順便注意上面的檔案大小
+uboot_bak.bin是131072 bytes也就是128 KBytes
+而
+art_bak.bin是65536 bytes也就是64 KBytes

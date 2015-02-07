@@ -1,0 +1,47 @@
+10.1.3.2 設定無線網路
+
+方式一：使用luci網頁介面設定
+方式二：直接修改/etc/config/wireless
+
+細節
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+方式一：使用luci網頁介面設定
+
+
+
+
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+方式二：直接修改/etc/config/wireless
+
+修改/etc/config/wireless
+指令是
+# vi /etc/config/wireless
+
+內容如下
+config wifi-device  radio0
+        option type     mac80211
+        option channel  9 #same channel of the existing wifi network
+        option path     'platform/qca953x_wmac'
+        option txpower  12 #this depends on your needs, default is 20 dBm. Lower it is healthier (citation needed)
+        # REMOVE THIS LINE TO ENABLE WIFI:
+        #option disabled 1
+
+config wifi-iface
+        option device   radio0
+        option network  lan
+        option mode     ap
+        option ssid     'This_is_a_new_wifi_network'
+        option encryption       psk2 #wpa2 psk
+        option key      'this_is_the_wifi_password'
+
+改完之後重啟網路服務
+指令
+# wifi
+或是
+# wifi up
+或是
+# wifi up wlan0
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+
