@@ -7,9 +7,38 @@
 ＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
 方式一：使用luci網頁介面設定
 
+打開瀏覽器
+連接
+http://192.168.1.1
+以用戶root登入luci網頁設定介面後
 
+在[ Network ] > [ Wifi ] 
+已經開了一個無線網路SSID叫作OpenWrt
+按下[ Edit ]
+在General Setup
+Channel : 11 (2.462 GHz)
+Transmit Power : 8 dBm (6mW) 預設是20 dBm 我房間很小，而且我想活久一點就選 8 dBm
+在Advanced Settings
+Band : 2.4GHz (802.11g+n)
+HT mode (802.11n) : 20MHz
+Country Code : TW - Taiwan
 
+捲到下方的Interface Configuration
+General Setup
+ESSID : OpenWrt
+Mode : Access Point
+Network : 把lan勾起來
+WMM Mode : 把這個也勾起來
+按一下旁邊的Wireless Security
+Encryption : WPA2-PSK
+Cipher : auto
+Key : 輸入你想要的wifi密碼
 
+按下[ Save & Apply ] 按鈕，就完成無線網路設定
+基本上我沒什麼變更，都是維持原來的值
+除了調小天線功率、設定Country Code
+重點是設定wifi的加密用psk2還有指定wifi密碼
+其他幾乎都沒改
 
 ＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
 方式二：直接修改/etc/config/wireless
@@ -19,29 +48,28 @@
 # vi /etc/config/wireless
 
 內容如下
-config wifi-device  radio0
-        option type     mac80211
-        option channel  9 #same channel of the existing wifi network
-        option path     'platform/qca953x_wmac'
-        option txpower  12 #this depends on your needs, default is 20 dBm. Lower it is healthier (citation needed)
-        # REMOVE THIS LINE TO ENABLE WIFI:
-        #option disabled 1
+config wifi-device 'radio0'
+	option type 'mac80211'
+	option channel '11'
+	option hwmode '11g'
+	option path 'platform/ar934x_wmac'
+	option htmode 'HT20'
+	option txpower '8'
+	option country 'TW'
 
 config wifi-iface
-        option device   radio0
-        option network  lan
-        option mode     ap
-        option ssid     'This_is_a_new_wifi_network'
-        option encryption       psk2 #wpa2 psk
-        option key      'this_is_the_wifi_password'
+	option device 'radio0'
+	option network 'lan'
+	option mode 'ap'
+	option ssid 'OpenWrt'
+	option encryption 'psk2'
+	option key 'YOUR_WIFI_PASSWORD'
 
 改完之後重啟網路服務
 指令
 # wifi
 或是
 # wifi up
-或是
-# wifi up wlan0
 
 ＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
 
