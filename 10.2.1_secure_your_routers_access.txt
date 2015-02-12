@@ -7,9 +7,10 @@
      10.2.1.2 只使用public key authentication登入dropbear（SSH服務器）
           10.2.1.2.1 在其他Linux電腦上產生ssh key pair，並複製public key到wr841n路由器
           10.2.1.2.2 將public key寫到wr841n路由器的/home/tonychacha/.ssh/authorized_keys
-          10.2.1.2.3 取消dropbear（SSH服務器）的密碼登入功能，並重啟dropbear服務
-          10.2.1.2.4 測試是否可以用ssh -i /path/to/my.private.key tonychacha@10.1.1.1連線指令登入？
-          10.2.1.2.5 測試是否還可以用ssh root@10.1.1.1 或是 ssh tonychacha@10.1.1.1 以密碼登入？
+          10.2.1.2.3 設定一下SSH客戶端的.ssh/config，這樣可以直接用ssh wr841n這麼簡單的指令登入路由器
+          10.2.1.2.4 取消dropbear（SSH服務器）的密碼登入功能，並重啟dropbear服務
+          10.2.1.2.5 測試是否可以用ssh wr841n連線指令登入？（使用私鑰登入SSH服務器）
+          10.2.1.2.6 測試是否還可以用ssh root@10.1.1.1 或是 ssh tonychacha@10.1.1.1 以密碼登入？
      10.2.1.3 dropbear（SSH服務器）安全設定
      10.2.1.4 uhttpd (WWW服務器) 安全設定
 
@@ -324,21 +325,136 @@ $ ssh -i ./tonychacha@10.1.1.1 tonychacha@10.1.1.1
 是指我們要連到wr841n路由器的IP地址10.1.1.1，以用戶tonychacha的身分
 
 ＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
-10.2.1.2.3 取消dropbear（SSH服務器）的密碼登入功能，並重啟dropbear服務
+10.2.1.2.3 設定一下SSH客戶端的.ssh/config，這樣可以直接用ssh wr841n這麼簡單的指令登入路由器
+
+SSH客戶端也就是筆記型電腦上
+打開vi文字編輯器，修改SSH客戶端設定檔/home/anntony/.ssh/config
+anntony@anntony-Lenovo-B590 ~ $ pwd
+/home/anntony
+anntony@anntony-Lenovo-B590 ~ $ cd .ssh
+anntony@anntony-Lenovo-B590 ~/.ssh $ vi ./config
+
+在檔案的最後面加上這個區塊
+Host wr841n
+  HostName 10.1.1.1
+  User tonychacha
+  Port 22
+  IdentityFile /home/anntony/.ssh/tonychacha@10.1.1.1
+
+存檔後離開vi文字編輯器
+接下來試試剛才的設定有沒有生效？
+執行
+anntony@anntony-Lenovo-B590 ~ $ ssh wr841n
 
 
+BusyBox v1.22.1 (2014-09-20 22:01:35 CEST) built-in shell (ash)
+Enter 'help' for a list of built-in commands.
 
+  _______                     ________        __
+ |       |.-----.-----.-----.|  |  |  |.----.|  |_
+ |   -   ||  _  |  -__|     ||  |  |  ||   _||   _|
+ |_______||   __|_____|__|__||________||__|  |____|
+          |__| W I R E L E S S   F R E E D O M
+ -----------------------------------------------------
+ BARRIER BREAKER (14.07, r42625)
+ -----------------------------------------------------
+  * 1/2 oz Galliano         Pour all ingredients into
+  * 4 oz cold Coffee        an irish coffee mug filled
+  * 1 1/2 oz Dark Rum       with crushed ice. Stir.
+  * 2 tsp. Creme de Cacao
+ -----------------------------------------------------
+tonychacha@OpenWrt:~$
+
+以後不需要再執行
+$ ssh -i /home/anntony/.ssh/tonychacha@10.1.1.1 tonychacha@10.1.1.1
+這麼長的指令，來連線到wr841n路由器了
+執行
+$ ssh wr841n
+就可以了
+因為剛才的設定
+兩行指令現在是等效的
 
 ＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+10.2.1.2.4 取消dropbear（SSH服務器）的密碼登入功能，並重啟dropbear服務
 
-
-
-
+登入wr841n路由器之後
+執行
+root@OpenWrt:/# cat /etc/config/dropbear 
+config dropbear
+	option PasswordAuth 'on'
+	option RootPasswordAuth 'on'
+	option Port         '22'
+#	option BannerFile   '/etc/banner'
+root@OpenWrt:/# 
+root@OpenWrt:/# vi /etc/config/dropbear 
+root@OpenWrt:/# cat /etc/config/dropbear 
+config dropbear
+	option PasswordAuth 'off'
+	option RootPasswordAuth 'on'
+	option Port         '22'
+#	option BannerFile   '/etc/banner'
+root@OpenWrt:/# /etc/init.d/dropbear restart
+root@OpenWrt:/#
 
 ＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+10.2.1.2.5 測試是否可以用ssh wr841n連線指令登入？（使用私鑰登入SSH服務器）
+
+anntony@anntony-Lenovo-B590 ~ $ ssh wr841n
 
 
+BusyBox v1.22.1 (2014-09-20 22:01:35 CEST) built-in shell (ash)
+Enter 'help' for a list of built-in commands.
 
+  _______                     ________        __
+ |       |.-----.-----.-----.|  |  |  |.----.|  |_
+ |   -   ||  _  |  -__|     ||  |  |  ||   _||   _|
+ |_______||   __|_____|__|__||________||__|  |____|
+          |__| W I R E L E S S   F R E E D O M
+ -----------------------------------------------------
+ BARRIER BREAKER (14.07, r42625)
+ -----------------------------------------------------
+  * 1/2 oz Galliano         Pour all ingredients into
+  * 4 oz cold Coffee        an irish coffee mug filled
+  * 1 1/2 oz Dark Rum       with crushed ice. Stir.
+  * 2 tsp. Creme de Cacao
+ -----------------------------------------------------
+tonychacha@OpenWrt:~$
 
+使用存放在
+/home/anntony/.ssh/tonychacha@10.1.1.1
+的私鑰可以登入，沒有問題
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+10.2.1.2.6 測試是否還可以用ssh root@10.1.1.1 或是 ssh tonychacha@10.1.1.1 以密碼登入？
+
+anntony@anntony-Lenovo-B590 ~ $ ssh root@10.1.1.1
+Permission denied (publickey).
+anntony@anntony-Lenovo-B590 ~ $ ssh tonychacha@10.1.1.1
+Permission denied (publickey).
+anntony@anntony-Lenovo-B590 ~ $
+
+當然不行，所以剛才產生的
+/home/anntony/.ssh/tonychacha@10.1.1.1
+這一把私鑰要收好，不要弄丟
+萬一弄丟了
+就沒辦法SSH登入wr841n路由器了
+還有路由器上的用戶tonychacha的密碼
+要記好
+不然就算以用戶tonychacha的身分，用私鑰登入了
+可是
+$ sudo -i
+的時候忘記了密碼
+一樣沒辦法變身成用戶root
+這樣很麻煩
+可是比較安全
+方便的登入方式
+代表著系統很隨便就能登入，比較危險
+還有如果真的某一天把這一支SSH私鑰搞丟了
+或是忘記了路由器用戶tonychacha的密碼
+那
+就是一個悲劇了
+不過還是有得救
+要不進FailSave模式
+要不重刷OpenWRT
 
 ＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
