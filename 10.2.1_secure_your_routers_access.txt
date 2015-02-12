@@ -4,8 +4,14 @@
      10.2.1.1 新增一個用戶tonychacha並允許他sudo成用戶root
           10.2.1.1.1 安裝依賴套件
           10.2.1.1.2 新增用戶tonychacha
-     10.2.1.2 dropbear（SSH服務器）安全設定
-     10.2.1.3 uhttpd (WWW服務器) 安全設定
+     10.2.1.2 只使用public key authentication登入dropbear（SSH服務器）
+          10.2.1.2.1 在其他Linux電腦上產生ssh key pair，並複製public key到wr841n路由器
+          10.2.1.2.2 將public key寫到wr841n路由器的/home/tonychacha/.ssh/authorized_keys
+          10.2.1.2.3 取消dropbear（SSH服務器）的密碼登入功能，並重啟dropbear服務
+          10.2.1.2.4 測試是否可以用ssh -i /path/to/my.private.key tonychacha@10.1.1.1連線指令登入？
+          10.2.1.2.5 測試是否還可以用ssh root@10.1.1.1 或是 ssh tonychacha@10.1.1.1 以密碼登入？
+     10.2.1.3 dropbear（SSH服務器）安全設定
+     10.2.1.4 uhttpd (WWW服務器) 安全設定
 
      10.2.1.2 禁止使用密碼ssh登入路由器，只使用公鑰作身份認證（public key authentication）
      10.2.1.3 禁止root用戶直接登入，產生一個普通用戶anntony並允許他登入後變身成root用戶
@@ -174,8 +180,156 @@ Enter 'help' for a list of built-in commands.
 root@OpenWrt:~# 
 
 嗯，可以登入，也可以變身成root，很好很好
-＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
 
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+10.2.1.2.1 在其他Linux電腦上產生ssh key pair，並複製public key到wr841n路由器
+
+anntony@anntony-Lenovo-B590 ~ $ cd .ssh
+anntony@anntony-Lenovo-B590 ~/.ssh $ pwd
+/home/anntony/.ssh
+anntony@anntony-Lenovo-B590 ~/.ssh $ ssh-keygen -t rsa -b 2048 -C "tonychacha@10.1.1.1"
+Generating public/private rsa key pair.
+Enter file in which to save the key (/home/anntony/.ssh/id_rsa): /home/anntony/.ssh/tonychacha@10.1.1.1
+Enter passphrase (empty for no passphrase): 
+Enter same passphrase again: 
+Your identification has been saved in /home/anntony/.ssh/tonychacha@10.1.1.1.
+Your public key has been saved in /home/anntony/.ssh/tonychacha@10.1.1.1.pub.
+The key fingerprint is:
+bb:7e:4c:3f:8f:33:9c:cb:a7:d6:a7:15:48:fe:ac:cc tonychacha@10.1.1.1
+The key's randomart image is:
++--[ RSA 2048]----+
+|                 |
+|                 |
+|             .   |
+|            o .  |
+|        S    o . |
+|         ..   o .|
+|        .o o o o.|
+|         .o.@.+..|
+|       .o. .=Eoo |
++-----------------+
+anntony@anntony-Lenovo-B590 ~/.ssh $ ls -al|grep tonychacha
+-rw-------  1 anntony anntony 1679  2月 12 20:56 tonychacha@10.1.1.1
+-rw-r--r--  1 anntony anntony  401  2月 12 20:56 tonychacha@10.1.1.1.pub
+anntony@anntony-Lenovo-B590 ~/.ssh $ 
+
+在這裡
+私鑰的完整路徑是
+/home/anntony/.ssh/tonychacha@10.1.1.1
+而公鑰的完整路徑是
+/home/anntony/.ssh/tonychacha@10.1.1.1.pub
+使用的演算法是rsa，長度是2048 bit，其實不用顯式指定-b 2048
+2048 bit那已經是預設的長度了
+只是再顯式指定一次讓大家注意到而已
+現在把剛才產生的公鑰複製到wr841n路由器內
+
+anntony@anntony-Lenovo-B590 ~/.ssh $ scp tonychacha@10.1.1.1.pub root@10.1.1.1:/tmp
+root@10.1.1.1's password: 
+tonychacha@10.1.1.1.pub                                                                                100%  401     0.4KB/s   00:00    
+anntony@anntony-Lenovo-B590 ~/.ssh $ 
+
+然後再連線到wr841n路由器裡看一下
+anntony@anntony-Lenovo-B590 ~/.ssh $ ssh root@10.1.1.1
+root@10.1.1.1's password: 
+
+
+BusyBox v1.22.1 (2014-09-20 22:01:35 CEST) built-in shell (ash)
+Enter 'help' for a list of built-in commands.
+
+  _______                     ________        __
+ |       |.-----.-----.-----.|  |  |  |.----.|  |_
+ |   -   ||  _  |  -__|     ||  |  |  ||   _||   _|
+ |_______||   __|_____|__|__||________||__|  |____|
+          |__| W I R E L E S S   F R E E D O M
+ -----------------------------------------------------
+ BARRIER BREAKER (14.07, r42625)
+ -----------------------------------------------------
+  * 1/2 oz Galliano         Pour all ingredients into
+  * 4 oz cold Coffee        an irish coffee mug filled
+  * 1 1/2 oz Dark Rum       with crushed ice. Stir.
+  * 2 tsp. Creme de Cacao
+ -----------------------------------------------------
+root@OpenWrt:~# cd /tmp
+root@OpenWrt:/tmp# ls -al |grep tonycha
+-rw-r--r--    1 root     root           401 Feb 12 13:02 tonychacha@10.1.1.1.pub
+root@OpenWrt:/tmp# 
+
+有了，剛才產生的公鑰
+已經被複製到wr841n路由器上的/tmp目錄中了
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+10.2.1.2.2 將public key寫到wr841n路由器的/home/tonychacha/.ssh/authorized_keys
+
+還是在wr841n路由器的Shell裡
+root@OpenWrt:/tmp# cd /home/tonychacha
+root@OpenWrt:/home/tonychacha# ls -al
+drwx------    2 tonychac tonychac         0 Feb 12 13:07 .
+drwxr-xr-x    3 root     root             0 Feb 12 08:36 ..
+root@OpenWrt:/home/tonychacha# mkdir .ssh
+root@OpenWrt:/home/tonychacha# cp /tmp/tonychacha@10.1.1.1.pub .ssh/
+root@OpenWrt:/home/tonychacha# chown -R tonychacha:tonychacha .ssh
+root@OpenWrt:/home/tonychacha# chmod 700 .ssh
+root@OpenWrt:/home/tonychacha# chmod 600 .ssh/tonychacha@10.1.1.1.pub 
+root@OpenWrt:/home/tonychacha# mv .ssh/tonychacha@10.1.1.1.pub .ssh/authorized_keys
+root@OpenWrt:/home/tonychacha# cd .ssh
+root@OpenWrt:/home/tonychacha/.ssh# ls -al
+drwx------    2 tonychac tonychac         0 Feb 12 13:11 .
+drwx------    3 tonychac tonychac         0 Feb 12 13:08 ..
+-rw-------    1 tonychac tonychac       401 Feb 12 13:08 authorized_keys
+root@OpenWrt:/home/tonychacha/.ssh# 
+
+值得一提的是
+因為authorized_keys這個檔案裡面
+現在我只允許一支公鑰tonychacha@10.1.1.1.pub
+它的相對應的私鑰tonychacha@10.1.1.1
+SSH登入系統（以用戶tonychacha的身分），所以上面你看到了我居然直接執行
+# mv .ssh/tonychacha@10.1.1.1.pub .ssh/authorized_keys
+把公鑰檔直接改成authorized_keys
+這是因為authorized_keys裡面現在只需要存在一支公鑰，才能這樣偷雞
+如果你的authorized_keys已經有至少一支或以上的公鑰
+請你老老實實下這樣的指令
+# cat .ssh/tonychacha@10.1.1.1.pub >> .ssh/authorized_keys
+這一行指令的作用，是把你允許的公鑰，添加到authorized_keys檔案的最後面
+
+接下來試一下可不可以就用剛才的私鑰登入wr841n路由器
+不需要重啟動dropbear
+在筆記型電腦上
+執行
+anntony@anntony-Lenovo-B590 ~/.ssh $ ssh -i ./tonychacha@10.1.1.1 tonychacha@10.1.1.1
+
+
+BusyBox v1.22.1 (2014-09-20 22:01:35 CEST) built-in shell (ash)
+Enter 'help' for a list of built-in commands.
+
+  _______                     ________        __
+ |       |.-----.-----.-----.|  |  |  |.----.|  |_
+ |   -   ||  _  |  -__|     ||  |  |  ||   _||   _|
+ |_______||   __|_____|__|__||________||__|  |____|
+          |__| W I R E L E S S   F R E E D O M
+ -----------------------------------------------------
+ BARRIER BREAKER (14.07, r42625)
+ -----------------------------------------------------
+  * 1/2 oz Galliano         Pour all ingredients into
+  * 4 oz cold Coffee        an irish coffee mug filled
+  * 1 1/2 oz Dark Rum       with crushed ice. Stir.
+  * 2 tsp. Creme de Cacao
+ -----------------------------------------------------
+tonychacha@OpenWrt:~$
+
+哦耶，用私鑰登入了，而且沒有再要求輸入用戶tonychacha的密碼
+我解釋一下這一行連線的指令
+$ ssh -i ./tonychacha@10.1.1.1 tonychacha@10.1.1.1
+-i選項後面指定的./tonychacha@10.1.1.1是私鑰存放的路徑
+然後在後面的tonychacha@10.1.1.1
+是指我們要連到wr841n路由器的IP地址10.1.1.1，以用戶tonychacha的身分
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+10.2.1.2.3 取消dropbear（SSH服務器）的密碼登入功能，並重啟dropbear服務
+
+
+
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
 
 
 
