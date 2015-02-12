@@ -137,3 +137,41 @@ config redirect
 	option dest_port '36000'
 	option name 'Forward36000'
 
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+Transparent proxy rule（待實踐）
+
+一樣是在OpenWRT官網的Firewall教程上看到的
+Transparent proxy rule
+這種規則的作用
+是讓內網的其他想上網瀏覽的主機（想出去的封包，它們目的地是互聯網上其他www主機的TCP端口80）
+無需作任何客戶端的設定（也不能設定，因為是被強制的，封包流被強制重導向了）
+只能籍由proxy主機的3128端口取得想瀏覽的網頁（端口3128通常是運行squid服務，由它去代替用戶取網頁，再給客戶端主機）
+我覺得滿神奇的，有空要實驗一下
+有兩個方式
+
+（一）使用路由器本身的TCP端口3128
+config redirect
+	option src              lan
+	option proto            tcp
+	option src_dport        80
+	option dest_port        3128
+	option dest_ip          192.168.1.1
+
+（二）使用內網其他主機例如192.168.1.100運行的TCP端口3128
+config redirect
+        option src              lan
+        option proto            tcp
+        option src_ip           !192.168.1.100
+        option src_dport        80
+        option dest_ip          192.168.1.100
+        option dest_port        3128
+        option target           DNAT
+
+config redirect
+        option dest             lan
+        option proto            tcp
+        option src_dip          192.168.1.1
+        option dest_ip          192.168.1.100
+        option dest_port        3128
+        option target           SNAT
+

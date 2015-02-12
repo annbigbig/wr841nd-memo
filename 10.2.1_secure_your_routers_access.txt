@@ -1,0 +1,190 @@
+10.2.1 登入路由器的相關安全設定 (編輯中…)
+
+工作列表：
+     10.2.1.1 新增一個用戶tonychacha並允許他sudo成用戶root
+          10.2.1.1.1 安裝依賴套件
+          10.2.1.1.2 新增用戶tonychacha
+     10.2.1.2 dropbear（SSH服務器）安全設定
+     10.2.1.3 uhttpd (WWW服務器) 安全設定
+
+     10.2.1.2 禁止使用密碼ssh登入路由器，只使用公鑰作身份認證（public key authentication）
+     10.2.1.3 禁止root用戶直接登入，產生一個普通用戶anntony並允許他登入後變身成root用戶
+     10.2.1.4 使用正規端口22以外的大於1024的端口當成SSH服務器端口，例如35000
+     10.2.1.5 參考資料
+
+細節：
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+10.2.1.1 安裝依賴套件
+
+anntony@anntony-Lenovo-B590 ~ $ ssh root@10.1.1.1
+root@10.1.1.1's password: 
+
+
+BusyBox v1.22.1 (2014-09-20 22:01:35 CEST) built-in shell (ash)
+Enter 'help' for a list of built-in commands.
+
+  _______                     ________        __
+ |       |.-----.-----.-----.|  |  |  |.----.|  |_
+ |   -   ||  _  |  -__|     ||  |  |  ||   _||   _|
+ |_______||   __|_____|__|__||________||__|  |____|
+          |__| W I R E L E S S   F R E E D O M
+ -----------------------------------------------------
+ BARRIER BREAKER (14.07, r42625)
+ -----------------------------------------------------
+  * 1/2 oz Galliano         Pour all ingredients into
+  * 4 oz cold Coffee        an irish coffee mug filled
+  * 1 1/2 oz Dark Rum       with crushed ice. Stir.
+  * 2 tsp. Creme de Cacao
+ -----------------------------------------------------
+root@OpenWrt:~# which useradd
+root@OpenWrt:~# opkg update
+Downloading http://downloads.openwrt.org/barrier_breaker/14.07/ar71xx/generic/packages/base/Packages.gz.
+Updated list of available packages in /var/opkg-lists/barrier_breaker_base.
+Downloading http://downloads.openwrt.org/barrier_breaker/14.07/ar71xx/generic/packages/luci/Packages.gz.
+Updated list of available packages in /var/opkg-lists/barrier_breaker_luci.
+Downloading http://downloads.openwrt.org/barrier_breaker/14.07/ar71xx/generic/packages/packages/Packages.gz.
+Updated list of available packages in /var/opkg-lists/barrier_breaker_packages.
+Downloading http://downloads.openwrt.org/barrier_breaker/14.07/ar71xx/generic/packages/routing/Packages.gz.
+Updated list of available packages in /var/opkg-lists/barrier_breaker_routing.
+Downloading http://downloads.openwrt.org/barrier_breaker/14.07/ar71xx/generic/packages/telephony/Packages.gz.
+Updated list of available packages in /var/opkg-lists/barrier_breaker_telephony.
+Downloading http://downloads.openwrt.org/barrier_breaker/14.07/ar71xx/generic/packages/management/Packages.gz.
+Updated list of available packages in /var/opkg-lists/barrier_breaker_management.
+Downloading http://downloads.openwrt.org/barrier_breaker/14.07/ar71xx/generic/packages/oldpackages/Packages.gz.
+Updated list of available packages in /var/opkg-lists/barrier_breaker_oldpackages.
+root@OpenWrt:~# opkg install shadow-useradd
+Installing shadow-useradd (4.1.5.1-4) to root...
+Downloading http://downloads.openwrt.org/barrier_breaker/14.07/ar71xx/generic/packages/packages/shadow-useradd_4.1.5.1-4_ar71xx.ipk.
+Installing shadow-common (4.1.5.1-4) to root...
+Downloading http://downloads.openwrt.org/barrier_breaker/14.07/ar71xx/generic/packages/packages/shadow-common_4.1.5.1-4_ar71xx.ipk.
+Configuring shadow-common.
+Configuring shadow-useradd.
+root@OpenWrt:~# opkg install sudo
+Installing sudo (1.7.10p8-1) to root...
+Downloading http://downloads.openwrt.org/barrier_breaker/14.07/ar71xx/generic/packages/oldpackages/sudo_1.7.10p8-1_ar71xx.ipk.
+Configuring sudo.
+root@OpenWrt:~# which useradd
+/usr/sbin/useradd
+root@OpenWrt:~# which sudo
+/usr/bin/sudo
+root@OpenWrt:~# 
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+10.2.1.1.2 新增用戶tonychacha
+
+新增用戶並設定密碼
+# useradd tonychacha
+# passwd tonychacha
+
+手動編輯/etc/passwd
+# vi /etc/passwd
+
+為剛才的新用戶tonychacha指定/bin/ash
+看一下改好的/etc/passwd完整內容是
+root@OpenWrt:~# cat /etc/passwd
+root:x:0:0:root:/root:/bin/ash
+daemon:*:1:1:daemon:/var:/bin/false
+ftp:*:55:55:ftp:/home/ftp:/bin/false
+network:*:101:101:network:/var:/bin/false
+nobody:*:65534:65534:nobody:/var:/bin/false
+tonychacha:x:1000:1000::/home/tonychacha:/bin/ash
+
+為新用戶tonychacha建立家目錄
+# cd /
+# ls -al
+# mkdir home
+這時候
+root@OpenWrt:/# ls -al|grep home
+drwxr-xr-x    2 root     root             0 Feb 12 08:35 home
+/home目錄的擁有人和群組是root，而權限值是755
+繼續
+# chown tonychacha:tonychacha /home/tonychacha
+# chmod 700 /home/tonychacha
+看一下產生的tonychacha的家目錄
+root@OpenWrt:/home# ls -al
+drwxr-xr-x    3 root     root             0 Feb 12 08:36 .
+drwxr-xr-x    1 root     root             0 Feb 12 08:35 ..
+drwx------    2 tonychac tonychac         0 Feb 12 08:36 tonychacha
+
+現在已經新增了用戶tonychacha
+也為他產生了家目錄
+接下來讓他可以變身成root
+# visudo
+
+這個時候會打開vi文字編輯器
+找到這個區塊
+##
+## User privilege specification
+##                         
+root ALL=(ALL) ALL
+
+加入用戶tonychacha，變成這樣
+##
+## User privilege specification
+##                         
+root ALL=(ALL) ALL
+tonychacha ALL=(ALL) ALL
+
+改好之後，就按鍵盤上的ESC，然後再按:wq離開vi文字編輯器
+
+現在試試看可不可以用剛才新增的用戶tonychacha登入wr841n路由器
+root@OpenWrt:~# exitConnection to 10.1.1.1 closed.
+anntony@anntony-Lenovo-B590 ~ $ 
+anntony@anntony-Lenovo-B590 ~ $ 
+anntony@anntony-Lenovo-B590 ~ $ ssh tonychacha@10.1.1.1
+tonychacha@10.1.1.1's password: 
+
+
+BusyBox v1.22.1 (2014-09-20 22:01:35 CEST) built-in shell (ash)
+Enter 'help' for a list of built-in commands.
+
+  _______                     ________        __
+ |       |.-----.-----.-----.|  |  |  |.----.|  |_
+ |   -   ||  _  |  -__|     ||  |  |  ||   _||   _|
+ |_______||   __|_____|__|__||________||__|  |____|
+          |__| W I R E L E S S   F R E E D O M
+ -----------------------------------------------------
+ BARRIER BREAKER (14.07, r42625)
+ -----------------------------------------------------
+  * 1/2 oz Galliano         Pour all ingredients into
+  * 4 oz cold Coffee        an irish coffee mug filled
+  * 1 1/2 oz Dark Rum       with crushed ice. Stir.
+  * 2 tsp. Creme de Cacao
+ -----------------------------------------------------
+tonychacha@OpenWrt:~$ sudo -i
+Password:
+
+
+BusyBox v1.22.1 (2014-09-20 22:01:35 CEST) built-in shell (ash)
+Enter 'help' for a list of built-in commands.
+
+  _______                     ________        __
+ |       |.-----.-----.-----.|  |  |  |.----.|  |_
+ |   -   ||  _  |  -__|     ||  |  |  ||   _||   _|
+ |_______||   __|_____|__|__||________||__|  |____|
+          |__| W I R E L E S S   F R E E D O M
+ -----------------------------------------------------
+ BARRIER BREAKER (14.07, r42625)
+ -----------------------------------------------------
+  * 1/2 oz Galliano         Pour all ingredients into
+  * 4 oz cold Coffee        an irish coffee mug filled
+  * 1 1/2 oz Dark Rum       with crushed ice. Stir.
+  * 2 tsp. Creme de Cacao
+ -----------------------------------------------------
+root@OpenWrt:~# 
+
+嗯，可以登入，也可以變身成root，很好很好
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+
+
+
+
+
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+
+
+
+
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
