@@ -11,12 +11,9 @@
           10.2.1.2.4 取消dropbear（SSH服務器）的密碼登入功能，並重啟dropbear服務
           10.2.1.2.5 測試是否可以用ssh wr841n連線指令登入？（使用私鑰登入SSH服務器）
           10.2.1.2.6 測試是否還可以用ssh root@10.1.1.1 或是 ssh tonychacha@10.1.1.1 以密碼登入？
+          10.2.1.2.7 為了稍後測試其他設定值是否生效，為路由器的root用戶新增一把可以登入的私鑰並完成相關設定
      10.2.1.3 dropbear（SSH服務器）安全設定
      10.2.1.4 uhttpd (WWW服務器) 安全設定
-
-     10.2.1.2 禁止使用密碼ssh登入路由器，只使用公鑰作身份認證（public key authentication）
-     10.2.1.3 禁止root用戶直接登入，產生一個普通用戶anntony並允許他登入後變身成root用戶
-     10.2.1.4 使用正規端口22以外的大於1024的端口當成SSH服務器端口，例如35000
      10.2.1.5 參考資料
 
 細節：
@@ -105,6 +102,8 @@ root@OpenWrt:/# ls -al|grep home
 drwxr-xr-x    2 root     root             0 Feb 12 08:35 home
 /home目錄的擁有人和群組是root，而權限值是755
 繼續
+# cd home
+# mkdir tonychacha
 # chown tonychacha:tonychacha /home/tonychacha
 # chmod 700 /home/tonychacha
 看一下產生的tonychacha的家目錄
@@ -454,7 +453,213 @@ $ sudo -i
 那
 就是一個悲劇了
 不過還是有得救
-要不進FailSave模式
+要不進FailSafe模式
 要不重刷OpenWRT
 
 ＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+10.2.1.2.7 為了稍後測試其他設定值是否生效，為路由器的root用戶新增一把可以登入的私鑰並完成相關設定
+
+因為在步驟10.2.1.2.1
+已經示範過怎麼產生SSH key pair了
+所以不再重複示範
+我想起來我的筆記型電腦裡還有其他稍早在使用的SSH key pair
+直接拿來用好了
+anntony@anntony-Lenovo-B590 ~ $ cd .ssh
+anntony@anntony-Lenovo-B590 ~/.ssh $ ls
+config      config.working            cubian     filezilla  id_rsa.pub   known_hosts.old  others                  tonychacha@10.1.1.1
+config.bak  config.working.until0918  cubian001  id_rsa     known_hosts  old-keys         private_key_from_cubie  tonychacha@10.1.1.1.pub
+anntony@anntony-Lenovo-B590 ~/.ssh $ cp ./id_rsa.pub ./root@10.1.1.1.pub
+anntony@anntony-Lenovo-B590 ~/.ssh $ cp ./id_rsa ./root@10.1.1.1
+anntony@anntony-Lenovo-B590 ~/.ssh $ ls -al|grep root@10.1.1.1
+-rw-------  1 anntony anntony 1679  2月 13 15:22 root@10.1.1.1
+-rw-r--r--  1 anntony anntony  401  2月 13 15:22 root@10.1.1.1.pub
+anntony@anntony-Lenovo-B590 ~/.ssh $ pwd
+/home/anntony/.ssh
+anntony@anntony-Lenovo-B590 ~/.ssh $
+
+我發現在我的/home/anntony/.ssh目錄裡
+有很久以前的id_rsa（私鑰）和id_rsa.pub（公鑰），它們是一對的
+把私鑰複製並更名成root@10.1.1.1
+而公鑰複製並更名成root@10.1.1.1.pub
+現在把公鑰root@10.1.1.1.pub複製到wr841n路由器裡
+anntony@anntony-Lenovo-B590 ~/.ssh $ scp ./root@10.1.1.1.pub wr841n:/tmp
+root@10.1.1.1.pub                                                                                                   100%  401     0.4KB/s   00:00    
+anntony@anntony-Lenovo-B590 ~/.ssh $
+
+因為稍早之前我們已經在筆記型電腦上設定了
+/home/anntony/.ssh/config
+所以現在
+$ scp ./root@10.1.1.1.pub wr841n:/tmp
+和
+$ scp -i /home/anntony/.ssh/tonychacha@10.1.1.1 ./root@10.1.1.1.pub tonychacha@10.1.1.1:/tmp
+這兩行指令是等效的
+現在wr841n路由器的/tmp目錄裡，已經有我們剛才複製過去的公鑰 root@10.1.1.1.pub
+現在把這一支公鑰加到路由器的/etc/dropbear/authorized_keys檔案裡
+預設並沒有這個檔案
+所以我們要自已產生，然後要確定它的檔案擁有人和群組都是root，然後權限值是600
+root@OpenWrt:~# cd /tmp
+root@OpenWrt:/tmp# ls -al|grep root@10.1.1.1.pub
+-rw-r--r--    1 tonychac tonychac       401 Feb 13 07:30 root@10.1.1.1.pub
+root@OpenWrt:/tmp# cat /tmp/root@10.1.1.1.pub >> /etc/dropbear/authorized_keys
+root@OpenWrt:/tmp# chmod 600 /etc/dropbear/authorized_keys
+root@OpenWrt:/tmp# ls -al /etc/dropbear/authorized_keys 
+-rw-------    1 root     root           401 Feb 13 07:35 /etc/dropbear/authorized_keys
+root@OpenWrt:/tmp# 
+
+這樣大致上完成了
+我們退出wr841n路由器的終端機
+在筆記型電腦上，用root@10.1.1.1這支相對應的私鑰登入看看
+anntony@anntony-Lenovo-B590 ~ $ ssh -i /home/anntony/.ssh/root@10.1.1.1 root@10.1.1.1
+
+
+BusyBox v1.22.1 (2014-09-20 22:01:35 CEST) built-in shell (ash)
+Enter 'help' for a list of built-in commands.
+
+  _______                     ________        __
+ |       |.-----.-----.-----.|  |  |  |.----.|  |_
+ |   -   ||  _  |  -__|     ||  |  |  ||   _||   _|
+ |_______||   __|_____|__|__||________||__|  |____|
+          |__| W I R E L E S S   F R E E D O M
+ -----------------------------------------------------
+ BARRIER BREAKER (14.07, r42625)
+ -----------------------------------------------------
+  * 1/2 oz Galliano         Pour all ingredients into
+  * 4 oz cold Coffee        an irish coffee mug filled
+  * 1 1/2 oz Dark Rum       with crushed ice. Stir.
+  * 2 tsp. Creme de Cacao
+ -----------------------------------------------------
+root@OpenWrt:~# 
+
+太快樂了，就這麼登入了，而且不用從一般用戶tonychacha再變身成用戶root
+一登入就是用戶root
+不過這只是暫時的，為什麼作這個步驟的原因
+是因為我要在下個步驟
+把用戶root的登入功能給取消
+為了測試下個步驟的安全設定，必須先讓用戶root可以登入
+這樣才能對照出那個禁止root登入的設定是真的生效的
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+10.2.1.3 dropbear（SSH服務器）安全設定
+
+再次修改/etc/config/dropbear
+改之前再一次看看我們現在的設定檔是長得怎樣？
+root@OpenWrt:~# cat /etc/config/dropbear 
+config dropbear
+	option PasswordAuth 'off'
+	option RootPasswordAuth 'on'
+	option Port         '22'
+#	option BannerFile   '/etc/banner'
+root@OpenWrt:~#
+
+執行
+root@OpenWrt:~# vi /etc/config/dropbear
+
+打開vi文字編輯器，把設定檔改成這樣
+config dropbear                                                                                                     
+        option PasswordAuth 'off'                                                                                   
+        option RootPasswordAuth 'on'                                                                                
+        option RootLogin 'off'                                                                                      
+        option Interface 'lan'                                                                                      
+        option Port         '35000'                                                                                 
+#       option BannerFile   '/etc/banner'
+
+改好之後離開vi文字編輯器
+重新啟動dropbear服務之前，先執行
+root@OpenWrt:~# netstat -anp | grep dropbear
+tcp        0      0 0.0.0.0:22              0.0.0.0:*               LISTEN      15998/dropbear
+tcp        0      0 10.1.1.1:22             10.1.1.191:54826        ESTABLISHED 16525/dropbear
+tcp        0      0 10.1.1.1:22             10.1.1.191:54510        ESTABLISHED 16478/dropbear
+tcp        0      0 :::22                   :::*                    LISTEN      15998/dropbear
+unix  2      [ ]         DGRAM                    153941 15998/dropbear      
+root@OpenWrt:~#
+這樣可以看到在重啟dropbear服務之前，端口22會接受來自任何IPv4地址的連線（Listen on 0.0.0.0:22）
+
+接著重啟dropbear服務
+# /etc/init.d/dropbear restart
+
+再看看現在dropbear傾聽於那個IP地址的那個端口？
+root@OpenWrt:~# netstat -anp | grep dropbear
+tcp        0      0 10.1.1.1:35000          0.0.0.0:*               LISTEN      16555/dropbear
+tcp        0      0 10.1.1.1:22             10.1.1.191:54826        ESTABLISHED 16525/dropbear
+tcp        0      0 10.1.1.1:22             10.1.1.191:54510        ESTABLISHED 16478/dropbear
+tcp        0      0 fdeb:70cc:e1cf::1:35000 :::*                    LISTEN      16555/dropbear
+unix  2      [ ]         DGRAM                    153941 16478/dropbear      
+unix  2      [ ]         DGRAM                    163149 16555/dropbear      
+root@OpenWrt:~#
+
+看到了嗎？10.1.1.1:35000表示現在dropbear服務只運行於內網接口lan地址的10.1.1.1
+而且我們改了預設的端口，從22改成35000
+所以現在回到筆記型電腦上
+執行
+anntony@anntony-Lenovo-B590 ~ $ ssh wr841n
+ssh: connect to host 10.1.1.1 port 22: Connection refused
+anntony@anntony-Lenovo-B590 ~ $ 
+連線被拒絕了，因為稍早之前，我們筆記型電腦上的SSH客戶端設定檔
+和wr841n路由器有關的連線設定，是長得這樣
+
+Host wr841n
+  HostName 10.1.1.1
+  User tonychacha
+  Port 22
+  IdentityFile /home/anntony/.ssh/tonychacha@10.1.1.1
+
+執行
+$ vi /home/anntony/.ssh/config
+把上面的區塊改成這樣
+Host wr841n
+  HostName 10.1.1.1
+  User tonychacha
+  Port 35000
+  IdentityFile /home/anntony/.ssh/tonychacha@10.1.1.1
+
+現在再一次使用簡短的指令對wr841n路由器連線看看
+anntony@anntony-Lenovo-B590 ~ $ ssh wr841n
+
+
+BusyBox v1.22.1 (2014-09-20 22:01:35 CEST) built-in shell (ash)
+Enter 'help' for a list of built-in commands.
+
+  _______                     ________        __
+ |       |.-----.-----.-----.|  |  |  |.----.|  |_
+ |   -   ||  _  |  -__|     ||  |  |  ||   _||   _|
+ |_______||   __|_____|__|__||________||__|  |____|
+          |__| W I R E L E S S   F R E E D O M
+ -----------------------------------------------------
+ BARRIER BREAKER (14.07, r42625)
+ -----------------------------------------------------
+  * 1/2 oz Galliano         Pour all ingredients into
+  * 4 oz cold Coffee        an irish coffee mug filled
+  * 1 1/2 oz Dark Rum       with crushed ice. Stir.
+  * 2 tsp. Creme de Cacao
+ -----------------------------------------------------
+tonychacha@OpenWrt:~$ exit
+
+可以，這是以用戶tonychacha的身分連線wr841n路由器
+那麼我們再退出，我們再試試可不可以使用root用戶的身分登入？
+tonychacha@OpenWrt:~$ exitConnection to 10.1.1.1 closed.
+anntony@anntony-Lenovo-B590 ~ $ ssh -p 35000 -i /home/anntony/.ssh/root@10.1.1.1 root@10.1.1.1
+Permission denied (publickey).
+anntony@anntony-Lenovo-B590 ~ $ 
+
+可以看到，即使指定了正確的端口35000，也指定了正確的私鑰
+但是沒有辦法以用戶root的身分再登入SSH服務器了
+在這個步驟裡
+我們一共加強了
+（一）把dropbear的服務限制於內網lan接口的IP也就是10.1.1.1上面
+（二）修改了預設的服務端口從22改成我們自定義的35000
+（三）禁止root用戶登入，即使是用public key authentication也禁止root用戶登入
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+
+
+
+
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+
+
+
+
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+
