@@ -72,34 +72,3 @@ uboot : pepe2k的版本
 
 12.了解如何使用pepe2k不死u-boot刷其他固件
 
-
-
-
-
-
-
-
-
-
-＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
-＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
-＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
-＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
-
-把WR841開機，telnet進去後設定root密碼，然後把路由器上ROM裡的uboot和art備份下來
-參考資料
-http://wiki.openwrt.org/doc/howto/generic.backup
-http://lirobo.blogspot.tw/2012/10/tp-link-tl-wr703n.html
-
-
-
-進階的安全設定
-參考資料
-http://wiki.openwrt.org/doc/howto/secure.access
-
-First Login
-http://wiki.openwrt.org/doc/howto/firstlogin
-
-basic configuration
-http://wiki.openwrt.org/doc/howto/basic.config
-
