@@ -650,10 +650,111 @@ anntony@anntony-Lenovo-B590 ~ $
 （三）禁止root用戶登入，即使是用public key authentication也禁止root用戶登入
 
 ＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+10.2.1.4 uhttpd (WWW服務器) 安全設定
 
+預設的uhttpd只有在端口80運行
+而且是聆聽來自任何地址對端口80的連線（0.0.0.0:80）
+root@OpenWrt:~# netstat -anp|grep http
+tcp        0      0 0.0.0.0:80              0.0.0.0:*               LISTEN      905/uhttpd
+tcp        0      0 :::80                   :::*                    LISTEN      905/uhttpd
+unix  3      [ ]         STREAM     CONNECTED       1381 905/uhttpd          
+root@OpenWrt:~#
 
+那有沒有辦法使用https也就是端口443呢？
+還有我想要把uhttpd服務的IP限制在內網接口lan的10.1.1.1
 
+安裝依賴套件
+# opkg update
+# opkg install uhttpd-mod-tls
+# opkg install luci-ssl
 
+重新啟動uhttpd服務
+這時候會自動產生一個SSL certificate和key
+檔案路徑在/etc/uhttpd.crt還有/etc/uhttpd.key
+
+root@OpenWrt:/etc/init.d# /etc/init.d/uhttpd restart
+Generating RSA private key, 1024 bit long modulus
+Generating selfsigned certificate with subject 'C=DE,ST=Berlin,L=Berlin,CN=OpenWrt,' and validity 20150217182753-20170216182753
+root@OpenWrt:/etc/init.d#
+
+然後這個時候再次檢查一下uhttpd的啟動狀態
+發現除了端口80，連端口443也啟動了
+root@OpenWrt:/# netstat -anp|grep http
+tcp        0      0 0.0.0.0:80              0.0.0.0:*               LISTEN      2064/uhttpd
+tcp        0      0 0.0.0.0:443             0.0.0.0:*               LISTEN      2064/uhttpd
+tcp        0      0 :::80                   :::*                    LISTEN      2064/uhttpd
+tcp        0      0 :::443                  :::*                    LISTEN      2064/uhttpd
+unix  3      [ ]         STREAM     CONNECTED       3905 2064/uhttpd         
+root@OpenWrt:/#
+這樣就可以在筆記型電腦上打開瀏覽器
+使用
+https://10.1.1.1
+這個地址來https連線
+那個SSL證書也是免錢的
+所以瀏覽器一樣會靠腰安全性
+一樣會出現恐怖的紅色叉叉
+不過照樣給它連就對了
+
+uhttpd設定檔的位置在/etc/config/uhttpd
+需要再微調一下
+執行
+root@OpenWrt:/# vi /etc/config/uhttpd
+打開vi文字編輯器
+我把它改成了這個樣子
+
+config uhttpd 'main'
+	#list listen_http '0.0.0.0:80'
+	#list listen_http '[::]:80'
+	list listen_https '10.1.1.1:443'
+	#list listen_https '[::]:443'
+	option home '/www'
+	option rfc1918_filter '1'
+	option max_requests '3'
+	option max_connections '100'
+	option cert '/etc/uhttpd.crt'
+	option key '/etc/uhttpd.key'
+	option cgi_prefix '/cgi-bin'
+	option script_timeout '60'
+	option network_timeout '30'
+	option http_keepalive '20'
+	option tcp_keepalive '1'
+	option ubus_prefix '/ubus'
+
+config cert 'px5g'
+	option days '730'
+	option bits '1024'
+	option country 'DE'
+	option state 'Berlin'
+	option location 'Berlin'
+	option commonname 'OpenWrt'
+
+基本上我沒有什麼改動
+只是注解掉其中三行而已
+把uhttpd服務
+只使用https運行於端口443
+把http運行於端口80的那個服務關掉，因為那沒有加密
+ipv6地址的也關掉，我不需要
+改好之後，再一次重啟uhttpd
+執行
+# /etc/init.d/uhttpd restart
+重啟uhttpd服務後
+再檢查一次uhttpd的運行狀態
+root@OpenWrt:/# netstat -anp|grep http
+tcp        0      0 10.1.1.1:443            0.0.0.0:*               LISTEN      2127/uhttpd
+unix  3      [ ]         STREAM     CONNECTED       4225 2127/uhttpd         
+root@OpenWrt:/# 
+現在只有聆聽於端口443了
+所以只能使用
+https://10.1.1.1
+來連線到wr841n路由器的Luci網頁設定介面了
+有加密有安全
+雖然是免錢的SSL證書
+即使在內網裡也不能放鬆警戒
+萬一內網有人用WireShark之類的東西
+然後你是用http沒加密的連線
+然後登入Luci的時候
+root用戶的密碼就會在某個封包裡
+然後被那個藏在你內網裡搞破壞的人抓到
 
 ＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
 
