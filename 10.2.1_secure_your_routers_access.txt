@@ -14,6 +14,8 @@
           10.2.1.2.7 為了稍後測試其他設定值是否生效，為路由器的root用戶新增一把可以登入的私鑰並完成相關設定
      10.2.1.3 dropbear（SSH服務器）安全設定
      10.2.1.4 uhttpd (WWW服務器) 安全設定
+     10.2.1.4.1 https運行於10.1.1.1的443端口
+     10.2.1.4.2 http運行於127.0.0.1的80端口，連線前需建立ssh tunnel
      10.2.1.5 參考資料
 
 細節：
@@ -650,7 +652,7 @@ anntony@anntony-Lenovo-B590 ~ $
 （三）禁止root用戶登入，即使是用public key authentication也禁止root用戶登入
 
 ＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
-10.2.1.4 uhttpd (WWW服務器) 安全設定
+10.2.1.4.1 https運行於10.1.1.1的443端口
 
 預設的uhttpd只有在端口80運行
 而且是聆聽來自任何地址對端口80的連線（0.0.0.0:80）
@@ -757,10 +759,79 @@ root用戶的密碼就會在某個封包裡
 然後被那個藏在你內網裡搞破壞的人抓到
 
 ＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+10.2.1.4.2 http運行於127.0.0.1的80端口，連線前需建立ssh tunnel
 
+這個方式相較於上個步驟
+擁有更高的安全強度
+在客戶機連線到wr841n路由器的127.0.0.1的80端口之前
+要先建立與wr841n路由器之間的ssh tunnel才行
 
+修改/etc/config/uhttpd
+# vi /etc/config/uhttpd
 
+改成這樣
+config uhttpd 'main'
+	list listen_http '127.0.0.1:80'
+	#list listen_http '[::]:80'
+	#list listen_https '10.1.1.1:443'
+	#list listen_https '[::]:443'
+	option home '/www'
+	option rfc1918_filter '1'
+	option max_requests '3'
+	option max_connections '100'
+	option cert '/etc/uhttpd.crt'
+	option key '/etc/uhttpd.key'
+	option cgi_prefix '/cgi-bin'
+	option script_timeout '60'
+	option network_timeout '30'
+	option http_keepalive '20'
+	option tcp_keepalive '1'
+	option ubus_prefix '/ubus'
 
+config cert 'px5g'
+	option days '730'
+	option bits '1024'
+	option country 'DE'
+	option state 'Berlin'
+	option location 'Berlin'
+	option commonname 'OpenWrt'
 
+重新啟動uhttpd
+root@OpenWrt:~# /etc/init.d/uhttpd restart
+root@OpenWrt:~# netstat -anp|grep http
+tcp        0      0 127.0.0.1:80            0.0.0.0:*               LISTEN      1181/uhttpd
+unix  3      [ ]         STREAM     CONNECTED       8045 1181/uhttpd         
+root@OpenWrt:~# 
+
+回到筆記型電腦上
+執行ssh client指令來建立與wr841n路由器的ssh tunnel
+anntony@anntony-Lenovo-B590 ~ $ cd .ssh
+anntony@anntony-Lenovo-B590 ~/.ssh $ pwd
+/home/anntony/.ssh
+anntony@anntony-Lenovo-B590 ~/.ssh $ ls
+config          config.working.until0918  filezilla   known_hosts      others                  root@10.1.1.1.pub        wr841n
+config.bak      cubian                    id_rsa      known_hosts.old  private_key_from_cubie  tonychacha@10.1.1.1
+config.working  cubian001                 id_rsa.pub  old-keys         root@10.1.1.1           tonychacha@10.1.1.1.pub
+anntony@anntony-Lenovo-B590 ~/.ssh $ ssh -p 35000 -i ./tonychacha@10.1.1.1 -L127.0.0.1:8000:127.0.0.1:80 tonychacha@10.1.1.1
+
+現在已經建立好ssh tunnel了
+所以在筆記型電腦上
+可以打開瀏覽器
+然後連線
+http://127.0.0.1:8000
+這樣就可以連線到wr841n路由器上的Luci網頁介面了
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+10.2.1.5 參考資料
+
+http://wiki.openwrt.org/doc/howto/secure.access
+
+http://wiki.openwrt.org/doc/techref/signature.authentication
+
+http://wiki.openwrt.org/doc/uci/uhttpd
+
+http://wiki.openwrt.org/doc/howto/luci.secure
+
+http://stackoverflow.com/questions/18377138/openwrt-luci-how-to-implement-limited-user-access
 ＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
 
