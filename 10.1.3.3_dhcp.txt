@@ -1,7 +1,13 @@
 10.1.3.3 設定dhcp服務器
+     10.1.3.3.1 預設的設定檔
+     10.1.3.3.2 強化後的設定檔，只針對某些mac address配發IP
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+10.1.3.3.1 預設的設定檔
 
 預設的dhcp設定檔就可以讓wr841n路由器很正常的向內網主機配置IP地址
-不需多改
+如果你很確定內網的用戶們都很善良很純真的話
+就不需多改
 
 root@OpenWrt:~# cat /etc/config/dhcp 
 
@@ -41,3 +47,118 @@ config odhcpd 'odhcpd'
 
 root@OpenWrt:~# 
 
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+10.1.3.3.2 強化後的設定檔，只針對某些mac address配發IP
+
+以下是我的某些裝置的mac address
+筆記型電腦wlan0接口：9c:d2:1e:f1:0a:53
+筆記型電腦eth0接口：54:ee:75:09:dc:3e
+Cubieboard三代：02:cc:02:42:95:d3
+創思奇918II網路電視盒：98:3b:16:fc:a1:19
+不知名品牌長得像PSP的掌上電腦：00:13:ef:40:76:35
+
+要加入這些mac address和待分配IP的對應
+如果在Luci介面裡面
+是在[ Network ] > [ DHCP and DNS ]下面有一個Static Leases的區塊
+按下[ Add ]按鈕之後
+會出現一列，有四個東西要你填
+包括Hostname     MAC-Address     IPv4-Address     Ipv6-Suffix(hex)
+填完之後按下下面的[ Save & Apply ] 就可以了
+
+我想直接編輯文字設定檔比較快
+ssh登入wr841n路由器並切換成root用戶之後，執行
+# vi /etc/config/dhcp
+
+在DHCP設定檔的最後面，加入這兩個區塊
+
+config host
+	option name 'LenovoB590'
+	option mac '9c:d2:1e:f1:0a:53 54:ee:75:09:dc:3e'
+	option ip '10.1.1.91'
+
+config host
+	option name 'fakepsp'
+	option mac '00:13:ef:40:76:35'
+	option ip '10.1.1.93'
+
+
+接下來再找到DHCP設定檔的這個區塊
+config dhcp 'lan'
+	option interface 'lan'
+在這一行的後面加上
+ option dynamicdhcp 0
+
+改好之後按ESC鍵再:wq存檔離開vi文字編輯器
+然後重新啟動DHCP服務器
+# /etc/init.d/dnsmasq restart
+
+把剛才的兩個設備
+創思奇918II網路電視盒
+和不知名品牌長得像PSP的掌上電腦
+它們兩個裝置的無線網路先斷開，再重新取得IP
+
+創思奇918II網路電視盒的mac address
+沒有寫在上面的/etc/config/dhcp設定檔裡
+雖然有正確的wifi psk2密碼，但是無法取得IP地址
+
+而不知名品牌長得像PSP的掌上電腦
+將無線網路斷開，再重新連線後
+取得了10.1.1.93的IP地址
+
+而筆記型電腦無論是使用有線網路的eth0接口或是無線網路的wlan0接口
+都會得到10.1.1.91的IP地址
+
+至於Cubieboard三代
+它是使用網路線插在wr841n路由器上面的LAN1洞口
+而且是使用Static IP 10.1.1.160
+網路設定是寫在Cubieboard三代機上面的/etc/network/interfaces設定檔裡面
+並沒有受到上面的DHCP服務器設定限制的影響
+它居然還是可以上網
+和我想的有一點不一樣
+
+至少…DHCP服務器不會再配發IP地址
+給不認識的裝置了（沒有把mac address寫在/etc/config/dhcp設定檔裡的裝置）
+但是如果直接把網路線插在wr841n路由器的四個LAN接口的其中一個洞
+然後再手動指定IP地址、netmask與gateway
+還是可以上網
+甚至如果試出了我的wifi連線的psk2密碼
+然後精準的手動指定了IP地址、netmask與gateway
+一樣可以混進我的內網
+
+針對以上兩個安全漏洞
+比較高級的解決方法
+我想也許是在iptables的FORWARD鏈限制
+只能讓來源是從某些mac address的封包被轉發
+低級一點可是又高效的方法
+就是把wr841n路由器的LAN接口全部用熱熔膠封死（蠢，但是高效且確實有效）
+不過想要進我的房間
+然後把網路線插在我的wr841n路由器上
+要和我釘孤枝然後釘贏我才行
+還有我wifi密碼很長很長又怪異應該是猜不到才對
+就算brute-force猜到wifi密碼也沒用，因為不會配發IP
+還有其他的網路參數像是IP、mask、gateway都要設定正確
+才能經由無線網路連線到我的內網
+不過如果將來內網裡面會放置重要的服務器的話
+我會直接關掉無線網路算了省得麻煩
+
+如果要用無線網路又要很安全
+或是試另一個方法
+把內網改成
+10.1.1.0/29
+Netmask變成255.255.255.248
+BroadCast變成10.1.1.7
+如此一來
+可用的IP段變成
+10.1.1.1-10.1.1.6
+其中10.1.1.1留給wr841n路由器
+內網可用的IP地址只剩10.1.1.2-10.1.1.6
+五個IP
+然後平常冢裡的所有裝置
+就全開著，把可用的五個IP全都佔滿
+
+有空再深入研究FORWARD鏈的規則（讓內網裡特定的mac address主機才可以上網）
+甚至是INPUT鏈的規則（只允許內網裡特定mac address主機連線到wr841n路由器）
+應該有比較優雅的方式
+這裡的DHCP設定頂多只能作到讓DHCP服務器不發IP給陌生裝置而已
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
