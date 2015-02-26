@@ -9,15 +9,16 @@
 
 打開瀏覽器
 連接
-http://192.168.1.1
+http://10.1.1.1
 以用戶root登入luci網頁設定介面後
 
 在[ Network ] > [ Wifi ] 
 已經開了一個無線網路SSID叫作OpenWrt
 按下[ Edit ]
 在General Setup
+Wireless network is disabled : [Enable] <-按這個啟用無線
 Channel : 11 (2.462 GHz)
-Transmit Power : 8 dBm (6mW) 預設是20 dBm 我房間很小，而且我想活久一點就選 8 dBm
+Transmit Power : 8 dBm (6mW) 預設是30 dBm 我房間很小，而且我想活久一點就選 8 dBm
 在Advanced Settings
 Band : 2.4GHz (802.11g+n)
 HT mode (802.11n) : 20MHz

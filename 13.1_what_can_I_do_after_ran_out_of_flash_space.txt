@@ -1,0 +1,149 @@
+13.1 安裝太多套件塞爆Flash ROM之後，路由器開始怪異的行為…
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+原廠4MB Flash ROM不夠安裝qos-scripts套件
+你以為這是你家的2TB硬碟隨便你怎麼安裝套件都可以哦？
+快點把16MB的焊上去啦
+
+root@OpenWrt:~# opkg install qos-scripts
+Installing qos-scripts (1.2.1-7) to root...
+Downloading http://downloads.openwrt.org/barrier_breaker/14.07/ar71xx/generic/packages/base/qos-scripts_1.2.1-7_all.ipk.
+Installing tc (3.15.0-1) to root...
+Downloading http://downloads.openwrt.org/barrier_breaker/14.07/ar71xx/generic/packages/base/tc_3.15.0-1_ar71xx.ipk.
+Installing kmod-sched-core (3.10.49-1) to root...
+Downloading http://downloads.openwrt.org/barrier_breaker/14.07/ar71xx/generic/packages/base/kmod-sched-core_3.10.49-1_ar71xx.ipk.
+Configuring tc.
+Collected errors:
+ * wfopen: /etc/modules.d/70-sched-core: No space left on device.
+ * pkg_write_filelist: Failed to open //usr/lib/opkg/info/kmod-sched-core.list: No space left on device.
+ * opkg_install_pkg: Failed to extract data files for kmod-sched-core. Package debris may remain!
+ * opkg_install_cmd: Cannot install package qos-scripts.
+ * opkg_conf_write_status_files: Can't open status file //usr/lib/opkg/status: No space left on device.
+root@OpenWrt:~#
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+因為剛才試圖在4MB Flash ROM上面安裝qos-scripts套件的（愚蠢）行為
+4MB Flash ROM爆了
+
+root@OpenWrt:/tmp# df -h
+Filesystem                Size      Used Available Use% Mounted on
+rootfs                  704.0K    656.0K     48.0K  93% /
+/dev/root                 2.3M      2.3M         0 100% /rom
+tmpfs                    14.1M    560.0K     13.5M   4% /tmp
+/dev/mtdblock3          704.0K    656.0K     48.0K  93% /overlay
+overlayfs:/overlay      704.0K    656.0K     48.0K  93% /
+tmpfs                   512.0K         0    512.0K   0% /dev
+root@OpenWrt:/tmp#
+
+rootfs只剩48K
+然後我試著移除一些套件來釋放出一些空間
+不過沒用，只得到
+root@OpenWrt:~# opkg remove luci-ssl
+Removing package luci-ssl from root...
+Collected errors:
+ * pkg_get_installed_files: Failed to open //usr/lib/opkg/info/luci-ssl.list: No such file or directory.
+ * pkg_get_installed_files: Failed to open //usr/lib/opkg/info/luci-ssl.list: No such file or directory.
+ * opkg_conf_write_status_files: Can't open status file //usr/lib/opkg/status: No space left on device.
+root@OpenWrt:~# 
+
+在這個情況下
+wr841n路由器的wifi停止服務了
+還有即使用網路線接筆記型電腦
+而筆記型電腦也正確的得到了10.1.1.91的IP地址
+但是筆記型電腦沒辦法上網
+原因是iptables模組根本就沒載入
+所以也不會有什麼filter表的FORWARD鏈
+也不會有SNAT
+root@OpenWrt:~# iptables -L
+iptables v1.4.21: can't initialize iptables table `filter': Table does not exist (do you need to insmod?)
+Perhaps iptables or your kernel needs to be upgraded.
+root@OpenWrt:~# 
+
+我實在很想找出
+# opkg install qos-scripts
+這一行指令到底裝了什麼東西到我的Flash ROM上面
+我試了
+root@OpenWrt:~# find / -name *qos*
+find: /proc/18013: No such file or directory
+root@OpenWrt:~# find / -name *kmod-sche*
+/overlay/usr/lib/opkg/info/kmod-sched-core.postinst
+/overlay/usr/lib/opkg/info/kmod-sched-core.control
+find: /proc/19886: No such file or directory
+/usr/lib/opkg/info/kmod-sched-core.postinst
+/usr/lib/opkg/info/kmod-sched-core.control
+root@OpenWrt:~# 
+好像沒什麼線索
+
+不過這個叫作tc的檔案有157KB
+root@OpenWrt:~# which tc
+/usr/sbin/tc
+root@OpenWrt:~# ls -al /usr/sbin/tc
+-rwxr-xr-x    1 root     root        157704 Sep 20 20:07 /usr/sbin/tc
+root@OpenWrt:~#
+
+我雖然不想這樣直接砍
+可是好像沒辦法了
+我只要下opkg remove <pkg-name>這樣的指令
+就會再靠杯一次上面的訊息
+好吧刪了
+先釋放一些空間出來
+root@OpenWrt:~# rm -rf /usr/sbin/tc
+root@OpenWrt:~# df -h
+Filesystem                Size      Used Available Use% Mounted on
+rootfs                  704.0K    568.0K    136.0K  81% /
+/dev/root                 2.3M      2.3M         0 100% /rom
+tmpfs                    14.1M    560.0K     13.5M   4% /tmp
+/dev/mtdblock3          704.0K    568.0K    136.0K  81% /overlay
+overlayfs:/overlay      704.0K    568.0K    136.0K  81% /
+tmpfs                   512.0K         0    512.0K   0% /dev
+root@OpenWrt:~#
+
+然後試著移除某個套件，例如tc
+root@OpenWrt:~# opkg remove tc
+No packages removed.
+Collected errors:
+ * pkg_get_installed_files: Failed to open //usr/lib/opkg/info/luci-ssl.list: No such file or directory.
+root@OpenWrt:~# 
+
+可是沒有用，鬼打牆
+為什麼一直靠腰說什麼找不到//usr/lib/opkg/info/luci-ssl.list
+那個路徑為什麼最前面是//
+？？？
+
+好吧我放棄了
+這個時候還是可以登入Luci
+我看到了在[ System ] > [ Backup / Flash Firmware ] 這一頁
+有段文字
+To reset the firmware to its initial state, 
+click "Perform reset" (only possible with squashfs images).
+稍微下方有一顆
+[ Perform reset ]按鈕
+我懶得搞了，直接重新恢復吧，如果真的按下之後可以變成Firmware的原始狀態
+我按
+
+然後
+真的恢復到OpenWRT firmware的最初狀態了
+也就是連First Login都還沒完成的那個步驟
+所以
+再重新搞一次吧
+哈哈哈
+
+順便一提
+這是在原廠4MB Flash ROM上面剛刷好OpenWRT固件的狀態
+root@OpenWrt:~# df -h
+Filesystem                Size      Used Available Use% Mounted on
+rootfs                  704.0K    216.0K    488.0K  31% /
+/dev/root                 2.3M      2.3M         0 100% /rom
+tmpfs                    14.1M    444.0K     13.7M   3% /tmp
+/dev/mtdblock3          704.0K    216.0K    488.0K  31% /overlay
+overlayfs:/overlay      704.0K    216.0K    488.0K  31% /
+tmpfs                   512.0K         0    512.0K   0% /dev
+root@OpenWrt:~#
+可以看到Available可用空間是488K
+我在寫筆記期間就是狂裝套件
+完全把它當成硬碟來用啊
+可是它不是硬碟
+很容易就會爆
+趕快把16MB的焊上去就對了
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
