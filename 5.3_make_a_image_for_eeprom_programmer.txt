@@ -7,7 +7,7 @@
      5.3.4 其實也可以不用Hex Editor，在終端機下使用cat指令產生編程器固件
 
 細節
-＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
 5.3.1 動手之前再一次複習編程器固件的分割區布局
 
 TP-Link原廠的4M編程器固件
@@ -66,37 +66,96 @@ TP-Link原廠的4M編程器固件布局圖的最前面128 KBytes的部分
 第四個64 KB的部分，因為要湊齊16MB = 16384 KB，所以要補上這64 KB的0xFF
 第五個64 KB的部分，是art分割區的資料，沒有它的話，路由器會失去無線功能，已經在步驟3.3備份下來
 
-凌晨三點了哦該睡了，待續
-＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+5.3.2 將所有素材檔案集中在同一個目錄，並產生一個16MB的空白的empty.bin
 
+anntony@anntony-Lenovo-B590 ~ $ mkdir wr841n_workingdir
+anntony@anntony-Lenovo-B590 ~ $ cd wr841n_workingdir/
+anntony@anntony-Lenovo-B590 ~/wr841n_workingdir $ cp /home/anntony/wr841n_backup/uboot_bak.bin .
+anntony@anntony-Lenovo-B590 ~/wr841n_workingdir $ cp /home/anntony/wr841n_backup/art_bak.bin .
+anntony@anntony-Lenovo-B590 ~/wr841n_workingdir $ cp /home/anntony/openwrt/trunk/bin/ar71xx/openwrt-ar71xx-generic-tl-wr841n-v8-squashfs-factory.bin .
+anntony@anntony-Lenovo-B590 ~/wr841n_workingdir $ cp /home/anntony/u-boot_mod/bin/uboot_for_tp-link_tl-wr841n_v8.bin .
+anntony@anntony-Lenovo-B590 ~/wr841n_workingdir $ dd if=/dev/zero ibs=1M count=16 | tr "\000" "\377" > empty.bin
+輸入 16+0 個紀錄
+輸出 32768+0 個紀錄
+複製了 16777216 個位元組 (17 MB), 0.0534389 s, 314 MB/s
+anntony@anntony-Lenovo-B590 ~/wr841n_workingdir $ ls -al
+總計 32776
+drwxr-xr-x  2 anntony anntony     4096  2月 27 22:27 .
+drwxr-xr-x 70 anntony anntony     4096  2月 27 22:26 ..
+-rw-r--r--  1 anntony anntony    65536  2月 27 22:26 art_bak.bin
+-rw-r--r--  1 anntony anntony 16777216  2月 27 22:27 empty.bin
+-rw-r--r--  1 anntony anntony 16515072  2月 27 22:27 openwrt-ar71xx-generic-tl-wr841n-v8-squashfs-factory.bin
+-rw-r--r--  1 anntony anntony   131072  2月 27 22:26 uboot_bak.bin
+-rw-r--r--  1 anntony anntony    65536  2月 27 22:27 uboot_for_tp-link_tl-wr841n_v8.bin
+anntony@anntony-Lenovo-B590 ~/wr841n_workingdir $
 
-(還沒整理…此文字檔案尚無參考價值)
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+5.3.3 使用Bless Hex Editor將uboot、OpenWRT firmware、art資料貼入empty.bin
 
-16M = 16384k = 16777216 bytes
+打開Bless Hex Editor之後
+先打開empty.bin
+我們用它來打底
 
-         64k = 65536 bytes
+打開uboot_bak.bin
+執行選單的[ Edit ] > [ Select All ]
+把它全選，然後[ Edit ] > [ 複製 ]
 
-art開始的offset = 16320k = 16711680 bytes = 0xFF0000
-把offset當成門牌，門牌從0開始算
+回到empty.bin
+執行選單的[ Search ] > [ Goto Offset ]
+在畫面中間的地方的Offset填入0x0
+按下右邊的 [ Go to Offset ] 按鈕
+到empty.bin的最前面的Offset
+在貼上之前，先按一下鍵盤上的Insert按鈕
+這個時候在Bless Hex Editor右下角的Ins會切換成OVR
+這個時候已經切換成覆蓋模式
+再執行選單的 [ Edit ] > [ 貼上 ]
+再執行選單的 [ File ] > [ 儲存 ]
 
-0 - 16777215  共有 16777216 bytes
-1-16777216 共有 16777216 bytes
+再打開
+uboot_for_tp-link_tl-wr841n_v8.bin
+執行選單的[ Edit ] > [ Select All ]
+把它全選，然後[ Edit ] > [ 複製 ]
 
-16777216-65536 = 16711680 (前面有編號0-16711679共16711680個bytes)
+回到empty.bin
+執行選單的[ Search ] > [ Goto Offset ]
+在畫面中間的地方的Offset填入0x0
+按下右邊的 [ Go to Offset ] 按鈕
+到empty.bin的最前面的Offset
+看一下Bless Hex Editor右下角
+確定它還是在OVR覆寫模式
+再執行選單的 [ Edit ] > [ 貼上 ]
+再執行選單的 [ File ] > [ 儲存 ]
 
+再打開
+openwrt-ar71xx-generic-tl-wr841n-v8-squashfs-factory.bin
+執行選單的[ Edit ] > [ Select All ]
+把它全選，然後[ Edit ] > [ 複製 ]
 
-openwrt firmware開始的offset是0x20000
-也就是前面已經有128k的(u-boot)資料存在了
+回到empty.bin
+執行選單的[ Search ] > [ Goto Offset ]
+在畫面中間的地方的Offset填入0x20000
+為什麼是0x20000
+這是編程器固件的第128KB開始的地方
+128 KBytes = 128 X 1024 Bytes = 131072 Bytes（十進位） = 0x20000 （十六進位）
+到empty.bin的Offset是0x20000的地方
+看一下Bless Hex Editor右下角
+確定它還是在OVR覆寫模式
+再執行選單的 [ Edit ] > [ 貼上 ]
+再執行選單的 [ File ] > [ 儲存 ]
 
-u-boot開始的地方當然是0x0，影像檔的最最前面
-第2個64k開始的地方是0x10000，這裡開始算64k要放原廠flash rom裡的一些重要資訊像是mac address等等
+再打開
+art_bak.bin
+執行選單的[ Edit ] > [ Select All ]
+把它全選，然後[ Edit ] > [ 複製 ]
 
-如何產生一個16M的空白檔案，全部以0xFF來填充？
-指令
-$ dd if=/dev/zero ibs=1M count=16 | tr "\000" "\377" > emptyFile.bin
+回到empty.bin
+執行選單的[ Search ] > [ Goto Offset ]
+在畫面中間的地方的Offset填入0xFEFFFF
+看一下Bless Hex Editor右下角
+確定它還是在OVR覆寫模式
+再執行選單的 [ Edit ] > [ 貼上 ]
+再執行選單的 [ File ] > [ 儲存 ]
 
-這個檔案要用來當成稍後剪貼的素材
-對不起我心碎了這幾天
-所以沒辦法工作
-這幾個禮拜吧不只這幾天
-希望趕快振作起來
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+
