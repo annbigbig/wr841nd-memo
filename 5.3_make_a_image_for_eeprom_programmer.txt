@@ -151,11 +151,88 @@ art_bak.bin
 
 回到empty.bin
 執行選單的[ Search ] > [ Goto Offset ]
-在畫面中間的地方的Offset填入0xFEFFFF
+在畫面中間的地方的Offset填入0xFF0000
+算法
+前面有16384K - 64K = 16320 KBytes = 16711680 Bytes（十進位）= FF0000（十六進位）
 看一下Bless Hex Editor右下角
 確定它還是在OVR覆寫模式
 再執行選單的 [ Edit ] > [ 貼上 ]
 再執行選單的 [ File ] > [ 儲存 ]
 
-＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+現在這個empty.bin
+就是完成後的編程器固件
+把它改名成openwrt16M.bin
+anntony@anntony-Lenovo-B590 ~/wr841n_workingdir $ mv empty.bin openwrt16M.bin
+anntony@anntony-Lenovo-B590 ~/wr841n_workingdir $ ls -al |grep openwrt16M
+-rw-r--r--  1 anntony anntony 16777216  2月 27 23:01 openwrt16M.bin
+anntony@anntony-Lenovo-B590 ~/wr841n_workingdir $
 
+完成了
+剩下的工作就是燒進Flash ROM，然後焊上去了
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+5.3.4 其實也可以不用Hex Editor，在終端機下使用cat指令產生編程器固件
+
+再看一次5.3.1步驟的第二個圖
+我要直接把這五個部分串接成一個檔案
+
+anntony@anntony-Lenovo-B590 ~ $ pwd
+/home/anntony
+anntony@anntony-Lenovo-B590 ~ $ mkdir wr841n_puzzles
+anntony@anntony-Lenovo-B590 ~ $ cd wr841n_puzzles/
+anntony@anntony-Lenovo-B590 ~/wr841n_puzzles $ cp /home/anntony/wr841n_backup/uboot_bak.bin .
+anntony@anntony-Lenovo-B590 ~/wr841n_puzzles $ cp /home/anntony/wr841n_backup/art_bak.bin .
+anntony@anntony-Lenovo-B590 ~/wr841n_puzzles $ cp /home/anntony/openwrt/trunk/bin/ar71xx/openwrt-ar71xx-generic-tl-wr841n-v8-squashfs-factory.bin .
+anntony@anntony-Lenovo-B590 ~/wr841n_puzzles $ cp /home/anntony/u-boot_mod/bin/uboot_for_tp-link_tl-wr841n_v8.bin .
+anntony@anntony-Lenovo-B590 ~/wr841n_puzzles $ dd if=/dev/zero ibs=1K count=64 | tr "\000" "\377" > empty.bin
+輸入 64+0 個紀錄
+輸出 128+0 個紀錄
+複製了 65536 個位元組 (66 kB), 0.000445263 s, 147 MB/s
+anntony@anntony-Lenovo-B590 ~/wr841n_puzzles $ dd if=uboot_bak.bin of=data.bin bs=64K count=1 skip=1
+輸入 1+0 個紀錄
+輸出 1+0 個紀錄
+複製了 65536 個位元組 (66 kB), 0.000594521 s, 110 MB/s
+anntony@anntony-Lenovo-B590 ~/wr841n_puzzles $ ls -al
+總計 16520
+drwxr-xr-x  2 anntony anntony     4096  2月 27 23:48 .
+drwxr-xr-x 71 anntony anntony     4096  2月 27 23:42 ..
+-rw-r--r--  1 anntony anntony    65536  2月 27 23:43 art_bak.bin
+-rw-r--r--  1 anntony anntony    65536  2月 27 23:48 data.bin
+-rw-r--r--  1 anntony anntony    65536  2月 27 23:46 empty.bin
+-rw-r--r--  1 anntony anntony 16515072  2月 27 23:44 openwrt-ar71xx-generic-tl-wr841n-v8-squashfs-factory.bin
+-rw-r--r--  1 anntony anntony   131072  2月 27 23:43 uboot_bak.bin
+-rw-r--r--  1 anntony anntony    65536  2月 27 23:44 uboot_for_tp-link_tl-wr841n_v8.bin
+anntony@anntony-Lenovo-B590 ~/wr841n_puzzles $ cat uboot_for_tp-link_tl-wr841n_v8.bin \
+> data.bin \
+> openwrt-ar71xx-generic-tl-wr841n-v8-squashfs-factory.bin \
+> empty.bin \
+> art_bak.bin > openwrt16Mpz.bin
+anntony@anntony-Lenovo-B590 ~/wr841n_puzzles $ ls -al |grep openwrt
+-rw-r--r--  1 anntony anntony 16777216  2月 27 23:51 openwrt16Mpz.bin
+-rw-r--r--  1 anntony anntony 16515072  2月 27 23:44 openwrt-ar71xx-generic-tl-wr841n-v8-squashfs-factory.bin
+anntony@anntony-Lenovo-B590 ~/wr841n_puzzles $ 
+
+接好的編程器固件是
+openwrt16Mpz.bin
+這個方法比較高效優雅
+和前一個步驟我們在Bless Hex Editor裡複製貼上產生的那個openwrt16M.bin
+兩者內容是完全相同的
+
+如果你兩個方法都有使用
+可以這樣子來驗證
+兩個產生的影像檔是完全相同的
+anntony@anntony-Lenovo-B590 /tmp $ cp /home/anntony/wr841n_workingdir/openwrt16M.bin .
+anntony@anntony-Lenovo-B590 /tmp $ cp /home/anntony/wr841n_puzzles/openwrt16Mpz.bin .
+anntony@anntony-Lenovo-B590 /tmp $ xxd openwrt16M.bin > openwrt16M.hex
+anntony@anntony-Lenovo-B590 /tmp $ xxd openwrt16Mpz.bin > openwrt16Mpz.hex
+anntony@anntony-Lenovo-B590 /tmp $ diff openwrt16M.hex openwrt16Mpz.hex
+anntony@anntony-Lenovo-B590 /tmp $ 
+
+上面的diff指令，沒有任何的輸出
+這表示
+openwrt16M.bin
+和
+openwrt16Mpz.bin
+兩個影像檔是完全一模一樣的
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
