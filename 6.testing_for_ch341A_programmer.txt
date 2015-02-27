@@ -100,8 +100,34 @@ SOP8 轉 DIP8 轉換座 (寬體，寬體一定要確認)
 商品頁面是
 http://goods.ruten.com.tw/item/show?21311118884200
 
-那又要等個幾天了
-感覺一路上真的很折騰
+買到了之後
+把這個SOP8轉DIP8寬體座
+插在CH341A編程器上
+然後再把W25Q128FVSSIG芯片插在SOP8轉DIP8寬體座上面
+按一下不要放，它是一個彈簧開關，然後把芯片放上再鬆開，就會夾緊
+把CH341A編程器插入Windows XP電腦
+然後打開燒錄軟體CH341A.exe
+（路徑是D:\欽源盛土豪金2425編程器資料包\土豪金2425編程器資料\土豪金編程器軟件\CH341A.exe）
+按下[ 檢測(D) ]按鈕
+得到燒錄軟體輸出
+
+類型：25 SPI FLASH
+廠商：WINBOND
+名稱：W25Q128BV
+容量: 16MByte/128MBit
+
+Manufacture: WINBOND
+Memory Name: W25Q128BV
+Memory Size: 16MByte/128MBi
+Manufacture ID: $EF
+Memory Type: $40
+Memory Capacity: $18
+Device ID: $17
+
+燒錄軟體識別出的芯片型號是W25Q128BV
+但是我買的是W25Q128FVSSIG
+雖然廠牌都是WINBOND而且容量都是16MB沒錯
+應該可以通用吧？待會兒試了就知道
 
 ＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
 6.5 產生一個16MB大小，測試用的影像檔test.bin
@@ -139,19 +165,123 @@ user	0m0.001s
 sys	0m1.616s
 anntony@anntony-Lenovo-B590 /tmp $ man hexdump
 anntony@anntony-Lenovo-B590 /tmp $ hexdump -n 128 /tmp/random-file 
-0000000 b953 abe0 08f3 26e2 fcec 4437 f320 345c
-0000010 36bd b23c acaf 1220 e4b1 f836 384f ccea
-0000020 62d3 529c 1782 2685 f22b 5b56 2d58 83bf
-0000030 8aa8 5a06 1674 656b f98f 98c2 7a9a 6219
-0000040 dfb7 0325 e716 9ac3 7b77 2f06 2311 cb26
-0000050 a014 ced2 198e 722f b094 6e78 d4fb f317
-0000060 db62 2a8c b054 ac92 d2a8 48a1 0b14 14a0
-0000070 8ba9 0523 ee80 5645 d039 44e8 fe06 5cce
+0000000 3f97 8687 4af6 7825 f772 6ba8 2489 fa79
+0000010 48d9 429f 286a e4b8 4541 0bb0 7a2c 418b
+0000020 7326 94c7 b9c7 c445 9c3c cc7b d008 1144
+0000030 0227 db00 9f14 3e31 12bf 3b63 7d84 b3c2
+0000040 041a 9580 7136 6fba 13f1 997c 88df 6ede
+0000050 a19e dd64 7a35 78fa cfb2 2901 b317 f129
+0000060 8c47 49e8 675d 8560 da39 4826 4061 1d99
+0000070 fc08 dac0 012d 3672 e697 5e57 2c06 b9e9
 0000080
 anntony@anntony-Lenovo-B590 /tmp $ mv /tmp/random-file /tmp/test.bin
-anntony@anntony-Lenovo-B590 /tmp $ ls -al|grep test.bin
--rw-r--r--  1 anntony anntony 16777216  2月  3 19:53 test.bin
+anntony@anntony-Lenovo-B590 /tmp $ ls -al | grep test.bin
+-rw-r--r--  1 anntony anntony 16777216  2月 27 16:02 test.bin
+anntony@anntony-Lenovo-B590 /tmp $ 
+
+然後把方法一
+或是方法二產生的test.bin
+複製到WindowsXP電腦上的D:\我的文檔
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+6.6 將test.bin燒錄進SOP8 Flash ROM
+
+打開燒錄軟體CH341A.exe
+按下[ 檢測(D) ]識別出芯片後
+再按下[ 打開 ] 選擇剛才的 D:\我的文檔\test.bin
+再按下[ 打開 ]
+然後按下 [ 自動 ] 按鈕
+（雖然還有一顆 [ 編程 ] 按鈕比較像是寫入，但是說明書上說要按 [ 自動 ]來寫入FLASH ROM）
+按下[ 自動 ] 之後
+下方的狀態列出現了提示訊息
+正在擦除中...
+正在編程中...
+然後沒兩秒就
+寫操作超時失敗
+
+是芯片型號的問題嗎？
+我還有買另一個型號的芯片是
+MX25L12835FM2I-10G
+被識別成
+MX25L12805D
+一樣不能燒
+得到了一樣的結果
+
+只好用另一支XTW100編程器了
+DIP8轉接座上面一樣插的是MX25L12835FM2I-10G
+然後把XTW100編程器再插入WindowsXP電腦
+打開燒錄軟體XTW100.exe
+（路徑是D:\我的文檔\XTW100高速24 25編程器\編程器軟件\XTW100.exe）
+按下[ 自動檢測 ]之後
+跳出提示
+檢測到芯片：MX25L12805
+芯片容量：16MB
+按下[ 確定 ]
+接著 [ 文件 ] > [ 打開 ]
+選擇D:\我的文檔\test.bin
+按[ 打開 ]
+再按下 [ 自動燒錄 ]
+然後出現了
+編程Flash ...
+校驗Flash ...
+
+三分鐘過去之後，看起來像是燒錄成功了
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+6.7 讀取剛才燒錄完成的芯片內容，將內容轉存成finished.bin
+
+一樣是在剛才已經開啟XTW100.exe燒錄軟體的狀態
+按下[ 自動檢測 ]
+再按下 [ 讀出芯片 ]
+然後在上面的選單 [ 文件（X） ] > [ 保存（Y） ]
+把文件存在D:\我的文檔\finished.bin
+按下[ 保存（S） ]
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+6.8 比對test.bin和finished.bin內容是否一致？
+
+方法一：（土砲方法，到兩個檔案裡相同的Offset去查看數值是否一樣？）
+把剛才在WindowsXP機器上存下來的finished.bin複製回筆記型電腦（Linux Mint 17）
+我在筆記型電腦上用Bless Hex Editor
+可以同時打開test.bin和finished.bin兩個檔案
+然後跳到各別檔案裡一樣的offset裡面看看
+內容是不是一樣
+打開Bless Hex Editor之後
+在最上列的選單裡 [ Search ] > [ Goto Offset ]
+然後填入幾個Offset
+0x111111
+0x222222
+0x333333
+0x444444
+0x555555
+0xeeeeee
+0xffffff
+然後看看是不是兩個檔案在同樣的offset裡都是同樣的值？
+
+方法二：（較優雅，倒出兩個檔案的hex文字值然後比對差異）
+anntony@anntony-Lenovo-B590 /tmp $ ls -al|grep bin
+-rw-r--r--  1 anntony anntony 16777216  2? 27 21:53 finished.bin
+-rw-r--r--  1 anntony anntony 16777216  2? 27 16:02 test.bin
+anntony@anntony-Lenovo-B590 /tmp $ xxd test.bin > test.hex
+anntony@anntony-Lenovo-B590 /tmp $ xxd finished.bin > finished.hex
+anntony@anntony-Lenovo-B590 /tmp $ diff test.hex finished.hex
+anntony@anntony-Lenovo-B590 /tmp $ 
+執行完diff指令之後，沒有任何輸出，代表兩個檔案是完全一模一樣的
+如果是比對兩個內容不一樣的檔案
+執行完diff指令之後，會像這樣告訴你兩個檔案不一樣的內容
+anntony@anntony-Lenovo-B590 /tmp $ echo 'my name is tony' > file1.txt
+anntony@anntony-Lenovo-B590 /tmp $ echo 'my name is not tony!' > file2.txt
+anntony@anntony-Lenovo-B590 /tmp $ diff file1.txt file2.txt
+1c1
+< my name is tony
+---
+> my name is not tony!
 anntony@anntony-Lenovo-B590 /tmp $
 
 ＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+6.9 將剛才燒錄好的芯片內容抹除
+
+插上XTW100編程器，打開燒錄軟體
+按下 [ 擦除芯片 ] 即可
+
 ＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
