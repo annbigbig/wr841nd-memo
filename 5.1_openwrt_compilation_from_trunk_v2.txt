@@ -1,0 +1,1105 @@
+5.1 編譯16MB Flash專用的OpenWRT firmware
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+參考資料：
+http://wiki.openwrt.org/zh-tw/doc/howto/build#清除
+http://coderazzi.net/howto/openwrt/tl841n/install.htm
+http://m.oschina.net/blog/282141
+http://my.oschina.net/osbin/blog/278782
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+編譯環境：運行X86_64版本的Linux Mint 17，筆記型電腦
+anntony-Lenovo-B590 ~ # uname -a
+Linux anntony-Lenovo-B590 3.13.0-24-generic #47-Ubuntu SMP Fri May 2 23:30:00 UTC 2014 x86_64 x86_64 x86_64 GNU/Linux
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+工作列表：
+     5.1.1 使用svn拉下trunk分支的OpenWRT源代碼
+     5.1.2 看一下trunk/README 寫什麼
+     5.1.3 確認編譯固件所需的依賴套件是否全裝上了？
+     5.1.4 更新feeds
+     5.1.5 修改源代碼以符合我們16MB Flash固件需求
+          5.1.5.1 修改~/openwrt/trunk/target/linux/ar71xx/base-files/etc/uci-defaults/01_leds
+          5.1.5.2 修改~/openwrt/trunk/target/linux/ar71xx/base-files/etc/uci-defaults/02_network
+          5.1.5.3 修改~/openwrt/trunk/target/linux/ar71xx/image/Makefile
+          5.1.5.4 修改~/openwrt/trunk/tools/firmware-utils/src/mktplinkfw.c
+     5.1.6 修改固件預設的環境配置
+          5.1.6.1 預設的Lan IP
+          5.1.6.2 預設的無線網路配置
+          5.1.6.3 預設的主機名、時區、ntp校時服務器
+          5.1.6.4 預設的語言環境
+     5.1.7 進入make menuconfig 設定畫面
+     5.1.8 開始編譯
+     5.1.9 編譯好的影像檔在那兒？
+     5.1.10 雜記：編譯過程中產生的一些訊息
+          5.1.10.1 這個檔案裡放置著很多ftp站台的網址
+          5.1.10.2 找不到ntpdate套件的依賴函式庫因此編譯失敗x2
+          5.1.10.3 某些放置依賴套件的FTP站台一直連不上
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+細節：
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+5.1.1 使用svn拉下trunk分支的OpenWRT源代碼
+
+確認一下你已經安裝好svn了
+$ which svn
+
+已經安裝好的話，就會看到終端機回答
+/usr/bin/svn
+
+如果沒有安裝，請切換到root用戶，安裝
+$ sudo -i
+# apt-get install subversion
+
+待會的動作都是用一般用戶的身分執行，問一下終端機我是誰？
+$ whoami
+
+終端機說我是
+anntony
+
+切換到我的家目錄/home/anntony
+$ cd /home/anntony
+
+新增一個openwrt目錄
+$ mkdir openwrt
+
+進入該目錄
+$ cd openwrt
+
+問卦一下我人現在在那裡？
+$ pwd
+
+終端機告訴我
+/home/anntony/openwrt
+
+接著在這個目錄裡，把openwrt的源代碼拉下來
+先看一下OpenWRT官方的GetSource的網頁
+https://dev.openwrt.org/wiki/GetSource
+
+有很多版本，有trunk、有14.07 Barrier Breaker、有12.09 Attitude Adjustment
+我們去拉主要的開發分支trunk，執行
+$ svn co svn://svn.openwrt.org/openwrt/trunk/
+
+然後耐心等一下，終端機會輸出很多下載了什麼檔案的訊息
+（終端機超長的輸出訊息省略…）
+A    trunk/config/Config-kernel.in
+A    trunk/config/Config-images.in
+A    trunk/BSDmakefile
+A    trunk/.gitattributes
+A    trunk/Config.in
+A    trunk/Makefile
+ U   trunk
+取出修訂版 44597.
+
+終端機輸出的訊息很長，所以我只放上最後幾行
+最後一行很重要，它告訴我們取出來修訂版是44597
+svn我根本不熟，這裡的修訂版44597我想應該和git的commit是同樣的東西吧？
+
+剛才的svn指令成功的在/home/anntony/openwrt目錄裡，拉下了trunk目錄
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+5.1.2 看一下trunk/README 寫什麼
+
+原諒我這個懶鬼
+anntony@anntony-Lenovo-B590 ~/openwrt $ pwd
+/home/anntony/openwrt
+anntony@anntony-Lenovo-B590 ~/openwrt $ ls
+trunk  trunk01
+anntony@anntony-Lenovo-B590 ~/openwrt $ cd trunk
+anntony@anntony-Lenovo-B590 ~/openwrt/trunk $ ls
+BSDmakefile  Config.in  feeds.conf.default  LICENSE   package  rules.mk  target     tools
+config       docs       include             Makefile  README   scripts   toolchain
+anntony@anntony-Lenovo-B590 ~/openwrt/trunk $ cat ./README 
+This is the buildsystem for the OpenWrt Linux distribution.
+
+Please use "make menuconfig" to configure your appreciated
+configuration for the toolchain and firmware.
+
+You need to have installed gcc, binutils, bzip2, flex, python, perl, make,
+find, grep, diff, unzip, gawk, getopt, subversion, libz-dev and libc headers.
+
+Run "./scripts/feeds update -a" to get all the latest package definitions
+defined in feeds.conf / feeds.conf.default respectively
+and "./scripts/feeds install -a" to install symlinks of all of them into
+package/feeds/.
+
+Use "make menuconfig" to configure your image.
+
+Simply running "make" will build your firmware.
+It will download all sources, build the cross-compile toolchain, 
+the kernel and all choosen applications.
+
+You can use "scripts/flashing/flash.sh" for remotely updating your embedded
+system via tftp.
+
+The OpenWrt system is documented in docs/. You will need a LaTeX distribution
+and the tex4ht package to build the documentation. Type "make -C docs/" to build it.
+
+To build your own firmware you need to have access to a Linux, BSD or MacOSX system
+(case-sensitive filesystem required). Cygwin will not be supported because of
+the lack of case sensitiveness in the file system.
+
+
+Sunshine!
+	Your OpenWrt Project
+	http://openwrt.org
+
+
+anntony@anntony-Lenovo-B590 ~/openwrt/trunk $
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+5.1.3 確認編譯固件所需的依賴套件是否全裝上了？
+
+上面的README裡寫著
+You need to have installed gcc, binutils, bzip2, flex, python, perl, make,
+find, grep, diff, unzip, gawk, getopt, subversion, libz-dev and libc headers.
+
+所以打開Synaptic套件管理員
+一個一個把它們裝上去
+如果不小心漏了也沒關係
+之後的步驟裡如果發現編譯平台上少安裝了什麼套件或是lib
+會發出警告訊息，明確告訴你少安裝了什麼套件
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+ 5.1.4 更新feeds
+
+anntony@anntony-Lenovo-B590 ~/openwrt/trunk $ pwd
+/home/anntony/openwrt/trunk
+anntony@anntony-Lenovo-B590 ~/openwrt/trunk $ ls
+BSDmakefile  config  Config.in  docs  feeds.conf.default  include  LICENSE  Makefile  package  README  rules.mk  scripts  target  toolchain  tools
+anntony@anntony-Lenovo-B590 ~/openwrt/trunk $ ./scripts/feeds update -a
+（終端機輸出很長，不放上，大致上是執行git去拉一些放在github上的依賴套件的源碼repo）
+anntony@anntony-Lenovo-B590 ~/openwrt/trunk $ ./scripts/feeds install -a
+（一樣終端機輸出很長，不放上）
+
+我有點在意的是，在執行了上面的指令
+$ ./scripts/feeds install -a
+之後
+出現了很多的WARNING訊息，像是
+WARNING: No feed for package 'libcrypto' found, maybe it's already part of the standard packages?
+WARNING: No feed for package 'kmod-siit' found, maybe it's already part of the standard packages?
+WARNING: No feed for package 'smap' found, maybe it's already part of the standard packages?
+WARNING: No feed for package 'netdiscover' found, maybe it's already part of the standard packages?
+WARNING: No feed for package 'mac-to-devinfo' found, maybe it's already part of the standard packages?
+WARNING: No feed for package 'httping' found, maybe it's already part of the standard packages?
+WARNING: No feed for package 'smap-to-devinfo' found, maybe it's already part of the standard packages?
+WARNING: No feed for package 'netdiscover-to-devinfo' found, maybe it's already part of the standard packages?
+
+一狗串，可是最後幾行的地方終端機輸出的訊息像這樣
+Installing package 'freenetconfd'
+Installing package 'libssh'
+Installing package 'freesub'
+Installing package 'libev'
+Installing package 'libnetconf'
+Installing package 'shtool'
+anntony@anntony-Lenovo-B590 ~/openwrt/trunk $
+
+感覺好像沒關係，繼續弄下去就知道了
+如果真的有問題，那麼要不是沒辦法編譯出
+openwrt-ar71xx-generic-tl-wr841n-v8-squashfs-factory.bin
+要不就是編譯出來的影像檔，燒進ROM裡有問題
+繼續弄下去好了，這不是ERROR而是WARNING，雖然看了不是很舒服
+
+搜尋關鍵字：
+openwrt WARNING: No feed for package
+
+參考資料：
+https://dev.openwrt.org.cn/wiki/installfeeds
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+5.1.5 修改源代碼以符合我們16MB Flash固件需求
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+5.1.5.1 修改~/openwrt/trunk/target/linux/ar71xx/base-files/etc/uci-defaults/01_leds
+
+看了很多前輩的文章，改這個檔案是為了讓路由器的燈號順序正常
+開啟vi文字編輯器
+$ vi ~/openwrt/trunk/target/linux/ar71xx/base-files/etc/uci-defaults/01_leds
+
+找到檔案裡的原來這個區塊
+tl-wr841n-v8 | \
+tl-wr941nd-v5)
+        ucidef_set_led_netdev "wan" "WAN" "tp-link:green:wan" "eth0"
+        ucidef_set_led_switch "lan1" "LAN1" "tp-link:green:lan1" "switch0" "0x04"
+        ucidef_set_led_switch "lan2" "LAN2" "tp-link:green:lan2" "switch0" "0x08"
+        ucidef_set_led_switch "lan3" "LAN3" "tp-link:green:lan3" "switch0" "0x10"
+        ucidef_set_led_switch "lan4" "LAN4" "tp-link:green:lan4" "switch0" "0x02"
+        ucidef_set_led_wlan "wlan" "WLAN" "tp-link:green:wlan" "phy0tpt"
+        ;;
+
+
+請把它改成這樣
+tl-wr841n-v8 | \
+tl-wr941nd-v5)
+        ucidef_set_led_netdev "wan" "WAN" "tp-link:green:wan" "eth0"
+        ucidef_set_led_switch "lan1" "LAN1" "tp-link:green:lan1" "switch0" "0x02"
+        ucidef_set_led_switch "lan2" "LAN2" "tp-link:green:lan2" "switch0" "0x04"
+        ucidef_set_led_switch "lan3" "LAN3" "tp-link:green:lan3" "switch0" "0x08"
+        ucidef_set_led_switch "lan4" "LAN4" "tp-link:green:lan4" "switch0" "0x10"
+        ucidef_set_led_wlan "wlan" "WLAN" "tp-link:green:wlan" "phy0tpt"
+        ;;
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+ 5.1.5.2 修改~/openwrt/trunk/target/linux/ar71xx/files/arch/mips/ath79/mach-tl-wr841n-v8.c
+
+不幸的是，除了路由器的燈號，連每個網路接口的順序都是錯亂的
+正常的情況下應該是WAN-LAN-LAN-LAN-LAN
+開啟vi文字編輯器
+$ vi ~/openwrt/trunk/target/linux/ar71xx/files/arch/mips/ath79/mach-tl-wr841n-v8.c
+
+找到檔案裡的原來這個區塊
+這個叫作tl_ap123_setup的函式，我不想重複貼兩次，這個是已經改好的
+有改的那三行我在後面加了中文注釋
+
+static void __init tl_ap123_setup(void)
+{
+        u8 *mac = (u8 *) KSEG1ADDR(0x1f01fc00);
+        u8 *ee = (u8 *) KSEG1ADDR(0x1fff1000);
+
+        /* Disable JTAG, enabling GPIOs 0-3 */
+        /* Configure OBS4 line, for GPIO 4*/
+        ath79_gpio_function_setup(AR934X_GPIO_FUNC_JTAG_DISABLE,
+                                 AR934X_GPIO_FUNC_CLK_OBS4_EN);
+
+        /* config gpio4 as normal gpio function */
+        ath79_gpio_output_select(TL_MR3420V2_GPIO_USB_POWER,
+                                 AR934X_GPIO_OUT_GPIO);
+
+        ath79_register_m25p80(&tl_wr841n_v8_flash_data);
+
+        ath79_setup_ar934x_eth_cfg(AR934X_ETH_CFG_SW_ONLY_MODE); //原本的是 ath79_setup_ar934x_eth_cfg(AR934X_ETH_CFG_SW_PHY_SWAP);
+
+        ath79_register_mdio(1, 0x0);
+
+        ath79_init_mac(ath79_eth0_data.mac_addr, mac, -1);
+        ath79_init_mac(ath79_eth1_data.mac_addr, mac, 0);
+
+        /* GMAC0 is connected to the PHY0 of the internal switch */
+        ath79_switch_data.phy4_mii_en = 1;
+        ath79_switch_data.phy_poll_mask = BIT(4); //原本的是 ath79_switch_data.phy_poll_mask = BIT(0);
+        ath79_eth0_data.phy_if_mode = PHY_INTERFACE_MODE_MII;
+        ath79_eth0_data.phy_mask = BIT(4);  //原本的是 ath79_eth0_data.phy_mask = BIT(0);
+        ath79_eth0_data.mii_bus_dev = &ath79_mdio1_device.dev;
+        ath79_register_eth(0);
+
+        /* GMAC1 is connected to the internal switch */
+        ath79_eth1_data.phy_if_mode = PHY_INTERFACE_MODE_GMII;
+        ath79_register_eth(1);
+
+        ath79_register_wmac(ee, mac);
+}
+
+不只是TL-WR841N/D，只要SoC是AR9341的路由器，
+刷上了OpenWRT都會有燈號或是WAN-LAN接口錯置的問題
+Google關鍵字：
+ar9341 網口 修正
+ar9341 wan lan lan
+
+參考資料：
+http://www.right.com.cn/forum/thread-121913-2-1.html
+
+這個網友有另一個修改方式
+https://github.com/qianguozheng/qsdk/commit/11c4ee98ae56a425b35082a15bdd6a1ddb341487
+但是中文論壇上有其他網友回報說，照著改的話，PPPoe的功能會失去作用，所以我沒採用，但可以參考
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+5.1.5.3 修改~/openwrt/trunk/target/linux/ar71xx/image/Makefile
+
+開啟vi文字編輯器
+$ vi ~/openwrt/trunk/target/linux/ar71xx/image/Makefile
+
+找到原來的這一行
+$(eval $(call SingleProfile,TPLINK-LZMA,64kraw,TLWR841NV8,tl-wr841n-v8,TL-WR841N-v8,ttyS0,115200,0x08410008,1,4Mlzma))
+改成這樣
+$(eval $(call SingleProfile,TPLINK-LZMA,64kraw,TLWR841NV8,tl-wr841n-v8,TL-WR841N-v8,ttyS0,115200,0x08410008,1,16Mlzma))
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+5.1.5.4 修改~/openwrt/trunk/tools/firmware-utils/src/mktplinkfw.c
+
+原來的檔案裡沒有TL_WR841ND_V8的定義
+開啟vi文字編輯器
+$ vi ~/openwrt/trunk/tools/firmware-utils/src/mktplinkfw.c
+
+找到這個區塊
+#define HWID_TL_WR841N_V1_5     0x08410002
+#define HWID_TL_WR841ND_V3      0x08410003
+#define HWID_TL_WR841ND_V5      0x08410005
+#define HWID_TL_WR841ND_V7      0x08410007
+#define HWID_TL_WR941ND_V2      0x09410002
+
+在中間插入一行，變成這樣
+#define HWID_TL_WR841N_V1_5     0x08410002
+#define HWID_TL_WR841ND_V3      0x08410003
+#define HWID_TL_WR841ND_V5      0x08410005
+#define HWID_TL_WR841ND_V7      0x08410007
+#define HWID_TL_WR841ND_V8      0x08410008
+#define HWID_TL_WR941ND_V2      0x09410002
+
+再找到這個區塊
+        }, {
+                .id             = "16M",
+                .fw_max_len     = 0xf80000,
+                .kernel_la      = 0x80060000,
+                .kernel_ep      = 0x80060000,
+                .rootfs_ofs     = 0x140000,
+        }, {
+                .id             = "16Mlzma",
+                .fw_max_len     = 0xf80000,
+                .kernel_la      = 0x80060000,
+                .kernel_ep      = 0x80060000,
+                .rootfs_ofs     = 0x100000,
+        }, {
+                .id             = "16Mppc",
+                .fw_max_len     = 0xf80000,
+                .kernel_la      = 0x00000000,
+                .kernel_ep      = 0xc0000000,
+                .rootfs_ofs     = 0x2a0000,
+        }, {
+                /* terminating entry */
+        }
+};
+
+把和16M有關係的.fw_max_len都改了，改成這樣
+       }, {
+                .id             = "16M",
+                .fw_max_len     = 0xfc0000,
+                .kernel_la      = 0x80060000,
+                .kernel_ep      = 0x80060000,
+                .rootfs_ofs     = 0x140000,
+        }, {
+                .id             = "16Mlzma",
+                .fw_max_len     = 0xfc0000,
+                .kernel_la      = 0x80060000,
+                .kernel_ep      = 0x80060000,
+                .rootfs_ofs     = 0x100000,
+        }, {
+                .id             = "16Mppc",
+                .fw_max_len     = 0xfc0000,
+                .kernel_la      = 0x00000000,
+                .kernel_ep      = 0xc0000000,
+                .rootfs_ofs     = 0x2a0000,
+        }, {
+                /* terminating entry */
+        }
+};
+
+然後再找到這個區塊
+        }, {
+                .id             = "TL-WR841NDv5",
+                .hw_id          = HWID_TL_WR841ND_V5,
+                .hw_rev         = 1,
+                .layout_id      = "4M",
+        }, {
+                .id             = "TL-WR841NDv7",
+                .hw_id          = HWID_TL_WR841ND_V7,
+                .hw_rev         = 1,
+                .layout_id      = "4M",
+        }, {
+                .id             = "TL-WR941NDv2",
+                .hw_id          = HWID_TL_WR941ND_V2,
+                .hw_rev         = 2,
+                .layout_id      = "4M",
+        }, {
+
+在TL-WR941NDv2前面插入一個TL-WR841NDv8的區塊，變成這個樣子
+        }, {
+                .id             = "TL-WR841NDv5",
+                .hw_id          = HWID_TL_WR841ND_V5,
+                .hw_rev         = 1,
+                .layout_id      = "4M",
+        }, {
+                .id             = "TL-WR841NDv7",
+                .hw_id          = HWID_TL_WR841ND_V7,
+                .hw_rev         = 1,
+                .layout_id      = "4M",
+        }, {
+                .id             = "TL-WR841NDv8",
+                .hw_id          = HWID_TL_WR841ND_V8,
+                .hw_rev         = 1,
+                .layout_id      = "16Mlzma",
+        }, {
+                .id             = "TL-WR941NDv2",
+                .hw_id          = HWID_TL_WR941ND_V2,
+                .hw_rev         = 2,
+                .layout_id      = "4M",
+        }, {
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+5.1.6 修改固件預設的環境配置
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+5.1.6.1 預設的Lan IP
+
+$ vi ~/openwrt/trunk/package/base-files/files/lib/functions/uci-defaults.sh
+
+找到這一行
+set network.lan.ipaddr='192.168.1.1'
+
+預設的Lan IP就很合用，我不想改，如果你要改就是改這裡
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+5.1.6.2 預設的無線網路配置
+
+我希望wifi的功能預設是開啟的
+ssid維持預設的OpenWrt
+使用psk2加密
+連線密碼是12345678
+
+參考資料：
+http://my.oschina.net/osbin/blog/278782
+http://wiki.openwrt.org/doc/uci/wireless#wpamodes
+
+打開vi文字編輯器修改檔案
+$ vi ~/openwrt/trunk/package/kernel/mac80211/files/lib/wifi/mac80211.sh
+
+把原來的這個地方
+        # REMOVE THIS LINE TO ENABLE WIFI:
+        option disabled 1
+
+config wifi-iface
+        option device   radio$devidx
+        option network  lan
+        option mode     ap
+        option ssid     OpenWrt
+        option encryption none
+
+改成這樣
+        # REMOVE THIS LINE TO ENABLE WIFI:
+        # option disabled 1
+
+config wifi-iface
+        option device   radio$devidx
+        option network  lan
+        option mode     ap
+        option ssid     OpenWrt
+        option encryption psk2
+        option key 12345678
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+5.1.6.3 預設的主機名、時區、ntp校時服務器
+
+參考資料：
+http://wiki.openwrt.org/doc/uci/system
+http://my.oschina.net/osbin/blog/278782
+
+我希望預設的路由器主機名叫作wr841n
+時區是Asia/Taipei
+ntp校時服務器換成我們比較近的台灣的服務器
+
+打開vi文字編輯器修改檔案
+$ vi ~/openwrt/trunk/package/base-files/files/etc/config/system
+
+原來的檔案內容長這樣
+config system
+        option hostname OpenWrt
+        option timezone UTC
+
+config timeserver ntp
+        list server     0.openwrt.pool.ntp.org
+        list server     1.openwrt.pool.ntp.org
+        list server     2.openwrt.pool.ntp.org
+        list server     3.openwrt.pool.ntp.org
+        option enabled 1
+        option enable_server 0
+
+把它改成這樣
+config system
+        option hostname wr841n
+        option zonename Asia/Taipei
+        option timezone CST-8
+
+config timeserver ntp
+        list server     0.asia.pool.ntp.org
+        list server     1.asia.pool.ntp.org
+        list server     2.asia.pool.ntp.org
+        list server     3.asia.pool.ntp.org
+        option enabled 1
+        option enable_server 0
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+5.1.6.4 預設的語言環境
+
+打開vi文字編輯器修改檔案
+$ vi ~/openwrt/trunk/feeds/luci/modules/luci-base/root/etc/config/luci
+
+原來的檔案是
+config core main
+        option lang auto
+        option mediaurlbase /luci-static/openwrt.org
+        option resourcebase /luci-static/resources
+
+config extern flash_keep
+        option uci              "/etc/config/"
+        option dropbear "/etc/dropbear/"
+        option openvpn  "/etc/openvpn/"
+        option passwd   "/etc/passwd"
+        option opkg             "/etc/opkg.conf"
+        option firewall "/etc/firewall.user"
+        option uploads  "/lib/uci/upload/"
+
+config internal languages
+
+config internal sauth
+        option sessionpath "/tmp/luci-sessions"
+        option sessiontime 3600
+
+config internal ccache
+        option enable 1
+
+config internal themes
+
+
+改成這樣
+config core main
+        option lang en
+        option mediaurlbase /luci-static/openwrt.org
+        option resourcebase /luci-static/resources
+
+config extern flash_keep
+        option uci              "/etc/config/"
+        option dropbear "/etc/dropbear/"
+        option openvpn  "/etc/openvpn/"
+        option passwd   "/etc/passwd"
+        option opkg             "/etc/opkg.conf"
+        option firewall "/etc/firewall.user"
+        option uploads  "/lib/uci/upload/"
+
+config internal languages
+        option en "English"
+        option zh_tw "Chinese"
+
+config internal sauth
+        option sessionpath "/tmp/luci-sessions"
+        option sessiontime 3600
+
+config internal ccache
+        option enable 1
+
+config internal themes
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+5.1.7 進入make menuconfig 設定畫面
+
+參考資料：
+http://my.oschina.net/osbin/blog/278782
+https://forum.openwrt.org/viewtopic.php?pid=140470#p140470
+http://coderazzi.net/howto/openwrt/tl841n/install.htm
+
+我發現少裝了一個依賴套件，先裝上它
+$ sudo apt-get install libssl-dev
+
+然後就
+$ cd ~/openwrt/trunk
+$ make clean
+$ make menuconfig
+然後就進入了OpenWrt Configuration的藍底GUI操作選單
+選定一個target，這個意思是我們要選擇要編譯出的影像檔是給那一台路由器用的
+這裡當然是選擇
+Target System (Atheros AR7xxx/AR9xxx)  --->Atheros AR7xxx/AR9xxx
+還有
+Target Profile (Default Profile (all drivers))  --->TP-LINK TL-WR841N/ND
+
+然後先離開一下，選Exit
+Do you wish to save your new configuration ? 
+選< Yes >離開
+
+使用預設的選項
+$ make defconfig
+
+再次叫出藍底GUI操作選單
+$ make menuconfig
+
+然後又回到了藍底GUI操作選單
+我是這樣選擇的
+
+依晶片分類的Target System及路由器型號 (剛才已經選好了)
+Target System (Atheros AR7xxx/AR9xxx)  --->   (X) Atheros AR7xxx/AR9xxx
+Target Profile (TP-LINK TL-WR841N/ND)  --->TP-LINK TL-WR841N/ND
+
+Toolchain選起來
+ [*] Package the OpenWrt-based Toolchain    
+
+基本上保持原樣，不過加選了一個
+Base system  ---> wireless-tools
+
+語言支持
+Kernel modules  --->Native Language Support  --->kmod-nls-utf8
+
+USB支持 (只列出我加選的)
+Kernel modules  --->USB Support  --->kmod-usb-serial   --->kmod-usb-serial-cp210x
+
+SSH的功能，全選上
+Network  --->SSH  --->
+Network  --->SSH  --->openssh-client
+Network  --->SSH  --->openssh-client-utils
+Network  --->SSH  --->openssh-keygen
+Network  --->SSH  --->openssh-moduli
+Network  --->SSH  --->openssh-server
+Network  --->SSH  --->openssh-server-pam
+Network  --->SSH  --->openssh-sftp-client
+Network  --->SSH  --->openssh-sftp-server
+Network  --->SSH  --->sshtunnel
+
+NTP的功能，除了ntp server其他都選上
+Network  --->Time Synchronization  --->ntp-keygen
+Network  --->Time Synchronization  --->ntp-utils
+Network  --->Time Synchronization  --->ntpclient
+Network  --->Time Synchronization  --->ntpdate
+
+關於openvpn-openssl的全都選上
+Network  --->VPN  --->openvpn-openssl   --->
+Network  --->VPN  --->openvpn-openssl   --->Enable LZO compression support (NEW) 
+Network  --->VPN  --->openvpn-openssl   --->Enable the --x509-username-field feature
+（下面還有大概十幾個…全選上）
+
+luci網頁操作GUI介面
+LuCI  --->Collections  --->luci
+LuCI  --->Collections  --->luci-ssl
+LuCI  --->Mudules      --->Minify Lua sources
+LuCI  --->Modules      --->Translations --->English (en)
+LuCI  --->Modules      --->Translations --->Taiwanse (zh-tw)
+LuCI  --->Modules      --->luci-mod-failsafe
+LuCI  --->Applications  --->luci-app-ddns
+LuCI  --->Applications  --->luci-app-diag-core
+LuCI  --->Applications  --->luci-app-diag-devinfo
+LuCI  --->Applications  --->luci-app-multiwan
+LuCI  --->Applications  --->luci-app-ntpc
+LuCI  --->Applications  --->luci-app-qos
+LuCI  --->Applications  --->luci-app-statistics
+LuCI  --->Themes  --->luci-theme-openwrt
+LuCI  --->Libraries  --->luci-lib-httpclient........HTTP(S) client library
+LuCI  --->Libraries  --->luci-lib-px5g
+
+全都選好了，就選< Exit >退出藍底GUI操作選單
+Do you wish to save your new configuration ? 
+選< Yes >儲存剛才選得半死的設定值
+設定值會存在
+~/openwrt/trunk/.config
+
+回到了終端機，開始編譯了
+$ cd ~/openwrt/trunk
+$ make V=s
+
+記得保持網路有連線的狀態，因為編譯期間會從網路上抓一些檔案下來
+然後就是等等等
+編譯過程大概有一小時
+手氣好的話
+一次就編譯出來
+我有點衰小
+第三次才成功
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+ 5.1.9 編譯好的影像檔在那兒？
+
+anntony@anntony-Lenovo-B590 ~/openwrt/trunk/bin/ar71xx $ pwd
+/home/anntony/openwrt/trunk/bin/ar71xx
+anntony@anntony-Lenovo-B590 ~/openwrt/trunk/bin/ar71xx $ ls -al
+總計 78328
+drwxr-xr-x 4 anntony anntony     4096  1月  8 01:49 .
+drwxr-xr-x 3 anntony anntony     4096  1月  8 01:02 ..
+-rw-r--r-- 1 anntony anntony      914  1月  8 01:49 md5sums
+-rwxr-xr-x 1 anntony anntony   160200  1月  8 01:09 openwrt-ar71xx-generic-nbg460n_550n_550nh-u-boot.bin
+-rw-r--r-- 1 anntony anntony  5636096  1月  8 01:49 openwrt-ar71xx-generic-root.squashfs
+-rw-r--r-- 1 anntony anntony  5505028  1月  8 01:49 openwrt-ar71xx-generic-root.squashfs-64k
+-rw-r--r-- 1 anntony anntony 16515072  1月  8 01:49 openwrt-ar71xx-generic-tl-wr841n-v8-squashfs-factory.bin
+-rw-r--r-- 1 anntony anntony  6619140  1月  8 01:49 openwrt-ar71xx-generic-tl-wr841n-v8-squashfs-sysupgrade.bin
+-rw-r--r-- 1 anntony anntony  1559264  1月  8 01:49 openwrt-ar71xx-generic-uImage-gzip.bin
+-rw-r--r-- 1 anntony anntony  1110000  1月  8 01:49 openwrt-ar71xx-generic-uImage-lzma.bin
+-rwxr-xr-x 1 anntony anntony  3287716  1月  8 01:49 openwrt-ar71xx-generic-vmlinux.bin
+-rwxr-xr-x 1 anntony anntony  3292780  1月  8 01:49 openwrt-ar71xx-generic-vmlinux.elf
+-rw-r--r-- 1 anntony anntony  1572864  1月  8 01:49 openwrt-ar71xx-generic-vmlinux.gz
+-rw-r--r-- 1 anntony anntony  1114112  1月  8 01:49 openwrt-ar71xx-generic-vmlinux.lzma
+-rwxr-xr-x 1 anntony anntony  1181965  1月  8 01:49 openwrt-ar71xx-generic-vmlinux-lzma.elf
+-rw-r--r-- 1 anntony anntony 32674027  1月  8 01:50 OpenWrt-Toolchain-ar71xx-for-mips_34kc-gcc-4.8-linaro_uClibc-0.9.33.2.tar.bz2
+drwxr-xr-x 5 anntony anntony     4096  1月  8 01:17 packages
+drwxr-xr-x 2 anntony anntony     4096  1月  8 01:09 uboot-ar71xx-nbg460n_550n_550nh
+anntony@anntony-Lenovo-B590 ~/openwrt/trunk/bin/ar71xx $
+
+上面的
+openwrt-ar71xx-generic-tl-wr841n-v8-squashfs-factory.bin
+我們要拿來製作編程器固件
+而
+OpenWrt-Toolchain-ar71xx-for-mips_34kc-gcc-4.8-linaro_uClibc-0.9.33.2.tar.bz2
+是編譯出的Toolchain
+稍後要編譯pepe2k的u-boot的時候，會用得到
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+5.1.10 雜記：編譯過程中產生的一些訊息
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+5.1.10.1 這個檔案裡放置著很多ftp站台的網址
+
+/home/anntony/openwrt/trunk/scripts/download.pl
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+5.1.10.2 找不到ntpdate套件的依賴函式庫因此編譯失敗x2
+
+install -d -m0755 /home/anntony/openwrt/trunk/build_dir/target-mips_34kc_uClibc-0.9.33.2/ntp-4.2.8/ipkg-ar71xx/ntpdate/usr/sbin
+install -m0755 /home/anntony/openwrt/trunk/build_dir/target-mips_34kc_uClibc-0.9.33.2/ntp-4.2.8/ntpdate/ntpdate /home/anntony/openwrt/trunk/build_dir/target-mips_34kc_uClibc-0.9.33.2/ntp-4.2.8/ipkg-ar71xx/ntpdate/usr/sbin/
+install -d -m0755 /home/anntony/openwrt/trunk/build_dir/target-mips_34kc_uClibc-0.9.33.2/ntp-4.2.8/ipkg-ar71xx/ntpdate/etc/init.d
+install -m0755 ./files/ntpdate.init /home/anntony/openwrt/trunk/build_dir/target-mips_34kc_uClibc-0.9.33.2/ntp-4.2.8/ipkg-ar71xx/ntpdate/etc/init.d/ntpdate
+find /home/anntony/openwrt/trunk/build_dir/target-mips_34kc_uClibc-0.9.33.2/ntp-4.2.8/ipkg-ar71xx/ntpdate -name 'CVS' -o -name '.svn' -o -name '.#*' -o -name '*~'| xargs -r rm -rf
+Package ntpdate is missing dependencies for the following libraries:
+libcrypto.so.1.0.0
+libpthread.so.0
+make[3]: *** [/home/anntony/openwrt/trunk/bin/ar71xx/packages/packages/ntpdate_4.2.8-1_ar71xx.ipk] Error 1
+make[3]: Leaving directory `/home/anntony/openwrt/trunk/feeds/packages/net/ntpd'
+make[2]: *** [package/feeds/packages/ntpd/compile] Error 2
+make[2]: Leaving directory `/home/anntony/openwrt/trunk'
+make[1]: *** [/home/anntony/openwrt/trunk/staging_dir/target-mips_34kc_uClibc-0.9.33.2/stamp/.package_compile] Error 2
+make[1]: Leaving directory `/home/anntony/openwrt/trunk'
+make: *** [world] Error 2
+
+我的Linux Mint 17已經安裝了libssl1.0.0套件
+居然放在這裡
+/lib/x86_64-linux-gnu/libcrypto.so.1.0.0
+
+還有libpthread.so.0
+anntony@anntony-Lenovo-B590 /lib/x86_64-linux-gnu $ ls -al|grep thr
+-rwxr-xr-x  1 root root  141574 12月  2 03:45 libpthread-2.19.so
+lrwxrwxrwx  1 root root      18 12月  2 03:44 libpthread.so.0 -> libpthread-2.19.so
+-rw-r--r--  1 root root   35640 12月  2 03:45 libthread_db-1.0.so
+lrwxrwxrwx  1 root root      19 12月  2 03:44 libthread_db.so.1 -> libthread_db-1.0.so
+
+所以我必須
+sudo ln -s /lib/x86_64-linux-gnu/libcrypto.so.1.0.0 /lib/libcrypto.so.1.0.0
+sudo ln -s /lib/x86_64-linux-gnu/libcrypto.so.1.0.0 /usr/lib/libcrypto.so.1.0.0
+
+sudo ln -s /lib/x86_64-linux-gnu/libpthread-2.19.so /lib/libpthread.so.0
+sudo ln -s /lib/x86_64-linux-gnu/libpthread-2.19.so /usr/lib/libpthread.so.0
+
+作了上述的symbolic link
+第二次編譯還是不行
+一樣死在這個地方
+搜尋關鍵字
+openwrt Package ntpdate is missing dependencies libcrypto.so.1.0.0 libpthread.so.0
+找到了參考資料
+討論頁
+https://github.com/openwrt/packages/pull/747
+
+代碼修正歷史
+https://github.com/thess/OpenWrt-packages/commit/50b5fe2e46c82987594dda3d4e206cd184826a43
+下載這個新的Makefile
+原生格式
+https://raw.githubusercontent.com/thess/OpenWrt-packages/50b5fe2e46c82987594dda3d4e206cd184826a43/net/ntpd/Makefile
+放在
+~/openwrt/trunk/feeds/packages/net/ntpd
+這個目錄裡，置換掉舊的Makefile
+
+這裡給出新的改好的正常的Makefile
+如下
+#
+# Copyright (C) 2006-2015 OpenWrt.org
+#
+# This is free software, licensed under the GNU General Public License v2.
+# See /LICENSE for more information.
+#
+
+include $(TOPDIR)/rules.mk
+
+PKG_NAME:=ntp
+PKG_VERSION:=4.2.8
+PKG_RELEASE:=2
+
+PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
+PKG_SOURCE_URL:=http://www.eecis.udel.edu/~ntp/ntp_spool/ntp4/ntp-4.2/
+PKG_MD5SUM:=6972a626be6150db8cfbd0b63d8719e7
+
+PKG_LICENSE:=Unique
+PKG_LICENSE_FILES:=COPYRIGHT html/copyright.html
+
+PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)
+
+PKG_FIXUP:=autoreconf
+PKG_LIBTOOL_PATHS:=. sntp
+PKG_CHECK_FORMAT_SECURITY:=0
+
+include $(INCLUDE_DIR)/package.mk
+
+define Package/ntpd/Default
+  SUBMENU:=Time Synchronization
+  SECTION:=net
+  CATEGORY:=Network
+  TITLE:=ISC ntp
+  MAINTAINER:=Peter Wagner <tripolar@gmx.at>
+  URL:=http://www.ntp.org/
+  DEPENDS:=+libcap
+endef
+
+define Package/ntpd/Default/description
+ The ISC ntp suite is a collection of tools used to synchronize the
+ system clock with remote NTP time servers and run/monitor local NTP
+ servers.
+endef
+
+define Package/ntpd
+$(call Package/ntpd/Default)
+  TITLE+= server
+  DEPENDS+= +libopenssl +libpthread
+  USERID:=ntp=123:ntp=123
+endef
+
+define Package/ntpd/description
+$(call Package/ntpd/Default/description)
+ .
+ This package contains the ntpd server.
+endef
+
+define Package/ntpdate
+$(call Package/ntpd/Default)
+  TITLE+=date
+  DEPENDS+= +libpthread +libopenssl
+endef
+
+define Package/ntpdate/description
+$(call Package/ntpd/Default/description)
+ .
+ This package contains ntpdate.
+endef
+
+define Package/ntp-utils
+$(call Package/ntpd/Default)
+  TITLE+= utilities
+  DEPENDS+= +libpthread +libopenssl
+endef
+
+define Package/ntp-utils/description
+$(call Package/ntpd/Default/description)
+ .
+ This package contains ntpdc, ntpq and ntptime.
+endef
+
+define Package/ntp-keygen
+$(call Package/ntpd/Default)
+  TITLE+=keygen
+  DEPENDS+= +libopenssl +libpthread
+endef
+
+define Package/ntp-keygen/description
+$(call Package/ntpd/Default/description)
+ .
+ This package contains the ntp-keygen.
+endef
+
+define Package/ntpd/conffiles
+/etc/ntp.conf
+endef
+
+CONFIGURE_VARS += \
+	ac_cv_header_md5_h=no \
+	ac_cv_lib_rt_sched_setscheduler=no \
+	ac_cv_header_dns_sd_h=no
+
+CONFIGURE_ARGS += \
+	--disable-all-clocks \
+	--disable-parse-clocks \
+	--without-ntpsnmpd \
+	--without-lineeditlibs \
+	--enable-NMEA \
+	--enable-LOCAL-CLOCK \
+	--enable-SHM \
+	--enable-linuxcaps \
+	--with-yielding-select=yes \
+	--with-crypto \
+	--with-openssl-incdir="$(STAGING_DIR)/usr/include" \
+	--with-openssl-libdir="$(STAGING_DIR)/usr/lib"
+
+define Package/ntpd/install
+	$(INSTALL_DIR) $(1)/sbin
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/ntpd/ntpd $(1)/sbin/
+	$(INSTALL_DIR) $(1)/etc
+	$(INSTALL_CONF) ./files/ntp.conf $(1)/etc/
+	$(INSTALL_DIR) $(1)/etc/init.d
+	$(INSTALL_BIN) ./files/ntpd.init $(1)/etc/init.d/ntpd
+	$(INSTALL_DIR) $(1)/etc/hotplug.d/iface
+	$(INSTALL_BIN) ./files/ntpd.hotplug $(1)/etc/hotplug.d/iface/20-ntpd
+endef
+
+define Package/ntpd/postinst
+#!/bin/sh
+[ -L "$${IPKG_INSTROOT}/usr/sbin/ntpd" ] && rm -f "$${IPKG_INSTROOT}/usr/sbin/ntpd"
+exit 0
+endef
+
+define Package/ntpd/postrm
+#!/bin/sh
+/bin/busybox ntpd -h 2>&1 | grep -q BusyBox && ln -sf ../../bin/busybox /usr/sbin/ntpd
+exit 0
+endef
+
+define Package/ntpdate/install
+	$(INSTALL_DIR) $(1)/usr/sbin
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/ntpdate/ntpdate $(1)/usr/sbin/
+	$(INSTALL_DIR) $(1)/etc/init.d
+	$(INSTALL_BIN) ./files/ntpdate.init $(1)/etc/init.d/ntpdate
+endef
+
+define Package/ntp-utils/install
+	$(INSTALL_DIR) $(1)/usr/sbin
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/ntpdc/ntpdc $(1)/usr/sbin/
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/ntpq/ntpq $(1)/usr/sbin/
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/util/ntptime $(1)/usr/sbin/
+endef
+
+define Package/ntp-keygen/install
+	$(INSTALL_DIR) $(1)/usr/sbin
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/util/ntp-keygen $(1)/usr/sbin/
+endef
+
+$(eval $(call BuildPackage,ntpd))
+$(eval $(call BuildPackage,ntpdate))
+$(eval $(call BuildPackage,ntp-utils))
+$(eval $(call BuildPackage,ntp-keygen))
+
+然後再重新編譯，我TM重編第三次了
+$ cd ~/openwrt/trunk
+$ make clean
+$ make V=s
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+5.1.10.3 某些放置依賴套件的FTP站台一直連不上
+
+Openwrt 的FTP上面有些檔案不知道為什麼抓不下來，還是消失了
+所以在
+~/openwrt/trunk/dl
+目錄裡面
+有很多.tar.gz要手動下載
+
+編譯成功後
+我查看了
+~/openwrt/trunk/dl
+裡面有這些檔案
+anntony@anntony-Lenovo-B590 ~/openwrt/trunk/dl $ ls -al
+總計 359568
+drwxr-xr-x  2 anntony anntony     4096  1月  8 01:41 .
+drwxr-xr-x 17 anntony anntony     4096  1月  7 18:44 ..
+-rw-r--r--  1 anntony anntony    93996  1月  7 18:57 1.0.4.3.arm
+-rw-r--r--  1 anntony anntony    30888  1月  8 01:35 2.13.0.0.a.13.14.arm
+-rw-r--r--  1 anntony anntony    29036  1月  8 01:35 2.13.12.0.arm
+-rw-r--r--  1 anntony anntony    29736  1月  8 01:35 2.13.24.0.lm87.arm
+-rw-r--r--  1 anntony anntony   953667  1月  8 01:35 ath10k-firmware-232b419e71dab27b52b96e80ea7649ed67bdac77.tar.bz2
+-rw-r--r--  1 anntony anntony  1214744  1月  7 16:33 autoconf-2.69.tar.xz
+-rw-r--r--  1 anntony anntony  1092908  1月  7 16:45 automake-1.11.6.tar.xz
+-rw-r--r--  1 anntony anntony  1268686  1月  7 19:13 avahi-0.6.31.tar.gz
+-rw-r--r--  1 anntony anntony   290069  1月  7 17:31 bc-1.06.95.tar.bz2
+-rw-r--r--  1 anntony anntony 16461100  1月  7 17:50 binutils-linaro-2.24.0-2014.09.tar.xz
+-rw-r--r--  1 anntony anntony  1927296  1月  7 16:53 bison-3.0.2.tar.xz
+-rw-r--r--  1 anntony anntony  3888794  1月  8 01:35 broadcom-wl-4.150.10.5.tar.bz2
+-rw-r--r--  1 anntony anntony 13514651  1月  8 01:36 broadcom-wl-5.100.138.tar.bz2
+-rw-r--r--  1 anntony anntony  2218650  1月  8 01:41 busybox-1.22.1.tar.bz2
+-rw-r--r--  1 anntony anntony  6068231  1月  7 17:03 cmake-2.8.12.2.tar.gz
+-rw-r--r--  1 anntony anntony  1521907  1月  7 19:05 collectd-5.4.1.tar.bz2
+-rw-r--r--  1 anntony anntony 10875711  1月  8 01:36 compat-wireless-2014-11-04.tar.bz2
+-rw-r--r--  1 anntony anntony  1870607  1月  7 19:08 dbus-1.9.4.tar.gz
+-rw-r--r--  1 anntony anntony   654739  1月  8 01:38 dnsmasq-2.72.tar.gz
+-rw-r--r--  1 anntony anntony  1604532  1月  8 01:38 dropbear-2014.65.tar.bz2
+-rw-r--r--  1 anntony anntony  5990116  1月  7 16:55 e2fsprogs-1.42.8.tar.gz
+-rw-r--r--  1 anntony anntony   562616  1月  7 19:08 expat-2.1.0.tar.gz
+-rw-r--r--  1 anntony anntony  2149838  1月  7 17:00 findutils-4.4.2.tar.gz
+-rw-r--r--  1 anntony anntony    43232  1月  7 18:59 firewall-2014-09-19-50e97c52e75bdfd325cf20d43b32d294ff84d92f.tar.gz
+-rw-r--r--  1 anntony anntony  1612101  1月  7 16:51 flex-2.5.39.tar.bz2
+-rw-r--r--  1 anntony anntony    68173  1月  7 18:54 fstools-2014-12-15-83cf8896a598fb9fc58da0a9bb4f137695f78853.tar.gz
+-rw-r--r--  1 anntony anntony 69941456  1月  7 17:55 gcc-linaro-4.8-2014.04.tar.xz
+-rw-r--r--  1 anntony anntony 24112160  1月  7 17:45 gdb-linaro-7.6-2013.05.tar.bz2
+-rw-r-----  1 anntony anntony   811662  1月  7 19:11 gdbm-1.11.tar.gz
+-rw-r--r--  1 anntony anntony   103283  1月  7 16:55 genext2fs-1.4.1.tar.gz
+-rw-r--r--  1 anntony anntony  1056293  1月  7 17:41 gengetopt-2.22.6.tar.gz
+-rw-r--r--  1 anntony anntony  1818812  1月  7 16:47 gmp-5.1.3.tar.xz
+-rw-r--r--  1 anntony anntony  2345302  1月  8 01:33 hostapd-2014-10-25.tar.bz2
+-rw-r--r--  1 anntony anntony   140340  1月  7 19:12 intltool-0.40.6.tar.bz2
+-rw-r--r--  1 anntony anntony    19480  1月  7 16:55 ipkg-utils-1.7.tar.gz
+-rw-r--r--  1 anntony anntony   440188  1月  7 18:59 iproute2-3.17.0.tar.xz
+-rw-r--r--  1 anntony anntony   547439  1月  7 18:58 iptables-1.4.21.tar.bz2
+-rw-r--r--  1 anntony anntony   248471  1月  8 01:35 ipw2100-fw-1.3.tgz
+-rw-r--r--  1 anntony anntony   270042  1月  8 01:35 ipw2200-fw-3.1.tgz
+-rw-r--r--  1 anntony anntony    89120  1月  8 01:34 iw-3.15.tar.xz
+-rw-r--r--  1 anntony anntony   557263  1月  7 18:44 json-c-0.11.tar.gz
+-rw-r--r--  1 anntony anntony    53176  1月  7 18:53 jsonfilter-2014-06-19-cdc760c58077f44fc40adbbe41e1556a67c1b9a9.tar.gz
+-rw-r--r--  1 anntony anntony    63412  1月  7 19:14 libcap-2.24.tar.xz
+-rw-r--r--  1 anntony anntony   340474  1月  7 19:12 libdaemon-0.14.tar.gz
+-rw-r--r--  1 anntony anntony   148529  1月  7 16:50 libelf-0.8.13.tar.gz
+-rw-r--r--  1 anntony anntony   118367  1月  7 18:58 libiwinfo-2015-01-04-c9fd399316003040825dfbd9700488b621bd990e.tar.gz
+-rw-r--r--  1 anntony anntony   642352  1月  8 01:39 libpcap-1.5.3.tar.gz
+-rw-r--r--  1 anntony anntony  2580417  1月  7 16:40 libtool-2.4.tar.gz
+-rw-r--r--  1 anntony anntony    49461  1月  7 18:44 libubox-2014-11-23-f09ae76445e32511433fdab0a1bcda73aa84986d.tar.gz
+-rw-r--r--  1 anntony anntony  5444991  1月  7 18:54 libxml2-2.9.2.tar.gz
+-rw-r--r--  1 anntony anntony 78468340  1月  7 18:08 linux-3.14.27.tar.xz
+-rw-r--r--  1 anntony anntony  1082256  1月  8 01:39 linux-atm-2.5.2.tar.gz
+-rw-r--r--  1 anntony anntony 39556960  1月  8 01:35 linux-firmware-2014-06-04-7f388b4885cf64d6b7833612052d20d4197af96f.tar.bz2
+-rw-r--r--  1 anntony anntony  1148944  1月  7 19:14 Linux-PAM-1.1.8.tar.bz2
+-rw-r--r--  1 anntony anntony   221213  1月  7 18:44 lua-5.1.5.tar.gz
+-rw-r--r--  1 anntony anntony   130347  1月  7 17:44 lzma-4.32.tar.bz2
+-rw-r--r--  1 anntony anntony   252395  1月  7 17:44 lzma-4.65.tar.bz2
+-rw-r--r--  1 anntony anntony   589045  1月  7 18:46 lzo-2.08.tar.gz
+-rw-r--r--  1 anntony anntony  1149088  1月  7 16:30 m4-1.4.17.tar.xz
+-rw-r--r--  1 anntony anntony    24121  1月  7 16:55 mklibs_0.1.35.tar.gz
+-rw-r--r--  1 anntony anntony   569264  1月  7 17:03 mm-common-0.9.6.tar.xz
+-rw-r--r--  1 anntony anntony   633173  1月  7 16:50 mpc-1.0.2.tar.gz
+-rw-r--r--  1 anntony anntony  1225496  1月  7 16:49 mpfr-3.1.2.tar.bz2
+-rw-r--r--  1 anntony anntony   337100  1月  7 16:56 mtd-utils-1.4.5.tar.gz
+-rw-r--r--  1 anntony anntony  2826473  1月  7 18:48 ncurses-5.9.tar.gz
+-rw-r--r--  1 anntony anntony    82901  1月  7 18:45 netifd-2014-12-23-e9d2014a478807c7fac0581bb4a145901a3f23b4.tar.gz
+-rw-r--r--  1 anntony anntony  6750364  1月  7 19:16 ntp-4.2.8.tar.gz
+-rw-r--r--  1 anntony anntony    30423  1月  7 19:03 ntpclient_2010_365.tar.gz
+-rw-r--r--  1 anntony anntony    32259  1月  8 01:38 odhcp6c-2014-12-10.tar.bz2
+-rw-r--r--  1 anntony anntony    40412  1月  8 01:39 odhcpd-2014-11-06.tar.bz2
+-rw-r--r--  1 anntony anntony  1351367  1月  8 01:30 openssh-6.7p1.tar.gz
+-rw-r--r--  1 anntony anntony  4432964  1月  7 19:00 openssl-1.0.1j.tar.gz
+-rw-r--r--  1 anntony anntony  1213272  1月  7 19:03 openvpn-2.3.6.tar.gz
+-rw-r--r--  1 anntony anntony   172799  1月  7 18:45 opkg-9c97d5ecd795709c8584e972bfdf3aee3a5b846d.tar.gz
+-rw-r--r--  1 anntony anntony   675896  1月  7 16:27 patch-2.7.1.tar.xz
+-rw-r--r--  1 anntony anntony  1931203  1月  7 16:36 pkg-config-0.28.tar.gz
+-rw-r--r--  1 anntony anntony  1741396  1月  7 18:57 polarssl-1.3.9-gpl.tgz
+-rw-r--r--  1 anntony anntony   688117  1月  8 01:40 ppp-2.4.7.tar.gz
+-rw-r--r--  1 anntony anntony    30055  1月  7 18:53 procd-2014-12-15-61cfe0d093056b85a311f06d44ac149e5dbb4d1a.tar.gz
+-rw-r--r--  1 anntony anntony   389593  1月  7 17:02 quilt-0.63.tar.gz
+-rw-r--r--  1 anntony anntony  1474200  1月  7 19:04 rrdtool-1.0.50.tar.gz
+-rw-r--r--  1 anntony anntony   499037  1月  7 17:10 scons-2.3.1.tar.gz
+-rw-r--r--  1 anntony anntony  1059414  1月  7 16:35 sed-4.2.2.tar.bz2
+-rw-r--r--  1 anntony anntony   384917  1月  7 17:44 squashfs3.0.tar.gz
+-rw-r--r--  1 anntony anntony   133173  1月  7 17:45 squashfs4.2.tar.gz
+-rw-r--r--  1 anntony anntony  8844729  1月  7 18:53 u-boot-2010.03.tar.bz2
+-rw-r--r--  1 anntony anntony 10217685  1月  7 16:57 u-boot-2014.10.tar.bz2
+-rw-r--r--  1 anntony anntony    17483  1月  7 18:46 ubox-2014-10-06-0b274c16a3f9d235735a4b84215071e1e004caa9.tar.gz
+-rw-r--r--  1 anntony anntony    29991  1月  7 18:45 ubus-2014-09-17-4c4f35cf2230d70b9ddd87638ca911e8a563f2f3.tar.gz
+-rw-r--r--  1 anntony anntony    50563  1月  7 18:45 uci-2014-04-11.1.tar.gz
+-rw-r--r--  1 anntony anntony  2834029  1月  7 18:09 uClibc-0.9.33.2.tar.bz2
+-rw-r--r--  1 anntony anntony    28998  1月  7 18:58 uhttpd-2014-10-27-fd8e5e379c23c5fbcec3e76894b839233df09067.tar.gz
+-rw-r--r--  1 anntony anntony     9760  1月  7 18:58 ustream-ssl-2014-03-25-fc0b5ec804ee43c532978dd04ab0509c34baefb0.tar.gz
+-rw-r--r--  1 anntony anntony  3703644  1月  7 18:50 util-linux-2.25.2.tar.xz
+-rw-r--r--  1 anntony anntony    67786  1月  7 17:03 util-macros-1.11.0.tar.bz2
+-rw-r--r--  1 anntony anntony   294417  1月  8 01:41 wireless_tools.29.tar.gz
+-rw-r--r--  1 anntony anntony   652866  1月  8 01:36 wl_apsta-3.130.20.0.o
+-rw-r--r--  1 anntony anntony    77707  1月  7 17:03 xfce4-dev-tools-4.8.0.tar.bz2
+-rw-r--r--  1 anntony anntony  1060649  1月  7 16:37 xz-5.0.5.tar.bz2
+-rw-r--r--  1 anntony anntony    90735  1月  7 17:03 yaffs2_android-2008-12-18.tar.bz2
+-rw-r--r--  1 anntony anntony    86538  1月  7 18:57 zd1201-0.14-fw.tar.gz
+-rw-r--r--  1 anntony anntony    39061  1月  8 01:35 zd1211-firmware-1.4.tar.bz2
+-rw-r--r--  1 anntony anntony   571091  1月  7 18:47 zlib-1.2.8.tar.gz
+anntony@anntony-Lenovo-B590 ~/openwrt/trunk/dl $ ls -al|wc -l
+106
+anntony@anntony-Lenovo-B590 ~/openwrt/trunk/dl $
+
+如果一直連不上這些FTP站台
+一直沒辦法取得上面其中的任何一個xxxxx.tar.gz或是yyyyy.tar.bz2的話
+編譯程序就會中止
+編譯期間我一直死盯著終端機輸出
+同一個FTP站台好像會retry個5次才放棄
+如果我看到在下載xxxxx.tar.gz的時候
+一直連不上該FTP站台一直在retry
+我就會直接開Google瀏覽器，搜尋該xxxxx.tar.gz
+然後下載好，再手動丟到
+~/openwrt/trunk/dl
+這個子目錄下
+整個動作
+也就是「發現好像連不上某FTP站台」－＞「打開Google瀏覽器搜尋該依賴套件的tar.gz」－＞「下載它」－＞「迅速丟進~/openwrt/trunk/dl子目錄」
+這個動作很趕
+要在大概一分半裡面完成
+也就是要在第5次嘗試連接該FTP站台，然後失敗之前完成
+我在想可不可以一開始編譯之前
+就把這106個檔案先找好，然後先丟在
+~/openwrt/trunk/dl
+子目錄底下
+不過我沒這麼作
+我就是呆呆的死盯終端機
+少一個我手動下載手動補上一個
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+
