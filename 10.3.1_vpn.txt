@@ -1,0 +1,28 @@
+10.3.1 VPN
+
+官網提到的情境0和情境1
+DIAGRAM s0: {Internet} –WAN iface-||firewall||-[OpenWrt router]-LAN iface– {LAN} –[client]
+DIAGRAM s1: [client]– {Internet} –WAN iface-||firewall||-[OpenWrt router]-LAN iface– {LAN}
+情境0的VPN客戶端在OpenWRT路由器的內網裡，此網路環境較簡單，只用於測試
+而情境1的VPN客戶端隔著Internet才能ping到OpenWRT路由器的WAN接口，較接近實際應用時的網路環境
+
+建立VPN通道的流程概觀
+（１）建立並發布PKI certificates和keys到server端和client端
+（２）設定網路環境
+（３）說定、啟動並測試VPN通道
+
+工作列表
+     10.3.1.1 在OpenWRT路由器上面安裝openvpn套件（VPN服務器）
+     10.3.1.2 在Linux Mint 17上面安裝openvpn套件（VPN客戶端）
+     10.3.1.3 產生CA和Certificates
+     10.3.1.4 發布剛才產生的Certificates到服務器和客戶端的某個地方
+     10.3.1.5 設定網路環境
+          10.3.1.5.1 服務器的網路設定
+          10.3.1.5.2 客戶端的網路設定
+     10.3.1.6 OpenVPN基礎設施的設定
+          10.3.1.6.1 OpenVPN Server設定
+          10.3.1.6.2 OpenVPN Client設定
+     10.3.1.7 測試從客戶端是否能順利對服務器建立起VPN通道？
+
+
+（我的16MB Flash ROM還沒焊上，也不知道焊上了能不能正常開機，但是先寫個大綱自爽一下）

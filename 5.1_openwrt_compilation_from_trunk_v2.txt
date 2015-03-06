@@ -626,29 +626,11 @@ Kernel modules  --->Native Language Support  --->kmod-nls-utf8
 USB支持 (只列出我加選的)
 Kernel modules  --->USB Support  --->kmod-usb-serial   --->kmod-usb-serial-cp210x
 
-SSH的功能，全選上
-Network  --->SSH  --->
-Network  --->SSH  --->openssh-client
-Network  --->SSH  --->openssh-client-utils
-Network  --->SSH  --->openssh-keygen
-Network  --->SSH  --->openssh-moduli
-Network  --->SSH  --->openssh-server
-Network  --->SSH  --->openssh-server-pam
-Network  --->SSH  --->openssh-sftp-client
-Network  --->SSH  --->openssh-sftp-server
-Network  --->SSH  --->sshtunnel
-
 NTP的功能，除了ntp server其他都選上
 Network  --->Time Synchronization  --->ntp-keygen
 Network  --->Time Synchronization  --->ntp-utils
 Network  --->Time Synchronization  --->ntpclient
 Network  --->Time Synchronization  --->ntpdate
-
-關於openvpn-openssl的全都選上
-Network  --->VPN  --->openvpn-openssl   --->
-Network  --->VPN  --->openvpn-openssl   --->Enable LZO compression support (NEW) 
-Network  --->VPN  --->openvpn-openssl   --->Enable the --x509-username-field feature
-（下面還有大概十幾個…全選上）
 
 luci網頁操作GUI介面
 LuCI  --->Collections  --->luci
