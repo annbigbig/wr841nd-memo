@@ -1,0 +1,22 @@
+12.了解如何使用pepe2k不死u-boot刷其他固件
+
+現在我編譯了trunk 44873的Firmware
+要把新的編譯好的sysupgrade影像檔刷進去
+由於現在LAN口錯置
+所以我的LAN4被wr841n當成是WAN
+網線插在LAN4然後對接筆記型電腦
+關掉wr841n路由器
+按住Reset鍵
+然後開機，從燈號亮起默數4秒(3到5秒之間皆可)
+這個時候全部的燈都會亮，然後過一下就恢復成只有第一個燈號的狀態
+筆記型電腦的eth0接口IP設成192.168.1.231
+然後wr841n路由器會是192.168.1.1
+打開瀏覽器，就可以看到pepe2k的Web Server固件更新介面
+接下來就是按下「選擇檔案」
+然後選openwrt-ar71xx-generic-tl-wr841n-v8-squashfs-sysupgrade.bin
+然後再按下「Update firmware」
+更新期間請勿讓電源斷掉
+大約一分半鐘之後
+wr841n路由器會自動開機
+開機後就是最純淨的還沒有完成First Login的狀態
+
