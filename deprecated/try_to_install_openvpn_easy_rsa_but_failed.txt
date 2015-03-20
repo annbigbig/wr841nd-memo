@@ -1,0 +1,387 @@
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+10.3.1.1 在OpenWRT路由器上面安裝openvpn套件（VPN服務器）
+
+root@wr841n:~# df -h
+Filesystem                Size      Used Available Use% Mounted on
+rootfs                   11.3M    712.0K     10.6M   6% /
+/dev/root                 3.5M      3.5M         0 100% /rom
+tmpfs                    29.9M      1.4M     28.5M   5% /tmp
+/dev/mtdblock3           11.3M    712.0K     10.6M   6% /overlay
+overlayfs:/overlay       11.3M    712.0K     10.6M   6% /
+tmpfs                   512.0K         0    512.0K   0% /dev
+root@wr841n:~# opkg update
+Downloading http://downloads.openwrt.org/snapshots/trunk/ar71xx/generic/packages/base/Packages.gz.
+Updated list of available packages in /var/opkg-lists/chaos_calmer_base.
+Downloading http://downloads.openwrt.org/snapshots/trunk/ar71xx/generic/packages/luci/Packages.gz.
+Updated list of available packages in /var/opkg-lists/chaos_calmer_luci.
+Downloading http://downloads.openwrt.org/snapshots/trunk/ar71xx/generic/packages/management/Packages.gz.
+Updated list of available packages in /var/opkg-lists/chaos_calmer_management.
+Downloading http://downloads.openwrt.org/snapshots/trunk/ar71xx/generic/packages/packages/Packages.gz.
+Updated list of available packages in /var/opkg-lists/chaos_calmer_packages.
+Downloading http://downloads.openwrt.org/snapshots/trunk/ar71xx/generic/packages/routing/Packages.gz.
+Updated list of available packages in /var/opkg-lists/chaos_calmer_routing.
+Downloading http://downloads.openwrt.org/snapshots/trunk/ar71xx/generic/packages/telephony/Packages.gz.
+Updated list of available packages in /var/opkg-lists/chaos_calmer_telephony.
+root@wr841n:~# opkg install openvpn-openssl
+Installing openvpn-openssl (2.3.6-3) to root...
+Downloading http://downloads.openwrt.org/snapshots/trunk/ar71xx/generic/packages/base/openvpn-openssl_2.3.6-3_ar71xx.ipk.
+Collected errors:
+ * satisfy_dependencies_for: Cannot satisfy the following dependencies for openvpn-openssl:
+ * 	kernel (= 3.18.8-1-ac9f9edf64681a1c92607ff4c125f337) * 
+ * opkg_install_cmd: Cannot install package openvpn-openssl.
+root@wr841n:~# 
+root@wr841n:~# 
+root@wr841n:~# 
+root@wr841n:~# df -h
+Filesystem                Size      Used Available Use% Mounted on
+rootfs                   11.3M    712.0K     10.6M   6% /
+/dev/root                 3.5M      3.5M         0 100% /rom
+tmpfs                    29.9M      1.4M     28.5M   5% /tmp
+/dev/mtdblock3           11.3M    712.0K     10.6M   6% /overlay
+overlayfs:/overlay       11.3M    712.0K     10.6M   6% /
+tmpfs                   512.0K         0    512.0K   0% /dev
+root@wr841n:~# opkg install --force-depends openvpn-openssl
+Installing openvpn-openssl (2.3.6-3) to root...
+Downloading http://downloads.openwrt.org/snapshots/trunk/ar71xx/generic/packages/base/openvpn-openssl_2.3.6-3_ar71xx.ipk.
+Installing kmod-tun (3.18.8-1) to root...
+Downloading http://downloads.openwrt.org/snapshots/trunk/ar71xx/generic/packages/base/kmod-tun_3.18.8-1_ar71xx.ipk.
+Installing liblzo (2.08-1) to root...
+Downloading http://downloads.openwrt.org/snapshots/trunk/ar71xx/generic/packages/base/liblzo_2.08-1_ar71xx.ipk.
+Configuring kmod-tun.
+Configuring liblzo.
+Configuring openvpn-openssl.
+Collected errors:
+ * satisfy_dependencies_for: Cannot satisfy the following dependencies for openvpn-openssl:
+ * 	kernel (= 3.18.8-1-ac9f9edf64681a1c92607ff4c125f337) * 
+root@wr841n:~# 
+
+太慘了，不能安裝，加--force-depends也沒有用
+
+搜出這一篇
+https://forum.openwrt.org/viewtopic.php?id=47107
+
+關鍵句
+Ok I downloaded the latest snapshot version and it seems like this did it for me. 
+Since the packages where newer than my build.
+
+所以如果可以
+在編譯OpenWRT固件的時候
+就把openvpn-openssl和openvpn-easy-rsa給選上
+opkg套件庫裡的packages，似乎只有最新的pre-build的firmware才能順利安裝
+於是我又編譯了一次
+這次是trunk 44873
+這次編譯的時候，直接選上了openvpn-openssl和openvpn-easy-rsa
+刷上編譯完成的trunk 44873固件，登入wr841n路由器之後
+可以在Luci介面的System > Software看到安裝好的套件名稱
+
+或是ssh連進wr841n路由器之後
+root@wr841n:~# opkg list-installed | grep openvpn
+luci-app-openvpn - git-15.069.64601-4ab6dce-1
+luci-i18n-openvpn-en - git-15.069.64601-4ab6dce-1
+luci-i18n-openvpn-zh-tw - git-15.069.64601-4ab6dce-1
+openvpn-easy-rsa - 2013-01-30-2
+openvpn-openssl - 2.3.6-3
+root@wr841n:~# 
+
+這裡可以看到
+安裝了openvpn-easy-rsa
+安裝的openvpn-openssl的版本是2.3.6-3
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+
+
+
+
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+10.3.1.3 產生CA和Certificates
+
+參考資料
+http://wiki.openwrt.org/doc/howto/vpn.openvpn
+
+完全照著官網的操作，會出現錯誤訊息
+
+root@wr841n:~# cat /etc/easy-rsa/vars
+# easy-rsa parameter settings
+
+# NOTE: If you installed from an RPM,
+# don't edit this file in place in
+# /usr/share/openvpn/easy-rsa --
+# instead, you should copy the whole
+# easy-rsa directory to another location
+# (such as /etc/openvpn) so that your
+# edits will not be wiped out by a future
+# OpenVPN package upgrade.
+
+# This variable should point to
+# the top level of the easy-rsa
+# tree.
+export EASY_RSA="/etc/easy-rsa"
+
+#
+# This variable should point to
+# the requested executables
+#
+export OPENSSL="openssl"
+export PKCS11TOOL="pkcs11-tool"
+export GREP="grep"
+
+
+# This variable should point to
+# the openssl.cnf file included
+# with easy-rsa.
+export KEY_CONFIG=`/usr/sbin/whichopensslcnf $EASY_RSA`
+
+# Edit this variable to point to
+# your soon-to-be-created key
+# directory.
+#
+# WARNING: clean-all will do
+# a rm -rf on this directory
+# so make sure you define
+# it correctly!
+export KEY_DIR="$EASY_RSA/keys"
+
+# Issue rm -rf warning
+echo NOTE: If you run ./clean-all, I will be doing a rm -rf on $KEY_DIR
+
+# PKCS11 fixes
+export PKCS11_MODULE_PATH="dummy"
+export PKCS11_PIN="dummy"
+
+# Increase this to 2048 if you
+# are paranoid.  This will slow
+# down TLS negotiation performance
+# as well as the one-time DH parms
+# generation process.
+export KEY_SIZE=2048
+
+# In how many days should the root CA key expire?
+export CA_EXPIRE=3650
+
+# In how many days should certificates expire?
+export KEY_EXPIRE=3650
+
+# These are the default values for fields
+# which will be placed in the certificate.
+# Don't leave any of these fields blank.
+export KEY_COUNTRY="US"
+export KEY_PROVINCE="CA"
+export KEY_CITY="SanFrancisco"
+export KEY_ORG="Fort-Funston"
+export KEY_EMAIL="me@myhost.mydomain"
+export KEY_OU="MyOrganizationalUnit"
+
+# X509 Subject Field
+export KEY_NAME="EasyRSA"
+
+# PKCS11 Smart Card
+# export PKCS11_MODULE_PATH="/usr/lib/changeme.so"
+# export PKCS11_PIN=1234
+
+# If you'd like to sign all keys with the same Common Name, uncomment the KEY_CN export below
+# You will also need to make sure your OpenVPN server config has the duplicate-cn option set
+# export KEY_CN="CommonName"
+root@wr841n:~# echo $KEY_NAME
+
+root@wr841n:~# echo $KEY_OU
+
+root@wr841n:~# source /etc/easy-rsa/vars
+NOTE: If you run ./clean-all, I will be doing a rm -rf on /etc/easy-rsa/keys
+root@wr841n:~# echo $KEY_NAME
+EasyRSA
+root@wr841n:~# echo $KEY_OU
+MyOrganizationalUnit
+root@wr841n:~# which clean-all
+/usr/sbin/clean-all
+root@wr841n:~# clean-all
+NOTE: If you run ./clean-all, I will be doing a rm -rf on /etc/easy-rsa/keys
+rm: can't remove '/etc/easy-rsa/keys': Invalid argument
+mkdir: can't create directory '/etc/easy-rsa/keys': File exists
+root@wr841n:~# ls -al /etc/easy-rsa/keys/
+drwxr-xr-x    1 root     root             0 Mar 19 15:54 .
+drwxr-xr-x    1 root     root             0 Mar 18 18:59 ..
+root@wr841n:~# which pkitools
+root@wr841n:~# which pkitool
+/usr/sbin/pkitool
+root@wr841n:~# pkitool --initca
+NOTE: If you run ./clean-all, I will be doing a rm -rf on /etc/easy-rsa/keys
+Using CA Common Name: Fort-Funston CA
+Generating a 2048 bit RSA private key
+.+++
+...........................+++
+writing new private key to 'ca.key'
+-----
+root@wr841n:~# pkitool --server my-server
+NOTE: If you run ./clean-all, I will be doing a rm -rf on /etc/easy-rsa/keys
+Generating a 2048 bit RSA private key
+..................+++
+............................................................+++
+writing new private key to 'my-server.key'
+-----
+Using configuration from /etc/easy-rsa/openssl-1.0.0.cnf
+/etc/easy-rsa/keys/index.txt: No such file or directory
+unable to open '/etc/easy-rsa/keys/index.txt'
+1998799944:error:02001002:lib(2):func(1):reason(2):NA:0:fopen('/etc/easy-rsa/keys/index.txt','r')
+1998799944:error:20074002:lib(32):func(116):reason(2):NA:0:
+root@wr841n:~# pkitool my-client
+NOTE: If you run ./clean-all, I will be doing a rm -rf on /etc/easy-rsa/keys
+Generating a 2048 bit RSA private key
+...+++
+...........................................................+++
+writing new private key to 'my-client.key'
+-----
+Using configuration from /etc/easy-rsa/openssl-1.0.0.cnf
+/etc/easy-rsa/keys/index.txt: No such file or directory
+unable to open '/etc/easy-rsa/keys/index.txt'
+2000749640:error:02001002:lib(2):func(1):reason(2):NA:0:fopen('/etc/easy-rsa/keys/index.txt','r')
+2000749640:error:20074002:lib(32):func(116):reason(2):NA:0:
+root@wr841n:~# ls -al /etc/easy-rsa/keys/
+drwxr-xr-x    1 root     root             0 Mar 19 16:20 .
+drwxr-xr-x    1 root     root             0 Mar 18 18:59 ..
+-rw-r--r--    1 root     root          1818 Mar 19 16:04 ca.crt
+-rw-------    1 root     root          1704 Mar 19 16:04 ca.key
+-rw-r--r--    1 root     root          1102 Mar 19 16:20 my-client.csr
+-rw-r--r--    1 root     root          1704 Mar 19 16:20 my-client.key
+-rw-r--r--    1 root     root          1102 Mar 19 16:04 my-server.csr
+-rw-r--r--    1 root     root          1704 Mar 19 16:04 my-server.key
+root@wr841n:~# 
+
+以
+unable to open '/etc/easy-rsa/keys/index.txt
+為關鍵字
+上網搜出了這一篇
+
+http://sourceforge.net/p/openvpn/mailman/message/21513848/
+
+重點句
+this is less of an openvpn error and more of an 'openssl ca' error. It 
+seems that the command
+  openssl ca
+must have an index.txt file and a serial file containing a number prior 
+to being called for the first time. Thus, try to do something like
+  touch keys/index.txt
+  echo 00 > keys/serial
+  ./build-key-server vpn-server
+
+雖然上面的動作有確實產生了ca、my-server、my-client
+但是那個奇怪的錯誤訊息，讓我覺得還是重弄好了
+root@wr841n:~# clean-all
+NOTE: If you run ./clean-all, I will be doing a rm -rf on /etc/easy-rsa/keys
+rm: can't remove '/etc/easy-rsa/keys': Invalid argument
+mkdir: can't create directory '/etc/easy-rsa/keys': File exists
+root@wr841n:~# ls -al /etc/easy-rsa/keys/
+drwxr-xr-x    1 root     root             0 Mar 19 16:45 .
+drwxr-xr-x    1 root     root             0 Mar 18 18:59 ..
+root@wr841n:~# echo $KEY_NAME
+EasyRSA
+root@wr841n:~# touch /etc/easy-rsa/keys/index.txt
+root@wr841n:~# echo '00' > /etc/easy-rsa/keys/serial
+root@wr841n:~# pkitool --initca
+NOTE: If you run ./clean-all, I will be doing a rm -rf on /etc/easy-rsa/keys
+Using CA Common Name: Fort-Funston CA
+Generating a 2048 bit RSA private key
+.........................................+++
+.......................................................................+++
+writing new private key to 'ca.key'
+-----
+root@wr841n:~# pkitool --server my-server
+NOTE: If you run ./clean-all, I will be doing a rm -rf on /etc/easy-rsa/keys
+Generating a 2048 bit RSA private key
+.....................................................................+++
+........................................................................+++
+writing new private key to 'my-server.key'
+-----
+Using configuration from /etc/easy-rsa/openssl-1.0.0.cnf
+Check that the request matches the signature
+Signature ok
+The Subject's Distinguished Name is as follows
+countryName           :PRINTABLE:'US'
+stateOrProvinceName   :PRINTABLE:'CA'
+localityName          :PRINTABLE:'SanFrancisco'
+organizationName      :PRINTABLE:'Fort-Funston'
+organizationalUnitName:PRINTABLE:'MyOrganizationalUnit'
+commonName            :PRINTABLE:'my-server'
+name                  :PRINTABLE:'EasyRSA'
+emailAddress          :IA5STRING:'me@myhost.mydomain'
+Certificate is to be certified until Mar 16 08:47:29 2025 GMT (3650 days)
+
+Write out database with 1 new entries
+unable to rename /etc/easy-rsa/keys/serial to /etc/easy-rsa/keys/serial.old
+reason: Invalid argument
+root@wr841n:~# pkitool my-client
+NOTE: If you run ./clean-all, I will be doing a rm -rf on /etc/easy-rsa/keys
+Generating a 2048 bit RSA private key
+..................+++
+...................................................+++
+writing new private key to 'my-client.key'
+-----
+Using configuration from /etc/easy-rsa/openssl-1.0.0.cnf
+Check that the request matches the signature
+Signature ok
+The Subject's Distinguished Name is as follows
+countryName           :PRINTABLE:'US'
+stateOrProvinceName   :PRINTABLE:'CA'
+localityName          :PRINTABLE:'SanFrancisco'
+organizationName      :PRINTABLE:'Fort-Funston'
+organizationalUnitName:PRINTABLE:'MyOrganizationalUnit'
+commonName            :PRINTABLE:'my-client'
+name                  :PRINTABLE:'EasyRSA'
+emailAddress          :IA5STRING:'me@myhost.mydomain'
+Certificate is to be certified until Mar 16 08:48:12 2025 GMT (3650 days)
+
+Write out database with 1 new entries
+unable to rename /etc/easy-rsa/keys/serial to /etc/easy-rsa/keys/serial.old
+reason: Invalid argument
+root@wr841n:~# ls -al /etc/easy-rsa/keys/
+drwxr-xr-x    1 root     root             0 Mar 19 16:48 .
+drwxr-xr-x    1 root     root             0 Mar 18 18:59 ..
+-rw-r--r--    1 root     root          5516 Mar 19 16:48 00.pem
+-rw-r--r--    1 root     root          1818 Mar 19 16:47 ca.crt
+-rw-------    1 root     root          1704 Mar 19 16:47 ca.key
+-rw-r--r--    1 root     root             0 Mar 19 16:46 index.txt
+-rw-r--r--    1 root     root            21 Mar 19 16:48 index.txt.attr.new
+-rw-r--r--    1 root     root           152 Mar 19 16:48 index.txt.new
+-rw-r--r--    1 root     root          5516 Mar 19 16:48 my-client.crt
+-rw-r--r--    1 root     root          1102 Mar 19 16:48 my-client.csr
+-rw-r--r--    1 root     root          1704 Mar 19 16:48 my-client.key
+-rw-r--r--    1 root     root          5633 Mar 19 16:47 my-server.crt
+-rw-r--r--    1 root     root          1102 Mar 19 16:47 my-server.csr
+-rw-r--r--    1 root     root          1704 Mar 19 16:47 my-server.key
+-rw-r--r--    1 root     root             3 Mar 19 16:46 serial
+-rw-r--r--    1 root     root             3 Mar 19 16:48 serial.new
+root@wr841n:~# 
+
+我一直在想，為什麼會一直叫
+unable to rename /etc/easy-rsa/keys/serial to /etc/easy-rsa/keys/serial.old
+
+然後我試了
+root@wr841n:~# cd /etc/easy-rsa/
+root@wr841n:/etc/easy-rsa# cd keys/
+root@wr841n:/etc/easy-rsa/keys# ls
+root@wr841n:/etc/easy-rsa/keys# cd ..
+root@wr841n:/etc/easy-rsa# rm -rf ./keys/
+rm: can't remove './keys': Invalid argument
+root@wr841n:/etc/easy-rsa#
+
+莫名奇妙？為什麼不能刪掉
+接著我想起了
+http://wiki.openwrt.org/doc/techref/flash.layout
+
+裡面有寫一句
+/overlay is the writable part of the file system that gets merged with /rom to create a uniform /-tree. 
+It contains anything that was written to the router after installation, e.g. 
+changed configuration files, additional packages installed with opkg, etc. It is formated with JFFS2.
+
+所以我不該把openvpn-easy-rsa編譯進固件嗎？
+這導致我不能刪除/etc/easy-rsa/keys/
+不能刪除這個目錄
+而
+clean-all
+必須先刪掉這個目錄，再產生一個乾淨的
+裡面有index.txt和serial
+可是
+clean-all
+刪不掉/etc/easy-rsa/keys/
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
