@@ -717,6 +717,13 @@ Authentication
 VPN 連線「myVPN」在使用中
 
 打開筆記型電腦的終端機，執行
+anntony-Lenovo-B590 ~ # netstat -anp|grep vpn
+tcp        0      0 127.0.0.1:1194          0.0.0.0:*               LISTEN      10424/openvpn   
+tcp        0      0 127.0.0.1:1194          127.0.0.1:60516         ESTABLISHED 10424/openvpn   
+tcp        0      0 127.0.0.1:60516         127.0.0.1:1194          ESTABLISHED 10421/nm-openvpn-se
+udp        0      0 0.0.0.0:40604           0.0.0.0:*                           10424/openvpn   
+unix  3      [ ]         STREAM     CONNECTED     726319   10421/nm-openvpn-se 
+unix  2      [ ]         DGRAM                    726332   10424/openvpn  
 anntony-Lenovo-B590 ~ # ifconfig tun0
 tun0      Link encap:UNSPEC  HWaddr 00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00  
           inet addr:10.8.0.6  P-t-P:10.8.0.5  Mask:255.255.255.255
@@ -726,6 +733,7 @@ tun0      Link encap:UNSPEC  HWaddr 00-00-00-00-00-00-00-00-00-00-00-00-00-00-00
           collisions:0 txqueuelen:100 
           RX bytes:1232 (1.2 KB)  TX bytes:1288 (1.2 KB)
 
+不過這裡的路由表怪怪的
 anntony-Lenovo-B590 ~ # route -n
 Kernel IP routing table
 Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
@@ -736,10 +744,259 @@ Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
 10.8.0.5        0.0.0.0         255.255.255.255 UH    0      0        0 tun0
 anntony-Lenovo-B590 ~ # 
 
-不過路由表怪怪的
 建立了vpn tunnel的時候，筆記型電腦不能連上Internet
-和OpenVPN Server斷開之後，路由表恢復正常，才能再次連上Internet
+anntony-Lenovo-B590 ~ # ping 8.8.8.8
+PING 8.8.8.8 (8.8.8.8) 56(84) bytes of data.
+From 10.8.0.1 icmp_seq=1 Destination Port Unreachable
+From 10.8.0.1 icmp_seq=2 Destination Port Unreachable
+From 10.8.0.1 icmp_seq=3 Destination Port Unreachable
+^C
+--- 8.8.8.8 ping statistics ---
+3 packets transmitted, 0 received, +3 errors, 100% packet loss, time 2002ms
 
+anntony-Lenovo-B590 ~ # traceroute 8.8.8.8
+traceroute to 8.8.8.8 (8.8.8.8), 30 hops max, 60 byte packets
+ 1  10.8.0.1 (10.8.0.1)  6.230 ms  6.433 ms  6.696 ms
+ 2  10.8.0.1 (10.8.0.1)  6.973 ms  7.398 ms  7.841 ms
+anntony-Lenovo-B590 ~ # traceroute tw.yahoo.com
+traceroute to tw.yahoo.com (116.214.12.74), 30 hops max, 60 byte packets
+ 1  10.8.0.1 (10.8.0.1)  5.706 ms  5.838 ms  6.122 ms
+ 2  10.8.0.1 (10.8.0.1)  7.262 ms  9.092 ms  9.360 ms
+anntony-Lenovo-B590 ~ # ping tw.yahoo.com
+PING fd-fp3.wg1.b.yahoo.com (116.214.12.74) 56(84) bytes of data.
+From 10.8.0.1 icmp_seq=1 Destination Port Unreachable
+From 10.8.0.1 icmp_seq=2 Destination Port Unreachable
+^C
+--- fd-fp3.wg1.b.yahoo.com ping statistics ---
+2 packets transmitted, 0 received, +2 errors, 100% packet loss, time 1001ms
+
+anntony-Lenovo-B590 ~ # 
+
+和OpenVPN Server斷開之後，路由表恢復正常，才能再次連上Internet
+anntony-Lenovo-B590 ~ # route -n
+Kernel IP routing table
+Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
+0.0.0.0         10.1.1.1        0.0.0.0         UG    0      0        0 eth0
+10.1.1.0        0.0.0.0         255.255.255.0   U     1      0        0 eth0
+anntony-Lenovo-B590 ~ # ping 8.8.8.8
+PING 8.8.8.8 (8.8.8.8) 56(84) bytes of data.
+64 bytes from 8.8.8.8: icmp_seq=1 ttl=45 time=26.8 ms
+64 bytes from 8.8.8.8: icmp_seq=2 ttl=45 time=27.6 ms
+^C
+--- 8.8.8.8 ping statistics ---
+2 packets transmitted, 2 received, 0% packet loss, time 1001ms
+rtt min/avg/max/mdev = 26.891/27.295/27.699/0.404 ms
+anntony-Lenovo-B590 ~ # ping tw.yahoo.com
+PING fd-fp3.wg1.b.yahoo.com (116.214.12.74) 56(84) bytes of data.
+64 bytes from ir1.fp.vip.tp2.yahoo.com (116.214.12.74): icmp_seq=1 ttl=55 time=25.6 ms
+64 bytes from ir1.fp.vip.tp2.yahoo.com (116.214.12.74): icmp_seq=2 ttl=55 time=26.1 ms
+^C
+--- fd-fp3.wg1.b.yahoo.com ping statistics ---
+2 packets transmitted, 2 received, 0% packet loss, time 1001ms
+rtt min/avg/max/mdev = 25.692/25.920/26.148/0.228 ms
+anntony-Lenovo-B590 ~ # 
+
+我用關鍵字
+network-manager-openvpn-gnome routing table I cannot connect to Internet
+搜尋
+得到
+http://serverfault.com/questions/647245/ubuntu-openvpn-gui-setting-incorrect-default-routing-gateway
+
+照著上面講的
+Edit the VPN connection -> IPv4 Settings -> Click "Routes", 
+and finally check "Use this connection only for resources on its network".
+
+在Linux Mint 17桌面環境右下角
+「VPN連線」>「設置VPN(C)...」>「myVPN」>「編輯(E)...」>「IPV4設定」>「路由(R)...」
+把「只在使用這個連線的網路資源時，才使用此連線(U)」勾起來
+「確定」>「儲存(S)...」
+
+再連一次OpenVPN Server試試看
+桌面右下角「VPN連線」>「myVPN」，連上之後
+anntony-Lenovo-B590 ~ # route -n
+Kernel IP routing table
+Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
+0.0.0.0         10.1.1.1        0.0.0.0         UG    0      0        0 eth0
+10.1.1.0        0.0.0.0         255.255.255.0   U     1      0        0 eth0
+10.1.1.1        0.0.0.0         255.255.255.255 UH    0      0        0 eth0
+10.8.0.1        10.8.0.5        255.255.255.255 UGH   0      0        0 tun0
+10.8.0.5        0.0.0.0         255.255.255.255 UH    0      0        0 tun0
+anntony-Lenovo-B590 ~ # ping tw.yahoo.com
+PING fd-fp3.wg1.b.yahoo.com (116.214.12.74) 56(84) bytes of data.
+64 bytes from ir1.fp.vip.tp2.yahoo.com (116.214.12.74): icmp_seq=1 ttl=55 time=25.7 ms
+64 bytes from ir1.fp.vip.tp2.yahoo.com (116.214.12.74): icmp_seq=2 ttl=55 time=25.0 ms
+64 bytes from ir1.fp.vip.tp2.yahoo.com (116.214.12.74): icmp_seq=3 ttl=55 time=25.2 ms
+^C
+--- fd-fp3.wg1.b.yahoo.com ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss, time 2002ms
+rtt min/avg/max/mdev = 25.035/25.332/25.745/0.352 ms
+anntony-Lenovo-B590 ~ # ping 10.8.0.1
+PING 10.8.0.1 (10.8.0.1) 56(84) bytes of data.
+64 bytes from 10.8.0.1: icmp_seq=1 ttl=64 time=1.25 ms
+64 bytes from 10.8.0.1: icmp_seq=2 ttl=64 time=1.27 ms
+^C
+--- 10.8.0.1 ping statistics ---
+2 packets transmitted, 2 received, 0% packet loss, time 1001ms
+rtt min/avg/max/mdev = 1.255/1.262/1.270/0.036 ms
+anntony-Lenovo-B590 ~ # ping 10.1.1.1
+PING 10.1.1.1 (10.1.1.1) 56(84) bytes of data.
+64 bytes from 10.1.1.1: icmp_seq=1 ttl=64 time=0.319 ms
+64 bytes from 10.1.1.1: icmp_seq=2 ttl=64 time=0.281 ms
+^C
+--- 10.1.1.1 ping statistics ---
+2 packets transmitted, 2 received, 0% packet loss, time 999ms
+rtt min/avg/max/mdev = 0.281/0.300/0.319/0.019 ms
+anntony-Lenovo-B590 ~ # 
+
+現在正常了，不管是ping tw.yahoo.com
+或是對著wr841n的tun0接口的
+ping 10.8.0.1
+都可以連通
+但是看路由表預設的Gateway是10.1.1.1
+（所以我的筆記型電腦還是保持原來的gateway，當然能上網）
+我期待的是
+VPN tunnel建立之後
+預設的Gateway被換成10.8.0.5
+然後這時候應該要可以ping tw.yahoo.com
+這樣才對
+
+有那裡沒弄呢？
+我又回到Linux Mint 17桌面環境右下角
+「VPN連線」>「設置VPN(C)...」>「myVPN」>「編輯(E)...」>「IPV4設定」>「路由(R)...」
+把「只在使用這個連線的網路資源時，才使用此連線(U)」取消掉
+「確定」>「儲存(S)...」
+
+我真的很好奇
+到底是OpenVPN Server的那裡沒有弄
+造成OpenVPN Client建立vpn tunnel之後
+用10.8.0.5當成預設Gateway居然不能上網
+
+於是我回到wr841n路由器上
+編輯了/etc/config/firewall
+
+我在這個區塊的後面
+config zone                    
+        option name 'vpn'
+        option input 'ACCEPT'
+        option forward 'ACCEPT'
+        option output 'ACCEPT'
+        option network 'vpn0'
+
+加上了
+config forwarding              
+        option src 'vpn'
+        option dest 'wan'
+
+然後重新啟動防火牆root@wr841n:~# /etc/init.d/firewall reload
+Warning: Unable to locate ipset utility, disabling ipset support
+ * Clearing IPv4 filter table
+ * Clearing IPv4 nat table
+ * Clearing IPv4 mangle table
+ * Clearing IPv4 raw table
+ * Populating IPv4 filter table
+   * Zone 'lan'
+   * Zone 'wan'
+   * Zone 'vpn'
+Warning: fw3_ipt_rule_append(): Can't find target 'input_vpn_rule'
+Warning: fw3_ipt_rule_append(): Can't find target 'output_vpn_rule'
+Warning: fw3_ipt_rule_append(): Can't find target 'forwarding_vpn_rule'
+   * Rule 'Allow-DHCP-Renew'
+   * Rule 'Allow-Ping'
+   * Rule 'Allow-OpenVPN-Inbound'
+   * Redirect 'Forward36000'
+   * Forward 'lan' -> 'wan'
+   * Forward 'vpn' -> 'wan'
+ * Populating IPv4 nat table
+   * Zone 'lan'
+   * Zone 'wan'
+   * Zone 'vpn'
+Warning: fw3_ipt_rule_append(): Can't find target 'prerouting_vpn_rule'
+Warning: fw3_ipt_rule_append(): Can't find target 'postrouting_vpn_rule'
+   * Redirect 'Forward36000'
+ * Populating IPv4 mangle table
+   * Zone 'lan'
+   * Zone 'wan'
+   * Zone 'vpn'
+ * Populating IPv4 raw table
+   * Zone 'lan'
+   * Zone 'wan'
+   * Zone 'vpn'
+ * Clearing IPv6 filter table
+ * Clearing IPv6 mangle table
+ * Clearing IPv6 raw table
+ * Populating IPv6 filter table
+   * Zone 'lan'
+   * Zone 'wan'
+   * Zone 'vpn'
+Warning: fw3_ipt_rule_append(): Can't find target 'input_vpn_rule'
+Warning: fw3_ipt_rule_append(): Can't find target 'output_vpn_rule'
+Warning: fw3_ipt_rule_append(): Can't find target 'forwarding_vpn_rule'
+   * Rule 'Allow-DHCPv6'
+   * Rule 'Allow-ICMPv6-Input'
+   * Rule 'Allow-ICMPv6-Forward'
+   * Rule 'Allow-OpenVPN-Inbound'
+   * Forward 'lan' -> 'wan'
+   * Forward 'vpn' -> 'wan'
+ * Populating IPv6 mangle table
+   * Zone 'lan'
+   * Zone 'wan'
+   * Zone 'vpn'
+ * Populating IPv6 raw table
+   * Zone 'lan'
+   * Zone 'wan'
+   * Zone 'vpn'
+ * Set tcp_ecn to off
+ * Set tcp_syncookies to on
+ * Set tcp_window_scaling to on
+root@wr841n:~# 
+
+回到筆記型電腦上，再重新建立一次vpn tunnel試試
+建立之後
+anntony-Lenovo-B590 log # traceroute 8.8.8.8
+traceroute to 8.8.8.8 (8.8.8.8), 30 hops max, 60 byte packets
+ 1  10.8.0.1 (10.8.0.1)  8.051 ms  9.013 ms  8.946 ms
+ 2  192.168.0.1 (192.168.0.1)  8.896 ms  9.108 ms  13.023 ms
+ 3  * * *
+ 4  h254.s98.ts.hinet.net (168.95.98.254)  32.511 ms  34.433 ms  34.775 ms
+ 5  sipr-3301.hinet.net (168.95.160.2)  32.792 ms  46.121 ms  46.345 ms
+ 6  tpdt-3011.hinet.net (220.128.1.74)  46.788 ms TPDT-3011.hinet.net (220.128.1.94)  39.544 ms  38.937 ms
+ 7  * * *
+ 8  tyfo-3301.hinet.net (220.128.8.225)  37.490 ms  27.448 ms  27.310 ms
+ 9  72.14.205.102 (72.14.205.102)  54.838 ms 72.14.196.3 (72.14.196.3)  39.303 ms 74.125.49.158 (74.125.49.158)  26.255 ms
+10  72.14.233.20 (72.14.233.20)  44.538 ms 209.85.243.30 (209.85.243.30)  42.426 ms  42.175 ms
+11  * * *
+12  72.14.238.9 (72.14.238.9)  40.355 ms 209.85.249.7 (209.85.249.7)  32.875 ms 216.239.43.101 (216.239.43.101)  41.760 ms
+13  * * *
+14  google-public-dns-a.google.com (8.8.8.8)  30.393 ms  28.260 ms  39.883 ms
+anntony-Lenovo-B590 log # ping tw.yahoo.com
+PING fd-fp3.wg1.b.yahoo.com (116.214.12.74) 56(84) bytes of data.
+64 bytes from ir1.fp.vip.tp2.yahoo.com (116.214.12.74): icmp_seq=1 ttl=55 time=27.1 ms
+64 bytes from ir1.fp.vip.tp2.yahoo.com (116.214.12.74): icmp_seq=2 ttl=55 time=26.1 ms
+64 bytes from ir1.fp.vip.tp2.yahoo.com (116.214.12.74): icmp_seq=3 ttl=55 time=32.6 ms
+^C
+--- fd-fp3.wg1.b.yahoo.com ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss, time 2002ms
+rtt min/avg/max/mdev = 26.182/28.656/32.655/2.857 ms
+anntony-Lenovo-B590 log #
+
+所以果然是剛才wr841n路由器上那個從vpn到wan的forwarding規則沒開的關係
+現在真的正常了
+而且建立vpn tunnel之後
+使用的預設gateway是tun0給的10.8.0.5
+
+anntony-Lenovo-B590 log # ifconfig tun0
+tun0      Link encap:UNSPEC  HWaddr 00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00  
+          inet addr:10.8.0.6  P-t-P:10.8.0.5  Mask:255.255.255.255
+          UP POINTOPOINT RUNNING NOARP MULTICAST  MTU:1500  Metric:1
+          RX packets:4198 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:3338 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:100 
+          RX bytes:3691799 (3.6 MB)  TX bytes:486782 (486.7 KB)
+
+anntony-Lenovo-B590 log # 
+
+其他參考資料
+https://help.ubuntu.com/community/VPNClient#VPN_Clients
 ＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
 
 
