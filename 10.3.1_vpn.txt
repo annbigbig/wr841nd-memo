@@ -296,7 +296,9 @@ network-manager-openvpn
 network-manager-openvpn-gnome
 這兩個套件裝上
 
-
+安裝好之後
+在桌面右下角有個方方的圖示，按左鍵
+會看到「VPN連線」>「設置VPN(C)...」
 
 ＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
 10.3.1.4 發布剛才產生的Certificates到服務器和客戶端的某個地方
@@ -589,9 +591,157 @@ firewall.@zone[2].network=vpn0
 root@wr841n:~# 
 
 ＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+10.3.1.5.2 客戶端的網路設定
 
+Openvpn Client端的IP是10.1.1.91，也就是筆記型電腦
+Openvpn Server端的IP是10.1.1.1，也就是wr841n路由器
 
+在筆記型電腦上確認防火牆規則的狀態
+anntony-Lenovo-B590 ~ # iptables -t filter -L -n --line-number
+Chain INPUT (policy ACCEPT)
+num  target     prot opt source               destination         
 
+Chain FORWARD (policy ACCEPT)
+num  target     prot opt source               destination         
 
+Chain OUTPUT (policy ACCEPT)
+num  target     prot opt source               destination         
+anntony-Lenovo-B590 ~ #
+
+上面的訊息可以知道，完全沒有設置防火牆
+然後測試一下可以直接ping到wr841n路由器嗎？
+anntony-Lenovo-B590 ~ # ifconfig eth0
+eth0      Link encap:Ethernet  HWaddr 54:ee:75:09:dc:3e  
+          inet addr:10.1.1.91  Bcast:10.1.1.255  Mask:255.255.255.0
+          inet6 addr: fe80::56ee:75ff:fe09:dc3e/64 Scope:Link
+          inet6 addr: fde8:1b7d:98af::cf4/128 Scope:Global
+          inet6 addr: fde8:1b7d:98af:0:56ee:75ff:fe09:dc3e/64 Scope:Global
+          inet6 addr: fde8:1b7d:98af:0:8f9:1027:723f:4e5b/64 Scope:Global
+          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+          RX packets:763782 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:594987 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:1000 
+          RX bytes:788644479 (788.6 MB)  TX bytes:84537471 (84.5 MB)
+
+anntony-Lenovo-B590 ~ # ping 10.1.1.1
+PING 10.1.1.1 (10.1.1.1) 56(84) bytes of data.
+64 bytes from 10.1.1.1: icmp_seq=1 ttl=64 time=0.309 ms
+64 bytes from 10.1.1.1: icmp_seq=2 ttl=64 time=0.319 ms
+^C
+--- 10.1.1.1 ping statistics ---
+2 packets transmitted, 2 received, 0% packet loss, time 1000ms
+rtt min/avg/max/mdev = 0.309/0.314/0.319/0.005 ms
+anntony-Lenovo-B590 ~ # 
+
+這樣客戶端這邊就搞定了
+先用最簡單的配置
+稍後要模擬真實世界的Openvpn環境的時候,
+再讓Openvpn Client端和Server端處於不同的subnet（也就是兩邊隔著Internet）
 
 ＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+10.3.1.6 OpenVPN基礎設施的設定
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+10.3.1.6.1 OpenVPN Server設定
+
+root@wr841n:~# cp /etc/config/openvpn /root/etc_config_openvpn_default
+root@wr841n:~# netstat -anp|grep 1194
+root@wr841n:~# netstat -anp|grep vpn
+root@wr841n:~# echo > /etc/config/openvpn
+root@wr841n:~# uci set openvpn.myvpn=openvpn
+root@wr841n:~# uci set openvpn.myvpn.enabled=1
+root@wr841n:~# uci set openvpn.myvpn.dev=tun
+root@wr841n:~# uci set openvpn.myvpn.proto=udp
+root@wr841n:~# uci set openvpn.myvpn.log=/tmp/openvpn.log
+root@wr841n:~# uci set openvpn.myvpn.verb=3
+root@wr841n:~# uci set openvpn.myvpn.ca=/etc/openvpn/ca.crt
+root@wr841n:~# uci set openvpn.myvpn.cert=`ls /etc/openvpn/my-*.crt`
+root@wr841n:~# uci set openvpn.myvpn.key=`ls /etc/openvpn/my-*.key`
+root@wr841n:~# uci set openvpn.myvpn.server='10.8.0.0 255.255.255.0'
+root@wr841n:~# uci set openvpn.myvpn.port=1194
+root@wr841n:~# uci set openvpn.myvpn.keepalive='10 120'
+root@wr841n:~# uci set openvpn.myvpn.dh=`ls /etc/openvpn/dh*.pem`
+root@wr841n:~# uci set openvpn.myvpn.push=''
+root@wr841n:~# uci commit openvpn
+root@wr841n:~# /etc/init.d/openvpn enable
+root@wr841n:~# /etc/init.d/openvpn start; sleep 3
+root@wr841n:~# ps -w | grep openvpn
+11226 root      3216 S    /usr/sbin/openvpn --syslog openvpn(myvpn) --status /var/run/openvpn.myvpn.status --cd /var/etc --config o
+11346 root      1356 S    grep openvpn
+root@wr841n:~# ifconfig | grep tun0
+tun0      Link encap:UNSPEC  HWaddr 00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00  
+root@wr841n:~# netstat -an | grep 1194
+udp        0      0 0.0.0.0:1194            0.0.0.0:*                           
+root@wr841n:~# 
+root@wr841n:~# ifconfig tun0
+tun0      Link encap:UNSPEC  HWaddr 00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00  
+          inet addr:10.8.0.1  P-t-P:10.8.0.2  Mask:255.255.255.255
+          UP POINTOPOINT RUNNING NOARP MULTICAST  MTU:1500  Metric:1
+          RX packets:0 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:0 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:100 
+          RX bytes:0 (0.0 B)  TX bytes:0 (0.0 B)
+
+root@wr841n:~# 
+
+哦，真的啟動了Openvpn Server於udp端口1194
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+10.3.1.6.2 OpenVPN Client設定
+
+現在來到筆記型電腦上，我的OS是Linux Mint 17
+稍早前已經安裝了
+network-manager-openvpn
+network-manager-openvpn-gnome
+這兩個套件
+在桌面環境右下角的「VPN連線」>「設置VPN(C)...」>「加入(A)」
+「請選擇連線類型」>「OpenVPN」>「建立...」
+填入
+連線名稱(N)：myVPN
+General
+  Gateway：10.1.1.1
+
+Authentication
+  Type：憑證(TLS)
+  User Certificate：/home/anntony/openvpn-client/my-client.crt
+  CA Certificate：/home/anntony/openvpn-client/ca.crt
+  Private Key：/home/anntony/openvpn-client/my-client.key
+  Private Key Password：這個不用填
+
+按下「儲存」
+再到桌面右下角，選「VPN連線」>「myVPN」
+出現了
+「VPN登錄訊息->VPN連線已成功的」
+右下角出現一個兩台電腦的小圖示，然後鼠標放上去
+可以看到
+有線網路連線「myVPN」在使用中
+VPN 連線「myVPN」在使用中
+
+打開筆記型電腦的終端機，執行
+anntony-Lenovo-B590 ~ # ifconfig tun0
+tun0      Link encap:UNSPEC  HWaddr 00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00  
+          inet addr:10.8.0.6  P-t-P:10.8.0.5  Mask:255.255.255.255
+          UP POINTOPOINT RUNNING NOARP MULTICAST  MTU:1500  Metric:1
+          RX packets:18 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:20 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:100 
+          RX bytes:1232 (1.2 KB)  TX bytes:1288 (1.2 KB)
+
+anntony-Lenovo-B590 ~ # route -n
+Kernel IP routing table
+Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
+0.0.0.0         10.8.0.5        0.0.0.0         UG    0      0        0 tun0
+10.1.1.0        0.0.0.0         255.255.255.0   U     1      0        0 eth0
+10.1.1.1        0.0.0.0         255.255.255.255 UH    0      0        0 eth0
+10.8.0.1        10.8.0.5        255.255.255.255 UGH   0      0        0 tun0
+10.8.0.5        0.0.0.0         255.255.255.255 UH    0      0        0 tun0
+anntony-Lenovo-B590 ~ # 
+
+不過路由表怪怪的
+建立了vpn tunnel的時候，筆記型電腦不能連上Internet
+和OpenVPN Server斷開之後，路由表恢復正常，才能再次連上Internet
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+
+
+
+
