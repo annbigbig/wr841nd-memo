@@ -23,7 +23,9 @@ DIAGRAM s1: [client]– {Internet} –WAN iface-||firewall||-[OpenWrt router]-LA
           10.3.1.6.1 OpenVPN Server設定
           10.3.1.6.2 OpenVPN Client設定
      10.3.1.7 測試從客戶端是否能順利對服務器建立起VPN通道？
-
+     10.3.1.8 實驗 - Routing Only Local LAN Client Traffic Through the Tunnel
+     10.3.1.9 實驗 - Routing All Client Traffic Through the Tunnel
+     10.3.1.10 實驗 - 那麼建立vpn tunnel之後，可以連入wr841n內網嗎？怎麼設定？
 
 ＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
 10.3.1.1 在OpenWRT路由器上面安裝openvpn套件（VPN服務器）
@@ -684,6 +686,25 @@ tun0      Link encap:UNSPEC  HWaddr 00-00-00-00-00-00-00-00-00-00-00-00-00-00-00
 root@wr841n:~# 
 
 哦，真的啟動了Openvpn Server於udp端口1194
+最後附上剛才的uci指令設定好的/etc/config/openvpn設定檔
+
+root@wr841n:~# cat /etc/config/openvpn
+
+config openvpn 'myvpn'
+	option enabled '1'
+	option dev 'tun'
+	option proto 'udp'
+	option log '/tmp/openvpn.log'
+	option verb '3'
+	option ca '/etc/openvpn/ca.crt'
+	option cert '/etc/openvpn/my-server.crt'
+	option key '/etc/openvpn/my-server.key'
+	option server '10.8.0.0 255.255.255.0'
+	option port '1194'
+	option keepalive '10 120'
+	option dh '/etc/openvpn/dh2048.pem'
+
+root@wr841n:~#
 
 ＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
 10.3.1.6.2 OpenVPN Client設定
@@ -708,6 +729,12 @@ Authentication
   Private Key Password：這個不用填
 
 按下「儲存」
+這樣就完成OpenVPN Client端的設定（安裝了Linux Mint 17的筆記型電腦）
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+10.3.1.7 測試從客戶端是否能順利對服務器建立起VPN通道？
+
+接上面的步驟
 再到桌面右下角，選「VPN連線」>「myVPN」
 出現了
 「VPN登錄訊息->VPN連線已成功的」
@@ -997,8 +1024,610 @@ anntony-Lenovo-B590 log #
 
 其他參考資料
 https://help.ubuntu.com/community/VPNClient#VPN_Clients
+
 ＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+10.3.1.8 實驗 - Routing Only Local LAN Client Traffic Through the Tunnel
 
+修改/etc/config/openvpn
+root@wr841n:~# uci set openvpn.myvpn.push='route 10.1.1.0 255.255.255.0'
+root@wr841n:~# uci commit openvpn
+root@wr841n:~# /etc/init.d/openvpn restart
+root@wr841n:~# cat /etc/config/openvpn
 
+config openvpn 'myvpn'
+	option enabled '1'
+	option dev 'tun'
+	option proto 'udp'
+	option log '/tmp/openvpn.log'
+	option verb '3'
+	option ca '/etc/openvpn/ca.crt'
+	option cert '/etc/openvpn/my-server.crt'
+	option key '/etc/openvpn/my-server.key'
+	option server '10.8.0.0 255.255.255.0'
+	option port '1194'
+	option keepalive '10 120'
+	option dh '/etc/openvpn/dh2048.pem'
+	option push 'route 10.1.1.0 255.255.255.0'
 
+root@wr841n:~# 
 
+修改/etc/config/firewall
+root@wr841n:~# vi /etc/config/firewall
+
+改這兩個地方
+config zone                 
+        option name 'vpn'    
+        option masq '1' # 這一行是加上去的      
+        option input 'ACCEPT'  
+        option forward 'ACCEPT'
+        option output 'ACCEPT'
+        option network 'vpn0'
+                          
+config forwarding            
+        option src 'vpn'      
+        option dest 'lan'  # 從wan改成lan
+
+改好之後，重新啟動防火牆
+root@wr841n:~# vi /etc/config/firewall
+root@wr841n:~# 
+root@wr841n:~# /etc/init.d/firewall reload
+Warning: Unable to locate ipset utility, disabling ipset support
+ * Clearing IPv4 filter table
+ * Clearing IPv4 nat table
+ * Clearing IPv4 mangle table
+ * Clearing IPv4 raw table
+ * Populating IPv4 filter table
+   * Zone 'lan'
+   * Zone 'wan'
+   * Zone 'vpn'
+   * Rule 'Allow-DHCP-Renew'
+   * Rule 'Allow-Ping'
+   * Rule 'Allow-OpenVPN-Inbound'
+   * Redirect 'Forward36000'
+   * Forward 'lan' -> 'wan'
+   * Forward 'vpn' -> 'lan'
+ * Populating IPv4 nat table
+   * Zone 'lan'
+   * Zone 'wan'
+   * Zone 'vpn'
+   * Redirect 'Forward36000'
+ * Populating IPv4 mangle table
+   * Zone 'lan'
+   * Zone 'wan'
+   * Zone 'vpn'
+ * Populating IPv4 raw table
+   * Zone 'lan'
+   * Zone 'wan'
+   * Zone 'vpn'
+ * Clearing IPv6 filter table
+ * Clearing IPv6 mangle table
+ * Clearing IPv6 raw table
+ * Populating IPv6 filter table
+   * Zone 'lan'
+   * Zone 'wan'
+   * Zone 'vpn'
+   * Rule 'Allow-DHCPv6'
+   * Rule 'Allow-ICMPv6-Input'
+   * Rule 'Allow-ICMPv6-Forward'
+   * Rule 'Allow-OpenVPN-Inbound'
+   * Forward 'lan' -> 'wan'
+   * Forward 'vpn' -> 'lan'
+ * Populating IPv6 mangle table
+   * Zone 'lan'
+   * Zone 'wan'
+   * Zone 'vpn'
+ * Populating IPv6 raw table
+   * Zone 'lan'
+   * Zone 'wan'
+   * Zone 'vpn'
+ * Set tcp_ecn to off
+ * Set tcp_syncookies to on
+ * Set tcp_window_scaling to on
+root@wr841n:~# 
+
+再次建立vpn tunnel，觀察行為
+anntony@anntony-Lenovo-B590 ~ $ route -n
+Kernel IP routing table
+Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
+0.0.0.0         10.8.0.5        0.0.0.0         UG    0      0        0 tun0
+10.1.1.0        10.8.0.5        255.255.255.0   UG    0      0        0 tun0
+10.1.1.0        0.0.0.0         255.255.255.0   U     1      0        0 eth0
+10.1.1.1        0.0.0.0         255.255.255.255 UH    0      0        0 eth0
+10.8.0.1        10.8.0.5        255.255.255.255 UGH   0      0        0 tun0
+10.8.0.5        0.0.0.0         255.255.255.255 UH    0      0        0 tun0
+anntony@anntony-Lenovo-B590 ~ $ ping tw.yahoo.com
+PING fd-fp3.wg1.b.yahoo.com (116.214.12.74) 56(84) bytes of data.
+From 10.8.0.1 icmp_seq=1 Destination Port Unreachable
+From 10.8.0.1 icmp_seq=2 Destination Port Unreachable
+^C
+--- fd-fp3.wg1.b.yahoo.com ping statistics ---
+2 packets transmitted, 0 received, +2 errors, 100% packet loss, time 1001ms
+
+anntony@anntony-Lenovo-B590 ~ $ ping 8.8.8.8
+PING 8.8.8.8 (8.8.8.8) 56(84) bytes of data.
+From 10.8.0.1 icmp_seq=1 Destination Port Unreachable
+From 10.8.0.1 icmp_seq=2 Destination Port Unreachable
+From 10.8.0.1 icmp_seq=3 Destination Port Unreachable
+^C
+--- 8.8.8.8 ping statistics ---
+3 packets transmitted, 0 received, +3 errors, 100% packet loss, time 2002ms
+
+anntony@anntony-Lenovo-B590 ~ $ ^C
+anntony@anntony-Lenovo-B590 ~ $ ping 10.1.1.1
+PING 10.1.1.1 (10.1.1.1) 56(84) bytes of data.
+64 bytes from 10.1.1.1: icmp_seq=1 ttl=64 time=0.341 ms
+64 bytes from 10.1.1.1: icmp_seq=2 ttl=64 time=0.286 ms
+^C
+--- 10.1.1.1 ping statistics ---
+2 packets transmitted, 2 received, 0% packet loss, time 999ms
+rtt min/avg/max/mdev = 0.286/0.313/0.341/0.032 ms
+anntony@anntony-Lenovo-B590 ~ $ ping 10.8.0.1
+PING 10.8.0.1 (10.8.0.1) 56(84) bytes of data.
+64 bytes from 10.8.0.1: icmp_seq=1 ttl=64 time=1.31 ms
+64 bytes from 10.8.0.1: icmp_seq=2 ttl=64 time=1.32 ms
+^C
+--- 10.8.0.1 ping statistics ---
+2 packets transmitted, 2 received, 0% packet loss, time 1001ms
+rtt min/avg/max/mdev = 1.314/1.319/1.324/0.005 ms
+anntony@anntony-Lenovo-B590 ~ $ 
+
+可以ping到10.1.1.1和10.8.0.1
+不過沒辦法ping到tw.yahoo.com或是8.8.8.8
+沒辦法連到Internet了
+
+為了讓效果更明顯
+我把筆記型電腦直接接在我另一顆D-Link分享器
+我家裡的網路分布圖大致像這樣
+
+-----Internet-----[(118.160.XXX.XXX)二類電信路由器(172.16.0.254)]-----[(172.16.1.16)D-Link路由器(192.168.0.1)]-----[(192.168.0.10)wr841n路由器(10.1.1.1)]-----10.1.1.0/24(我的內網)
+
+我現在要把我的筆記型電腦的wlan0接口，接在D-Link友訊路由器的LAN
+anntony-Lenovo-B590 ~ # ifconfig wlan0 | grep 'inet addr'
+          inet addr:192.168.0.12  Bcast:192.168.0.255  Mask:255.255.255.0
+現在我的wlan0接口的IP地址是192.168.0.12
+
+然後我修改一下剛才在筆記型電腦上的myVPN的連線設定
+桌面右下角「VPN連線」>「設置VPN(C)...」>「myVPN」>「編輯(E)...」
+在General下方
+把Gateway從原來的10.1.1.1
+改成192.168.0.10
+改好之後按下「儲存(S)...」
+
+再次建立vpn tunnel試試
+anntony-Lenovo-B590 ~ # route -n
+Kernel IP routing table
+Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
+0.0.0.0         10.8.0.5        0.0.0.0         UG    0      0        0 tun0
+10.1.1.0        10.8.0.5        255.255.255.0   UG    0      0        0 tun0
+10.8.0.1        10.8.0.5        255.255.255.255 UGH   0      0        0 tun0
+10.8.0.5        0.0.0.0         255.255.255.255 UH    0      0        0 tun0
+192.168.0.0     0.0.0.0         255.255.255.0   U     9      0        0 wlan0
+192.168.0.10    0.0.0.0         255.255.255.255 UH    0      0        0 wlan0
+anntony-Lenovo-B590 ~ # ping tw.yahoo.com
+^C
+anntony-Lenovo-B590 ~ # ping 8.8.8.8
+PING 8.8.8.8 (8.8.8.8) 56(84) bytes of data.
+From 10.8.0.1 icmp_seq=1 Destination Port Unreachable
+From 10.8.0.1 icmp_seq=4 Destination Port Unreachable
+From 10.8.0.1 icmp_seq=5 Destination Port Unreachable
+^C
+--- 8.8.8.8 ping statistics ---
+5 packets transmitted, 0 received, +3 errors, 100% packet loss, time 4008ms
+
+anntony-Lenovo-B590 ~ # ping 10.1.1.1
+PING 10.1.1.1 (10.1.1.1) 56(84) bytes of data.
+64 bytes from 10.1.1.1: icmp_seq=1 ttl=64 time=2.08 ms
+64 bytes from 10.1.1.1: icmp_seq=2 ttl=64 time=2.06 ms
+64 bytes from 10.1.1.1: icmp_seq=3 ttl=64 time=2.10 ms
+^C
+--- 10.1.1.1 ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss, time 2001ms
+rtt min/avg/max/mdev = 2.068/2.085/2.106/0.055 ms
+anntony-Lenovo-B590 ~ # ping 10.8.0.1
+PING 10.8.0.1 (10.8.0.1) 56(84) bytes of data.
+64 bytes from 10.8.0.1: icmp_seq=1 ttl=64 time=6.43 ms
+64 bytes from 10.8.0.1: icmp_seq=2 ttl=64 time=2.01 ms
+64 bytes from 10.8.0.1: icmp_seq=3 ttl=64 time=2.08 ms
+^C
+--- 10.8.0.1 ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss, time 2001ms
+rtt min/avg/max/mdev = 2.018/3.513/6.433/2.064 ms
+anntony-Lenovo-B590 ~ #
+
+vpn tunnel建立之後，一樣不能ping到tw.yahoo.com或是8.8.8.8
+但是IP地址是192.168.0.12的wlan0接口，可以ping到wr841n路由器的LAN接口的10.1.1.1
+
+結論
+所以這個實驗
+修改了/etc/config/openvpn
+還有修改了
+/etc/config/firewall
+重啟openvpn和firewall服務之後
+Openvpn Client再建立vpn tunnel之後
+得到的結果和上個步驟不一樣
+連到我wr841n路由器的內網10.1.1.0/24是可以的
+(因為/etc/config/openvpn設定檔裡面的那一條option push 'route 10.1.1.0 255.255.255.0')
+也可以連10.8.0.1這是OpenVPN Server的IP地址
+但是沒辦法再像先前一樣
+雖然仍然把10.8.0.5當成預設匣道，但是不能連上Internet
+除非把VPN連線切斷
+讓路由表恢復正常的樣子
+像這樣
+anntony-Lenovo-B590 ~ # route -n
+Kernel IP routing table
+Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
+0.0.0.0         192.168.0.1     0.0.0.0         UG    0      0        0 wlan0
+192.168.0.0     0.0.0.0         255.255.255.0   U     9      0        0 wlan0
+anntony-Lenovo-B590 ~ #
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+10.3.1.9 實驗 - Routing All Client Traffic Through the Tunnel
+
+修改/etc/config/openvpn
+root@wr841n:~# uci set openvpn.myvpn.push='redirect-gateway def1'
+root@wr841n:~# uci commit openvpn
+root@wr841n:~# /etc/init.d/openvpn restart
+root@wr841n:~# netstat -anp|grep openvpn
+udp        0      0 0.0.0.0:1194            0.0.0.0:*                           26884/openvpn
+root@wr841n:~# cat /etc/config/openvpn
+
+config openvpn 'myvpn'
+	option enabled '1'
+	option dev 'tun'
+	option proto 'udp'
+	option log '/tmp/openvpn.log'
+	option verb '3'
+	option ca '/etc/openvpn/ca.crt'
+	option cert '/etc/openvpn/my-server.crt'
+	option key '/etc/openvpn/my-server.key'
+	option server '10.8.0.0 255.255.255.0'
+	option port '1194'
+	option keepalive '10 120'
+	option dh '/etc/openvpn/dh2048.pem'
+	option push 'redirect-gateway def1'
+
+root@wr841n:~# 
+
+修改/etc/config/firewall
+root@wr841n:~# vi /etc/config/firewall
+
+config zone                    
+        option name 'vpn'      
+        #option masq '1'    #直接刪掉這行好了   
+        option input 'ACCEPT'  
+        option forward 'ACCEPT'
+        option output 'ACCEPT'
+        option network 'vpn0'
+                          
+config forwarding          
+        option src 'vpn'     
+        option dest 'wan  # 上個步驟是lan，現在改回wan
+
+重新啟動防火牆
+root@wr841n:~# /etc/init.d/firewall reload
+Warning: Unable to locate ipset utility, disabling ipset support
+ * Clearing IPv4 filter table
+ * Clearing IPv4 nat table
+ * Clearing IPv4 mangle table
+ * Clearing IPv4 raw table
+ * Populating IPv4 filter table
+   * Zone 'lan'
+   * Zone 'wan'
+   * Zone 'vpn'
+   * Rule 'Allow-DHCP-Renew'
+   * Rule 'Allow-Ping'
+   * Rule 'Allow-OpenVPN-Inbound'
+   * Redirect 'Forward36000'
+   * Forward 'lan' -> 'wan'
+   * Forward 'vpn' -> 'wan'
+ * Populating IPv4 nat table
+   * Zone 'lan'
+   * Zone 'wan'
+   * Zone 'vpn'
+   * Redirect 'Forward36000'
+ * Populating IPv4 mangle table
+   * Zone 'lan'
+   * Zone 'wan'
+   * Zone 'vpn'
+ * Populating IPv4 raw table
+   * Zone 'lan'
+   * Zone 'wan'
+   * Zone 'vpn'
+ * Clearing IPv6 filter table
+ * Clearing IPv6 mangle table
+ * Clearing IPv6 raw table
+ * Populating IPv6 filter table
+   * Zone 'lan'
+   * Zone 'wan'
+   * Zone 'vpn'
+   * Rule 'Allow-DHCPv6'
+   * Rule 'Allow-ICMPv6-Input'
+   * Rule 'Allow-ICMPv6-Forward'
+   * Rule 'Allow-OpenVPN-Inbound'
+   * Forward 'lan' -> 'wan'
+   * Forward 'vpn' -> 'wan'
+ * Populating IPv6 mangle table
+   * Zone 'lan'
+   * Zone 'wan'
+   * Zone 'vpn'
+ * Populating IPv6 raw table
+   * Zone 'lan'
+   * Zone 'wan'
+   * Zone 'vpn'
+ * Set tcp_ecn to off
+ * Set tcp_syncookies to on
+ * Set tcp_window_scaling to on
+root@wr841n:~# 
+
+筆記型電腦的wlan0接口連到D-Link路由器那個WIFI
+anntony-Lenovo-B590 ~ # ifconfig wlan0 | grep 'inet addr'
+          inet addr:192.168.0.12  Bcast:192.168.0.255  Mask:255.255.255.0
+
+然後再次對OpenVPN Server建立vpn tunnel
+並觀察其行為
+anntony-Lenovo-B590 ~ # route -n
+Kernel IP routing table
+Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
+0.0.0.0         10.8.0.5        0.0.0.0         UG    0      0        0 tun0
+10.8.0.1        10.8.0.5        255.255.255.255 UGH   0      0        0 tun0
+10.8.0.5        0.0.0.0         255.255.255.255 UH    0      0        0 tun0
+192.168.0.0     0.0.0.0         255.255.255.0   U     9      0        0 wlan0
+192.168.0.10    0.0.0.0         255.255.255.255 UH    0      0        0 wlan0
+anntony-Lenovo-B590 ~ # ping tw.yahoo.com
+PING fd-fp3.wg1.b.yahoo.com (116.214.12.74) 56(84) bytes of data.
+64 bytes from ir1.fp.vip.tp2.yahoo.com (116.214.12.74): icmp_seq=1 ttl=55 time=29.3 ms
+64 bytes from ir1.fp.vip.tp2.yahoo.com (116.214.12.74): icmp_seq=2 ttl=55 time=28.7 ms
+^C
+--- fd-fp3.wg1.b.yahoo.com ping statistics ---
+2 packets transmitted, 2 received, 0% packet loss, time 1001ms
+rtt min/avg/max/mdev = 28.722/29.011/29.301/0.335 ms
+anntony-Lenovo-B590 ~ # ping 8.8.8.8
+PING 8.8.8.8 (8.8.8.8) 56(84) bytes of data.
+64 bytes from 8.8.8.8: icmp_seq=1 ttl=45 time=31.8 ms
+64 bytes from 8.8.8.8: icmp_seq=2 ttl=45 time=30.3 ms
+^C
+--- 8.8.8.8 ping statistics ---
+2 packets transmitted, 2 received, 0% packet loss, time 1001ms
+rtt min/avg/max/mdev = 30.357/31.108/31.859/0.751 ms
+anntony-Lenovo-B590 ~ # ping 10.8.0.1
+PING 10.8.0.1 (10.8.0.1) 56(84) bytes of data.
+64 bytes from 10.8.0.1: icmp_seq=1 ttl=64 time=2.23 ms
+64 bytes from 10.8.0.1: icmp_seq=2 ttl=64 time=2.05 ms
+^C
+--- 10.8.0.1 ping statistics ---
+2 packets transmitted, 2 received, 0% packet loss, time 1001ms
+rtt min/avg/max/mdev = 2.053/2.144/2.235/0.091 ms
+anntony-Lenovo-B590 ~ # ping 10.1.1.1
+PING 10.1.1.1 (10.1.1.1) 56(84) bytes of data.
+64 bytes from 10.1.1.1: icmp_seq=1 ttl=64 time=2.25 ms
+64 bytes from 10.1.1.1: icmp_seq=2 ttl=64 time=2.00 ms
+^C
+--- 10.1.1.1 ping statistics ---
+2 packets transmitted, 2 received, 0% packet loss, time 1001ms
+rtt min/avg/max/mdev = 2.002/2.128/2.255/0.134 ms
+anntony-Lenovo-B590 ~ # 
+
+建立vpn tunnel之後
+可以連到Internet沒有問題（可以ping tw.yahoo.com和8.8.8.8）
+也可以ping 10.8.0.1這是OpenVPN Server的tun0接口的IP
+甚至可以ping到wr841n路由器的10.1.1.1
+不過10.1.1.0/24沒有出現在路由表的Destination裡面，居然還可以ping得到，覺得很神奇
+
+超好奇的我
+再試一下，那我把10.1.1.0/24內網的Cubieboard3打開
+我的筆記型電腦不知道現在ping得到它嗎？
+anntony-Lenovo-B590 ~ # ping 10.1.1.96
+PING 10.1.1.96 (10.1.1.96) 56(84) bytes of data.
+From 10.8.0.1 icmp_seq=1 Destination Port Unreachable
+From 10.8.0.1 icmp_seq=2 Destination Port Unreachable
+From 10.8.0.1 icmp_seq=3 Destination Port Unreachable
+^C
+--- 10.1.1.96 ping statistics ---
+3 packets transmitted, 0 received, +3 errors, 100% packet loss, time 2002ms
+
+anntony-Lenovo-B590 ~ #
+答案是不行，我撤掉Cubieboard3上面的本機防火牆也不行ping
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+10.3.1.10 實驗 - 那麼建立vpn tunnel之後，可以連入wr841n內網嗎？怎麼設定？
+
+設定檔/etc/config/openvpn維持原樣
+root@wr841n:~# cat /etc/config/openvpn
+
+config openvpn 'myvpn'
+	option enabled '1'
+	option dev 'tun'
+	option proto 'udp'
+	option log '/tmp/openvpn.log'
+	option verb '3'
+	option ca '/etc/openvpn/ca.crt'
+	option cert '/etc/openvpn/my-server.crt'
+	option key '/etc/openvpn/my-server.key'
+	option server '10.8.0.0 255.255.255.0'
+	option port '1194'
+	option keepalive '10 120'
+	option dh '/etc/openvpn/dh2048.pem'
+	option push 'redirect-gateway def1'
+
+root@wr841n:~#
+
+修改/etc/config/firewall
+root@wr841n:~# vi /etc/config/firewall
+
+和OpenVPN有關的區塊列出如下
+config rule                                
+        option name 'Allow-OpenVPN-Inbound'
+        option target 'ACCEPT'             
+        option src '*'                     
+        option proto 'udp'     
+        option dest_port '1194'
+                               
+config zone                    
+        option name 'vpn'      
+        option input 'ACCEPT'  
+        option forward 'ACCEPT'
+        option output 'ACCEPT' 
+        option network 'vpn0'  
+                               
+config forwarding            
+        option src 'vpn'  
+        option dest 'wan'
+                         
+config forwarding        
+        option src 'vpn' 
+        option dest 'lan'
+
+重新啟動防火牆
+root@wr841n:~# /etc/init.d/firewall reload
+Warning: Unable to locate ipset utility, disabling ipset support
+ * Clearing IPv4 filter table
+ * Clearing IPv4 nat table
+ * Clearing IPv4 mangle table
+ * Clearing IPv4 raw table
+ * Populating IPv4 filter table
+   * Zone 'lan'
+   * Zone 'wan'
+   * Zone 'vpn'
+   * Rule 'Allow-DHCP-Renew'
+   * Rule 'Allow-Ping'
+   * Rule 'Allow-OpenVPN-Inbound'
+   * Redirect 'Forward36000'
+   * Forward 'lan' -> 'wan'
+   * Forward 'vpn' -> 'wan'
+   * Forward 'vpn' -> 'lan'
+ * Populating IPv4 nat table
+   * Zone 'lan'
+   * Zone 'wan'
+   * Zone 'vpn'
+   * Redirect 'Forward36000'
+ * Populating IPv4 mangle table
+   * Zone 'lan'
+   * Zone 'wan'
+   * Zone 'vpn'
+ * Populating IPv4 raw table
+   * Zone 'lan'
+   * Zone 'wan'
+   * Zone 'vpn'
+ * Clearing IPv6 filter table
+ * Clearing IPv6 mangle table
+ * Clearing IPv6 raw table
+ * Populating IPv6 filter table
+   * Zone 'lan'
+   * Zone 'wan'
+   * Zone 'vpn'
+   * Rule 'Allow-DHCPv6'
+   * Rule 'Allow-ICMPv6-Input'
+   * Rule 'Allow-ICMPv6-Forward'
+   * Rule 'Allow-OpenVPN-Inbound'
+   * Forward 'lan' -> 'wan'
+   * Forward 'vpn' -> 'wan'
+   * Forward 'vpn' -> 'lan'
+ * Populating IPv6 mangle table
+   * Zone 'lan'
+   * Zone 'wan'
+   * Zone 'vpn'
+ * Populating IPv6 raw table
+   * Zone 'lan'
+   * Zone 'wan'
+   * Zone 'vpn'
+ * Set tcp_ecn to off
+ * Set tcp_syncookies to on
+ * Set tcp_window_scaling to on
+root@wr841n:~# 
+
+把筆記型電腦的wlan0接口再接上192.168.0.0.24的網段
+anntony-Lenovo-B590 ~ # ifconfig wlan0 |grep 'inet addr'
+          inet addr:192.168.0.12  Bcast:192.168.0.255  Mask:255.255.255.0
+
+然後再次建立vpn tunnel
+建立之後，觀察其行為
+anntony-Lenovo-B590 ~ # route -n
+Kernel IP routing table
+Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
+0.0.0.0         10.8.0.5        0.0.0.0         UG    0      0        0 tun0
+10.8.0.1        10.8.0.5        255.255.255.255 UGH   0      0        0 tun0
+10.8.0.5        0.0.0.0         255.255.255.255 UH    0      0        0 tun0
+192.168.0.0     0.0.0.0         255.255.255.0   U     9      0        0 wlan0
+192.168.0.10    0.0.0.0         255.255.255.255 UH    0      0        0 wlan0
+anntony-Lenovo-B590 ~ # ping 10.1.1.1
+PING 10.1.1.1 (10.1.1.1) 56(84) bytes of data.
+64 bytes from 10.1.1.1: icmp_seq=1 ttl=64 time=2.19 ms
+64 bytes from 10.1.1.1: icmp_seq=2 ttl=64 time=2.25 ms
+^C
+--- 10.1.1.1 ping statistics ---
+2 packets transmitted, 2 received, 0% packet loss, time 1001ms
+rtt min/avg/max/mdev = 2.199/2.228/2.258/0.055 ms
+anntony-Lenovo-B590 ~ # ping 10.1.1.96
+PING 10.1.1.96 (10.1.1.96) 56(84) bytes of data.
+64 bytes from 10.1.1.96: icmp_seq=1 ttl=63 time=2.92 ms
+64 bytes from 10.1.1.96: icmp_seq=2 ttl=63 time=2.30 ms
+^C
+--- 10.1.1.96 ping statistics ---
+2 packets transmitted, 2 received, 0% packet loss, time 1002ms
+rtt min/avg/max/mdev = 2.308/2.616/2.924/0.308 ms
+anntony-Lenovo-B590 ~ # ping 10.8.0.1
+PING 10.8.0.1 (10.8.0.1) 56(84) bytes of data.
+64 bytes from 10.8.0.1: icmp_seq=1 ttl=64 time=2.32 ms
+64 bytes from 10.8.0.1: icmp_seq=2 ttl=64 time=2.22 ms
+^C
+--- 10.8.0.1 ping statistics ---
+2 packets transmitted, 2 received, 0% packet loss, time 1001ms
+rtt min/avg/max/mdev = 2.222/2.274/2.326/0.052 ms
+anntony-Lenovo-B590 ~ # ping tw.yahoo.com
+PING fd-fp3.wg1.b.yahoo.com (116.214.12.74) 56(84) bytes of data.
+64 bytes from ir1.fp.vip.tp2.yahoo.com (116.214.12.74): icmp_seq=1 ttl=55 time=29.8 ms
+64 bytes from ir1.fp.vip.tp2.yahoo.com (116.214.12.74): icmp_seq=2 ttl=55 time=28.5 ms
+^C
+--- fd-fp3.wg1.b.yahoo.com ping statistics ---
+2 packets transmitted, 2 received, 0% packet loss, time 1001ms
+rtt min/avg/max/mdev = 28.541/29.217/29.893/0.676 ms
+anntony-Lenovo-B590 ~ # ping 8.8.8.8
+PING 8.8.8.8 (8.8.8.8) 56(84) bytes of data.
+64 bytes from 8.8.8.8: icmp_seq=1 ttl=45 time=32.0 ms
+64 bytes from 8.8.8.8: icmp_seq=2 ttl=45 time=31.2 ms
+^C
+--- 8.8.8.8 ping statistics ---
+2 packets transmitted, 2 received, 0% packet loss, time 1001ms
+rtt min/avg/max/mdev = 31.284/31.648/32.012/0.364 ms
+anntony-Lenovo-B590 ~ # traceroute 8.8.8.8
+traceroute to 8.8.8.8 (8.8.8.8), 30 hops max, 60 byte packets
+ 1  10.8.0.1 (10.8.0.1)  3.362 ms  12.530 ms  12.532 ms
+ 2  * * *
+ 3  * * *
+ 4  h254.s98.ts.hinet.net (168.95.98.254)  39.196 ms  41.635 ms  42.999 ms
+ 5  sipr-3301.hinet.net (168.95.160.2)  49.125 ms  49.131 ms  49.131 ms
+ 6  tpdt-3011.hinet.net (220.128.1.74)  49.781 ms  26.410 ms TPDT-3011.hinet.net (220.128.1.94)  32.683 ms
+ 7  * * *
+ 8  tyfo-3301.hinet.net (220.128.8.225)  32.364 ms  27.566 ms  32.475 ms
+ 9  72.14.196.3 (72.14.196.3)  32.500 ms 74.125.49.158 (74.125.49.158)  31.845 ms 72.14.196.3 (72.14.196.3)  29.134 ms
+10  72.14.233.20 (72.14.233.20)  31.068 ms  33.246 ms  34.035 ms
+11  * * *
+12  209.85.249.75 (209.85.249.75)  32.956 ms 209.85.248.241 (209.85.248.241)  33.388 ms 216.239.50.45 (216.239.50.45)  41.998 ms
+13  * * *
+14  google-public-dns-a.google.com (8.8.8.8)  35.161 ms  36.068 ms  32.074 ms
+anntony-Lenovo-B590 ~ # 
+
+哇靠全都通了（好像什麼廣告詞）
+而且我筆記型電腦的wlan0接口的IP明明是192.168.0.12
+可是卻可以直接ssh進去我wr841n路由器內網的Cubieboard3的10.1.1.96
+
+anntony@anntony-Lenovo-B590 ~ $ ifconfig wlan0 | grep 'inet addr'
+          inet addr:192.168.0.12  Bcast:192.168.0.255  Mask:255.255.255.0
+
+anntony@anntony-Lenovo-B590 ~ $ ping 10.1.1.96
+PING 10.1.1.96 (10.1.1.96) 56(84) bytes of data.
+64 bytes from 10.1.1.96: icmp_seq=1 ttl=63 time=2.52 ms
+64 bytes from 10.1.1.96: icmp_seq=2 ttl=63 time=2.22 ms
+^C
+--- 10.1.1.96 ping statistics ---
+2 packets transmitted, 2 received, 0% packet loss, time 1001ms
+rtt min/avg/max/mdev = 2.220/2.371/2.522/0.151 ms
+anntony@anntony-Lenovo-B590 ~ $ ssh -p 36000 root@10.1.1.96
+root@10.1.1.96's password: 
+Welcome to Linaro 14.04 (GNU/Linux 3.4.79 armv7l)
+
+ * Documentation:  https://wiki.linaro.org/
+Last login: Sat Mar 21 17:53:04 2015
+root@cubietruck:~#
+
+太快樂了
