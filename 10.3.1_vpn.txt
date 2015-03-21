@@ -1261,6 +1261,14 @@ PING 10.1.1.1 (10.1.1.1) 56(84) bytes of data.
 --- 10.1.1.1 ping statistics ---
 3 packets transmitted, 3 received, 0% packet loss, time 2001ms
 rtt min/avg/max/mdev = 2.068/2.085/2.106/0.055 ms
+anntony-Lenovo-B590 ~ # ping 10.1.1.96
+PING 10.1.1.96 (10.1.1.96) 56(84) bytes of data.
+64 bytes from 10.1.1.96: icmp_seq=1 ttl=63 time=6.00 ms
+64 bytes from 10.1.1.96: icmp_seq=2 ttl=63 time=2.20 ms
+^C
+--- 10.1.1.96 ping statistics ---
+2 packets transmitted, 2 received, 0% packet loss, time 1000ms
+rtt min/avg/max/mdev = 2.207/4.107/6.007/1.900 ms
 anntony-Lenovo-B590 ~ # ping 10.8.0.1
 PING 10.8.0.1 (10.8.0.1) 56(84) bytes of data.
 64 bytes from 10.8.0.1: icmp_seq=1 ttl=64 time=6.43 ms
@@ -1274,6 +1282,7 @@ anntony-Lenovo-B590 ~ #
 
 vpn tunnel建立之後，一樣不能ping到tw.yahoo.com或是8.8.8.8
 但是IP地址是192.168.0.12的wlan0接口，可以ping到wr841n路由器的LAN接口的10.1.1.1
+也可以ping到10.1.1.96（我的Cubieboard3）
 
 結論
 所以這個實驗
@@ -1297,6 +1306,11 @@ Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
 0.0.0.0         192.168.0.1     0.0.0.0         UG    0      0        0 wlan0
 192.168.0.0     0.0.0.0         255.255.255.0   U     9      0        0 wlan0
 anntony-Lenovo-B590 ~ #
+
+此實驗結論：
+我不喜歡這樣，我希望建立vpn tunnel之後，除了可以連wr841n路由器內網的10.1.1.0/24，我同時還可以上網
+這個實驗裡只有半套，也就是讓我ping 10.1.1.96和ping 10.1.1.1成功
+但是ping tw.yahoo.com或是ping 8.8.8.8都失敗
 
 ＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
 10.3.1.9 實驗 - Routing All Client Traffic Through the Tunnel
@@ -1465,6 +1479,11 @@ From 10.8.0.1 icmp_seq=3 Destination Port Unreachable
 
 anntony-Lenovo-B590 ~ #
 答案是不行，我撤掉Cubieboard3上面的本機防火牆也不行ping
+
+此實驗結論：
+還是一樣我又有意見，記得上面我說的
+「我不喜歡這樣，我希望建立vpn tunnel之後，除了可以連wr841n路由器內網的10.1.1.0/24，我同時還可以上網」
+這個實驗裡也只有半套，也就是讓我ping tw.yahoo.com成功，雖然可以ping 10.1.1.1，但是不能ping 10.1.1.96
 
 ＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
 10.3.1.10 實驗 - 那麼建立vpn tunnel之後，可以連入wr841n內網嗎？怎麼設定？
