@@ -26,6 +26,8 @@ DIAGRAM s1: [client]– {Internet} –WAN iface-||firewall||-[OpenWrt router]-LA
      10.3.1.8 實驗 - Routing Only Local LAN Client Traffic Through the Tunnel
      10.3.1.9 實驗 - Routing All Client Traffic Through the Tunnel
      10.3.1.10 實驗 - 那麼建立vpn tunnel之後，可以連入wr841n內網嗎？怎麼設定？
+     10.3.1.11 可以正常工作的/etc/config/openvpn
+     10.3.1.12 可以正常工作的/etc/config/firewall
 
 ＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
 10.3.1.1 在OpenWRT路由器上面安裝openvpn套件（VPN服務器）
@@ -730,6 +732,42 @@ Authentication
 
 按下「儲存」
 這樣就完成OpenVPN Client端的設定（安裝了Linux Mint 17的筆記型電腦）
+
+剛才在桌面環境NetworkManager的設定
+實際上寫在
+/etc/NetworkManager/system-connections/myVPN 
+這個檔案裡面
+內容是
+anntony-Lenovo-B590 ~ # cat /etc/NetworkManager/system-connections/myVPN 
+[connection]
+id=myVPN
+uuid=52551525-e5ed-43e0-9e70-54bcc098f9ae
+type=vpn
+permissions=user:anntony:;
+autoconnect=false
+timestamp=1426926668
+
+[vpn]
+service-type=org.freedesktop.NetworkManager.openvpn
+key=/home/anntony/openvpn-client/my-client.key
+ca=/home/anntony/openvpn-client/ca.crt
+connection-type=tls
+cert=/home/anntony/openvpn-client/my-client.crt
+remote=10.1.1.1
+cert-pass-flags=0
+
+[vpn-secrets]
+no-secret=true
+
+[ipv6]
+method=auto
+
+[ipv4]
+method=auto
+anntony-Lenovo-B590 ~ # 
+
+參考資料
+https://support.hidemyass.com/hc/en-us/articles/202721596-OpenVPN-Setup-with-Network-manager-on-Linux-Mint-Mate
 
 ＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
 10.3.1.7 測試從客戶端是否能順利對服務器建立起VPN通道？
@@ -1631,3 +1669,174 @@ Last login: Sat Mar 21 17:53:04 2015
 root@cubietruck:~#
 
 太快樂了
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+10.3.1.11 可以正常工作的/etc/config/openvpn
+
+root@wr841n:~# cat /etc/config/openvpn
+
+config openvpn 'myvpn'
+	option enabled '1'
+	option dev 'tun'
+	option proto 'udp'
+	option log '/tmp/openvpn.log'
+	option verb '3'
+	option ca '/etc/openvpn/ca.crt'
+	option cert '/etc/openvpn/my-server.crt'
+	option key '/etc/openvpn/my-server.key'
+	option server '10.8.0.0 255.255.255.0'
+	option port '1194'
+	option keepalive '10 120'
+	option dh '/etc/openvpn/dh2048.pem'
+	option push 'redirect-gateway def1'
+
+root@wr841n:~# 
+
+如果設定檔有修改，要這樣重新啟動openvpn，讓新的設定值生效
+root@wr841n:~# /etc/init.d/openvpn restart
+
+重新啟動之後，要再確認一次OpenVPN Server的Daemon有沒有跑起來？
+root@wr841n:~# netstat -anp|grep openvpn
+udp        0      0 0.0.0.0:1194            0.0.0.0:*                           31163/openvpn
+root@wr841n:~# 
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+10.3.1.12 可以正常工作的/etc/config/firewall
+
+root@wr841n:~# cat /etc/config/firewall 
+
+config defaults
+	option syn_flood '1'
+	option input 'ACCEPT'
+	option output 'ACCEPT'
+	option forward 'REJECT'
+
+config zone
+	option name 'lan'
+	list network 'lan'
+	option input 'ACCEPT'
+	option output 'ACCEPT'
+	option forward 'ACCEPT'
+
+config zone
+	option name 'wan'
+	list network 'wan'
+	list network 'wan6'
+	option input 'REJECT'
+	option output 'ACCEPT'
+	option forward 'REJECT'
+	option masq '1'
+	option mtu_fix '1'
+
+config forwarding
+	option src 'lan'
+	option dest 'wan'
+
+config rule
+	option name 'Allow-DHCP-Renew'
+	option src 'wan'
+	option proto 'udp'
+	option dest_port '68'
+	option target 'ACCEPT'
+	option family 'ipv4'
+
+config rule
+	option name 'Allow-Ping'
+	option src 'wan'
+	option proto 'icmp'
+	option icmp_type 'echo-request'
+	option family 'ipv4'
+	option target 'ACCEPT'
+
+config rule
+	option name 'Allow-DHCPv6'
+	option src 'wan'
+	option proto 'udp'
+	option src_ip 'fe80::/10'
+	option src_port '547'
+	option dest_ip 'fe80::/10'
+	option dest_port '546'
+	option family 'ipv6'
+	option target 'ACCEPT'
+
+config rule
+	option name 'Allow-ICMPv6-Input'
+	option src 'wan'
+	option proto 'icmp'
+	list icmp_type 'echo-request'
+	list icmp_type 'echo-reply'
+	list icmp_type 'destination-unreachable'
+	list icmp_type 'packet-too-big'
+	list icmp_type 'time-exceeded'
+	list icmp_type 'bad-header'
+	list icmp_type 'unknown-header-type'
+	list icmp_type 'router-solicitation'
+	list icmp_type 'neighbour-solicitation'
+	list icmp_type 'router-advertisement'
+	list icmp_type 'neighbour-advertisement'
+	option limit '1000/sec'
+	option family 'ipv6'
+	option target 'ACCEPT'
+
+config rule
+	option name 'Allow-ICMPv6-Forward'
+	option src 'wan'
+	option dest '*'
+	option proto 'icmp'
+	list icmp_type 'echo-request'
+	list icmp_type 'echo-reply'
+	list icmp_type 'destination-unreachable'
+	list icmp_type 'packet-too-big'
+	list icmp_type 'time-exceeded'
+	list icmp_type 'bad-header'
+	list icmp_type 'unknown-header-type'
+	option limit '1000/sec'
+	option family 'ipv6'
+	option target 'ACCEPT'
+
+config include
+	option path '/etc/firewall.user'
+
+config redirect
+	option target 'DNAT'
+	option src 'wan'
+	option dest 'lan'
+	option proto 'tcp'
+	option src_dport '36000'
+	option dest_ip '10.1.1.96'
+	option dest_port '36000'
+	option name 'Forward36000'
+
+config rule
+	option name 'Allow-OpenVPN-Inbound'
+	option target 'ACCEPT'
+	option src '*'
+	option proto 'udp'
+	option dest_port '1194'
+
+config zone
+	option name 'vpn'
+	option input 'ACCEPT'
+	option forward 'ACCEPT'
+	option output 'ACCEPT'
+	option network 'vpn0'
+
+config forwarding
+	option src 'vpn'
+	option dest 'wan'
+
+config forwarding
+	option src 'vpn'
+	option dest 'lan'
+root@wr841n:~# 
+
+如果設定檔有修改，要這樣重新啟動防火牆，讓設定生效
+root@wr841n:~# /etc/init.d/firewall reload
+（接著會跑一堆輸出，上面的地方也有貼，我就不放上了）
+
+然後執行下面指令，看一下防火牆規則
+root@wr841n:~# iptables -L --line-number
+
+輸出很長，還是不要放上來好了，不然感覺我一直在貼終端機輸出很混
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
