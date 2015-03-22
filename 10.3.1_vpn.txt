@@ -1867,13 +1867,7 @@ root@wr841n:~# iptables -L --line-number
 修改wr841n路由器的/etc/config/openvpn設定檔
 並重新啟動openvpn
 
-root@wr841n:~# uci set      openvpn.myvpn.persist_tun=1
-root@wr841n:~# uci set      openvpn.myvpn.persist_key=1
-root@wr841n:~# uci set      openvpn.myvpn.ifconfig_pool_persist=/tmp/openvpn-ipp.txt
-root@wr841n:~# uci set      openvpn.myvpn.fast_io=on
-root@wr841n:~# uci set      openvpn.myvpn.comp_lzo=adaptive
-root@wr841n:~# uci set      openvpn.myvpn.push='comp_lzo adaptive'
-root@wr841n:~# uci commit
+root@wr841n:~# vi /etc/config/openvpn
 root@wr841n:~# cat /etc/config/openvpn
 
 config openvpn 'myvpn'
@@ -1889,12 +1883,13 @@ config openvpn 'myvpn'
 	option port '1194'
 	option keepalive '10 120'
 	option dh '/etc/openvpn/dh2048.pem'
+	option push 'redirect-gateway def1'
+	option push 'comp_lzo adaptive'
 	option persist_tun '1'
 	option persist_key '1'
 	option ifconfig_pool_persist '/tmp/openvpn-ipp.txt'
 	option fast_io 'on'
 	option comp_lzo 'adaptive'
-	option push 'comp_lzo adaptive'
 
 root@wr841n:~# netstat -anp|grep openvpn
 udp        0      0 0.0.0.0:1194            0.0.0.0:*                           31588/openvpn
@@ -1981,5 +1976,5 @@ anntony@anntony-Lenovo-B590 ~ $
 你可以試著在OpenVPN Client端不要把「Use LZO data compression」勾選
 再試著建立vpn tunnel看看會發生什麼事？
 
-
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
 
