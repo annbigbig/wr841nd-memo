@@ -29,6 +29,9 @@ DIAGRAM s1: [client]– {Internet} –WAN iface-||firewall||-[OpenWrt router]-LA
      10.3.1.11 可以正常工作的/etc/config/openvpn
      10.3.1.12 可以正常工作的/etc/config/firewall
 
+進階篇
+     10.3.1.13 Use-Case 1: Private Channel to the OpenWrt Router
+
 ＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
 10.3.1.1 在OpenWRT路由器上面安裝openvpn套件（VPN服務器）
 
@@ -1859,3 +1862,124 @@ root@wr841n:~# iptables -L --line-number
 輸出很長，還是不要放上來好了，不然感覺我一直在貼終端機輸出很混
 
 ＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+10.3.1.13 Use-Case 1: Private Channel to the OpenWrt Router
+
+修改wr841n路由器的/etc/config/openvpn設定檔
+並重新啟動openvpn
+
+root@wr841n:~# uci set      openvpn.myvpn.persist_tun=1
+root@wr841n:~# uci set      openvpn.myvpn.persist_key=1
+root@wr841n:~# uci set      openvpn.myvpn.ifconfig_pool_persist=/tmp/openvpn-ipp.txt
+root@wr841n:~# uci set      openvpn.myvpn.fast_io=on
+root@wr841n:~# uci set      openvpn.myvpn.comp_lzo=adaptive
+root@wr841n:~# uci set      openvpn.myvpn.push='comp_lzo adaptive'
+root@wr841n:~# uci commit
+root@wr841n:~# cat /etc/config/openvpn
+
+config openvpn 'myvpn'
+	option enabled '1'
+	option dev 'tun'
+	option proto 'udp'
+	option log '/tmp/openvpn.log'
+	option verb '3'
+	option ca '/etc/openvpn/ca.crt'
+	option cert '/etc/openvpn/my-server.crt'
+	option key '/etc/openvpn/my-server.key'
+	option server '10.8.0.0 255.255.255.0'
+	option port '1194'
+	option keepalive '10 120'
+	option dh '/etc/openvpn/dh2048.pem'
+	option persist_tun '1'
+	option persist_key '1'
+	option ifconfig_pool_persist '/tmp/openvpn-ipp.txt'
+	option fast_io 'on'
+	option comp_lzo 'adaptive'
+	option push 'comp_lzo adaptive'
+
+root@wr841n:~# netstat -anp|grep openvpn
+udp        0      0 0.0.0.0:1194            0.0.0.0:*                           31588/openvpn
+root@wr841n:~# /etc/init.d/openvpn restart
+root@wr841n:~# netstat -anp|grep openvpn
+udp        0      0 0.0.0.0:1194            0.0.0.0:*                           15194/openvpn
+root@wr841n:~# 
+
+現在wr841n路由器上面運行的OpenVPN Server已經啟用LZO compression
+在筆記型電腦這邊的OpenVPN Client也要啟用LZO compression
+不然的話，雖然還是可以建立vpn tunnel，但是ping任何Ip都不會通
+在筆記型電腦的Linux Mint桌面環境右下角
+「VPN連線」>「設置VPN(C)...」>「myVPN」>「編輯(E)...」>「Advanced...」
+把「Use LZO data compression」勾選起來後，「確定(O)」>「儲存(S)...」
+
+再次建立vpn tunnel測試一下
+anntony@anntony-Lenovo-B590 ~ $ route -n
+Kernel IP routing table
+Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
+0.0.0.0         10.8.0.5        0.0.0.0         UG    0      0        0 tun0
+10.8.0.1        10.8.0.5        255.255.255.255 UGH   0      0        0 tun0
+10.8.0.5        0.0.0.0         255.255.255.255 UH    0      0        0 tun0
+192.168.0.0     0.0.0.0         255.255.255.0   U     9      0        0 wlan0
+192.168.0.10    0.0.0.0         255.255.255.255 UH    0      0        0 wlan0
+anntony@anntony-Lenovo-B590 ~ $ ping tw.yahoo.com
+PING fd-fp3.wg1.b.yahoo.com (116.214.12.74) 56(84) bytes of data.
+64 bytes from ir1.fp.vip.tp2.yahoo.com (116.214.12.74): icmp_seq=1 ttl=55 time=28.0 ms
+64 bytes from ir1.fp.vip.tp2.yahoo.com (116.214.12.74): icmp_seq=2 ttl=55 time=28.2 ms
+^C
+--- fd-fp3.wg1.b.yahoo.com ping statistics ---
+2 packets transmitted, 2 received, 0% packet loss, time 1001ms
+rtt min/avg/max/mdev = 28.097/28.176/28.256/0.185 ms
+anntony@anntony-Lenovo-B590 ~ $ ping 8.8.8.8
+PING 8.8.8.8 (8.8.8.8) 56(84) bytes of data.
+64 bytes from 8.8.8.8: icmp_seq=1 ttl=45 time=32.5 ms
+64 bytes from 8.8.8.8: icmp_seq=2 ttl=45 time=30.9 ms
+^C
+--- 8.8.8.8 ping statistics ---
+2 packets transmitted, 2 received, 0% packet loss, time 1001ms
+rtt min/avg/max/mdev = 30.948/31.744/32.541/0.816 ms
+anntony@anntony-Lenovo-B590 ~ $ traceroute 8.8.8.8
+traceroute to 8.8.8.8 (8.8.8.8), 30 hops max, 60 byte packets
+ 1  10.8.0.1 (10.8.0.1)  8.476 ms  8.483 ms  8.811 ms
+ 2  * * *
+ 3  * * *
+ 4  h254.s98.ts.hinet.net (168.95.98.254)  33.754 ms  34.506 ms  37.821 ms
+ 5  sipr-3301.hinet.net (168.95.160.2)  39.480 ms  42.244 ms  42.400 ms
+ 6  tpdt-3011.hinet.net (220.128.12.90)  47.084 ms tpdt-3011.hinet.net (220.128.1.74)  31.961 ms  32.026 ms
+ 7  * * *
+ 8  tyfo-3301.hinet.net (220.128.8.225)  34.979 ms  35.265 ms  36.032 ms
+ 9  74.125.49.158 (74.125.49.158)  36.301 ms 72.14.196.3 (72.14.196.3)  32.344 ms 74.125.49.158 (74.125.49.158)  27.525 ms
+10  209.85.243.30 (209.85.243.30)  34.768 ms 72.14.233.20 (72.14.233.20)  32.289 ms  32.970 ms
+11  * * *
+12  209.85.246.216 (209.85.246.216)  34.039 ms 209.85.249.7 (209.85.249.7)  33.563 ms 216.239.43.103 (216.239.43.103)  34.926 ms
+13  * * *
+14  google-public-dns-a.google.com (8.8.8.8)  30.946 ms  30.317 ms  30.588 ms
+anntony@anntony-Lenovo-B590 ~ $ ping 10.1.1.1
+PING 10.1.1.1 (10.1.1.1) 56(84) bytes of data.
+64 bytes from 10.1.1.1: icmp_seq=1 ttl=64 time=2.18 ms
+64 bytes from 10.1.1.1: icmp_seq=2 ttl=64 time=2.01 ms
+^C
+--- 10.1.1.1 ping statistics ---
+2 packets transmitted, 2 received, 0% packet loss, time 1001ms
+rtt min/avg/max/mdev = 2.012/2.099/2.186/0.087 ms
+anntony@anntony-Lenovo-B590 ~ $ ping 10.1.1.96
+PING 10.1.1.96 (10.1.1.96) 56(84) bytes of data.
+64 bytes from 10.1.1.96: icmp_seq=1 ttl=63 time=2.48 ms
+64 bytes from 10.1.1.96: icmp_seq=2 ttl=63 time=2.19 ms
+^C
+--- 10.1.1.96 ping statistics ---
+2 packets transmitted, 2 received, 0% packet loss, time 1001ms
+rtt min/avg/max/mdev = 2.191/2.339/2.488/0.156 ms
+anntony@anntony-Lenovo-B590 ~ $ ping 10.8.0.1
+PING 10.8.0.1 (10.8.0.1) 56(84) bytes of data.
+64 bytes from 10.8.0.1: icmp_seq=1 ttl=64 time=2.30 ms
+64 bytes from 10.8.0.1: icmp_seq=2 ttl=64 time=3.49 ms
+^C
+--- 10.8.0.1 ping statistics ---
+2 packets transmitted, 2 received, 0% packet loss, time 1001ms
+rtt min/avg/max/mdev = 2.309/2.899/3.490/0.592 ms
+anntony@anntony-Lenovo-B590 ~ $ 
+
+好，這樣是正常的，建立vpn tunnel之後，每個我想去的IP地址都會通
+你可以試著在OpenVPN Client端不要把「Use LZO data compression」勾選
+再試著建立vpn tunnel看看會發生什麼事？
+
+
+
