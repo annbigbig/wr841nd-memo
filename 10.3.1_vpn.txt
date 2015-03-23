@@ -31,6 +31,7 @@ DIAGRAM s1: [client]– {Internet} –WAN iface-||firewall||-[OpenWrt router]-LA
 
 進階篇
      10.3.1.13 Use-Case 1: Private Channel to the OpenWrt Router
+     10.3.1.14 Revoking Certificates
 
 ＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
 10.3.1.1 在OpenWRT路由器上面安裝openvpn套件（VPN服務器）
@@ -1977,4 +1978,137 @@ anntony@anntony-Lenovo-B590 ~ $
 再試著建立vpn tunnel看看會發生什麼事？
 
 ＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+10.3.1.14 Revoking Certificates
+
+參考資料
+http://wiki.openwrt.org/inbox/vpn.howto
+https://openvpn.net/index.php/open-source/documentation/howto.html#revoke
+
+這個動作會把稍早前簽出的Client端Certificate給列入一個廢止清單(certificate revocation list)
+檔案名稱是crl.pem
+在這個廢止清單裡面寫入的certificate
+都不能再用來連入OpenVPN Server
+
+為了實驗這個crl.pem的效力
+我們再產生一個OpenVPN的Client端certificate和key
+假設這個用戶叫作tony
+root@wr841n:~# pkitool tony
+NOTE: If you run ./clean-all, I will be doing a rm -rf on /etc/easy-rsa/keys
+Generating a 2048 bit RSA private key
+...............................................................................................................................................+++
+..+++
+writing new private key to 'tony.key'
+-----
+Using configuration from /etc/easy-rsa/openssl-1.0.0.cnf
+Check that the request matches the signature
+Signature ok
+The Subject's Distinguished Name is as follows
+countryName           :PRINTABLE:'US'
+stateOrProvinceName   :PRINTABLE:'CA'
+localityName          :PRINTABLE:'SanFrancisco'
+organizationName      :PRINTABLE:'Fort-Funston'
+organizationalUnitName:PRINTABLE:'MyOrganizationalUnit'
+commonName            :PRINTABLE:'tony'
+name                  :PRINTABLE:'EasyRSA'
+emailAddress          :IA5STRING:'me@myhost.mydomain'
+Certificate is to be certified until Mar 20 09:20:00 2025 GMT (3650 days)
+
+Write out database with 1 new entries
+Data Base Updated
+root@wr841n:~# cd /etc/easy-rsa/keys/
+root@wr841n:/etc/easy-rsa/keys# ls -al
+drwx------    2 root     root             0 Mar 23 17:20 .
+drwxr-xr-x    3 root     root             0 Mar 20 03:53 ..
+-rw-r--r--    1 root     root          5633 Mar 20 03:55 01.pem
+-rw-r--r--    1 root     root          5516 Mar 20 03:55 02.pem
+-rw-r--r--    1 root     root          5503 Mar 23 17:20 03.pem
+-rw-r--r--    1 root     root          1818 Mar 20 03:54 ca.crt
+-rw-------    1 root     root          1704 Mar 20 03:54 ca.key
+-rw-r--r--    1 root     root           424 Mar 20 04:09 dh2048.pem
+-rw-r--r--    1 root     root           451 Mar 23 17:20 index.txt
+-rw-r--r--    1 root     root            21 Mar 23 17:20 index.txt.attr
+-rw-r--r--    1 root     root            21 Mar 20 03:55 index.txt.attr.old
+-rw-r--r--    1 root     root           304 Mar 20 03:55 index.txt.old
+-rw-r--r--    1 root     root          5516 Mar 20 03:55 my-client.crt
+-rw-r--r--    1 root     root          1102 Mar 20 03:55 my-client.csr
+-rw-------    1 root     root          1704 Mar 20 03:55 my-client.key
+-rw-r--r--    1 root     root          5633 Mar 20 03:55 my-server.crt
+-rw-r--r--    1 root     root          1102 Mar 20 03:55 my-server.csr
+-rw-------    1 root     root          1704 Mar 20 03:55 my-server.key
+-rw-r--r--    1 root     root             3 Mar 23 17:20 serial
+-rw-r--r--    1 root     root             3 Mar 20 03:55 serial.old
+-rw-r--r--    1 root     root          5503 Mar 23 17:20 tony.crt
+-rw-r--r--    1 root     root          1098 Mar 23 17:20 tony.csr
+-rw-------    1 root     root          1708 Mar 23 17:20 tony.key
+root@wr841n:/etc/easy-rsa/keys# cat ./index.txt
+V	250316195514Z		01	unknown	/C=US/ST=CA/L=SanFrancisco/O=Fort-Funston/OU=MyOrganizationalUnit/CN=my-server/name=EasyRSA/emailAddress=me@myhost.mydomain
+V	250316195537Z		02	unknown	/C=US/ST=CA/L=SanFrancisco/O=Fort-Funston/OU=MyOrganizationalUnit/CN=my-client/name=EasyRSA/emailAddress=me@myhost.mydomain
+V	250320092000Z		03	unknown	/C=US/ST=CA/L=SanFrancisco/O=Fort-Funston/OU=MyOrganizationalUnit/CN=tony/name=EasyRSA/emailAddress=me@myhost.mydomain
+root@wr841n:/etc/easy-rsa/keys# cat ./serial
+04
+root@wr841n:/etc/easy-rsa/keys# cp tony.* /tmp
+root@wr841n:/etc/easy-rsa/keys# chmod 644 /tmp/tony.key
+root@wr841n:/etc/easy-rsa/keys# 
+
+我們再次產生了tony.crt、tony.csr、還有tony.key
+現在把它們複製到筆記型電腦的/home/anntony/openvpn-client目錄裡面
+現在是在筆記型電腦的終端機裡，執行
+anntony@anntony-Lenovo-B590 ~ $ cd /home/anntony/openvpn-client/
+anntony@anntony-Lenovo-B590 ~/openvpn-client $ scp wr841n:/tmp/tony.* .
+tony.crt                                                                                                             100% 5503     5.4KB/s   00:00    
+tony.csr                                                                                                             100% 1098     1.1KB/s   00:00    
+tony.key                                                                                                             100% 1708     1.7KB/s   00:00    
+anntony@anntony-Lenovo-B590 ~/openvpn-client $ ls -al|grep tony
+drwxr-xr-x  2 anntony anntony 4096  3月 23 17:32 .
+drwxr-xr-x 75 anntony anntony 4096  3月 23 14:35 ..
+-rw-r--r--  1 anntony anntony 1818  3月 20 15:49 ca.crt
+-rw-r--r--  1 anntony anntony 5516  3月 20 15:49 my-client.crt
+-rw-r--r--  1 anntony anntony 1102  3月 20 15:49 my-client.csr
+-rw-------  1 anntony anntony 1704  3月 20 15:49 my-client.key
+-rw-r--r--  1 anntony anntony 5503  3月 23 17:32 tony.crt
+-rw-r--r--  1 anntony anntony 1098  3月 23 17:32 tony.csr
+-rw-r--r--  1 anntony anntony 1708  3月 23 17:32 tony.key
+anntony@anntony-Lenovo-B590 ~/openvpn-client $ chmod 600 tony.*
+anntony@anntony-Lenovo-B590 ~/openvpn-client $ 
+
+現在我們在筆記型電腦上，新增一個OpenVPN Client端連線的設定
+桌面環境右下角「VPN連線」>「設置VPN(C)...」>「加入(A)」>「OpenVPN」>「建立...」
+「連線名稱」填入tonyVPN
+General下面的Gateway填入192.168.0.10
+Authentication下方的Type維持原來的「憑證(TLS)」
+User Certificate選取/home/anntony/openvpn-client/tony.crt
+CA Certificate選取/home/anntony/openvpn-client/ca.crt
+Private Key選取/home/anntony/openvpn-client/tony.key
+因為我們在OpenVPN Server端有使用LZO compression，所以Client端也要設定
+按下「Advanced...」把「Use LZO data compression」勾選起來，按下「確定(O)」再按下「儲存(S)」
+
+設定完成之後，實際建立vpn tunnel試試看
+確認現在筆記型電腦的wlan0接口是192.168.0.0/24這個網段的IP
+anntony@anntony-Lenovo-B590 ~ $ ifconfig wlan0 | grep 'inet addr'
+          inet addr:192.168.0.12  Bcast:192.168.0.255  Mask:255.255.255.0
+
+桌面環境右下角選「VPN連線」>「tonyVPN」
+得
+VPN登錄訊息
+VPN連線已成功的
+anntony@anntony-Lenovo-B590 ~ $ ifconfig tun0
+tun0      Link encap:UNSPEC  HWaddr 00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00  
+          inet addr:10.8.0.10  P-t-P:10.8.0.9  Mask:255.255.255.255
+          UP POINTOPOINT RUNNING NOARP MULTICAST  MTU:1500  Metric:1
+          RX packets:348 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:360 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:100 
+          RX bytes:131710 (131.7 KB)  TX bytes:60185 (60.1 KB)
+
+anntony@anntony-Lenovo-B590 ~ $ 
+
+我們現在可以使用剛才產生的tony.crt、tony.key
+讓筆記型電腦成功與wr841n路由器建立vpn tunnel
+可是如果有天
+tony這個人離職了
+我不想再讓他連進我的OpenVPN Server
+這個時候就要廢止他的certificate
+作法如下
+
+
 
