@@ -2110,5 +2110,83 @@ tony這個人離職了
 這個時候就要廢止他的certificate
 作法如下
 
+root@wr841n:~# which revoke-full
+/usr/sbin/revoke-full
+root@wr841n:~# revoke-full tony
+NOTE: If you run ./clean-all, I will be doing a rm -rf on /etc/easy-rsa/keys
+Using configuration from /etc/easy-rsa/openssl-1.0.0.cnf
+Revoking Certificate 03.
+Data Base Updated
+Using configuration from /etc/easy-rsa/openssl-1.0.0.cnf
+tony.crt: C = US, ST = CA, L = SanFrancisco, O = Fort-Funston, OU = MyOrganizationalUnit, CN = tony, name = EasyRSA, emailAddress = me@myhost.mydomain
+error 23 at 0 depth lookup:certificate revoked
+root@wr841n:~# cd /etc/easy-rsa/keys/
+root@wr841n:/etc/easy-rsa/keys# ls -al|grep crl
+-rw-r--r--    1 root     root           776 Mar 23 20:31 crl.pem
+root@wr841n:/etc/easy-rsa/keys# cat ./crl.pem 
+-----BEGIN X509 CRL-----
+MIICEzCB/DANBgkqhkiG9w0BAQsFADCBtjELMAkGA1UEBhMCVVMxCzAJBgNVBAgT
+AkNBMRUwEwYDVQQHEwxTYW4GcmFuY2lzY28xFTATBgNVBAoTDEZvcnQtRnVuc3Rv
+bjEdMBsGA1UECxMUTXlPcmdhbml6YXRpb25hbFVuaXQxGDAWBgNVBAMTD0ZvcnQt
+RnVuc3RvbiBDQTEQMA4GA1UEKRMHRWFzeVJTQTEhMB8GCSqGSIb3DQEJARYSbWVA
+bXlob3N0Lm15ZG9tYWluFw0yNTAzMjMxMjMxMTlaFw0xNTA0MjIxMjMxMTlaMBQw
+EgIBAxcNMTUwMzIzMTIzMTE2WjANBgkqhkiG9w0BAQsFAAOCAQEAI9pn2in3hzIF
+SCLJb1jIVuxO9UTEmMSIHXLp2N+xm1/sYosnP85cGd2dEkNwpvd3f6ZTFaF1W+SB
+PQBLd5SD/UbiEY6Cpa4lT6n3zrc+bPIYjfx+uOLgBd3uo4e8WtvetMKj4Y5CtFDp
+arnDar4B3gwb+pEE1ZdGltlDfg6vT9ogLWTjjZqTIBe69jb42UrMsD6m3JIYttSb
+83a6gFBHsPxWIsGaQ7in/UtTNnECQkQyk0dNlPZ6Up+wTXljSlSz2nvfKTD86RSe
+vr6is9vSbmG7z4E83GN0Q3Gl8iBa9Ah+kHwoAY809aG7ohmOR8xPA9oVyRlr0NgF
+3AEA8U8n0g==
+-----END X509 CRL-----
+root@wr841n:/etc/easy-rsa/keys# vi /etc/config/openvpn
+root@wr841n:/etc/easy-rsa/keys# cat /etc/config/openvpn
 
+config openvpn 'myvpn'
+	option enabled '1'
+	option dev 'tun'
+	option proto 'udp'
+	option log '/tmp/openvpn.log'
+	option verb '3'
+	option ca '/etc/openvpn/ca.crt'
+	option cert '/etc/openvpn/my-server.crt'
+	option key '/etc/openvpn/my-server.key'
+	option server '10.8.0.0 255.255.255.0'
+	option port '1194'
+	option keepalive '10 120'
+	option dh '/etc/openvpn/dh2048.pem'
+	option push 'redirect-gateway def1'
+	option push 'comp_lzo adaptive'
+	option persist_tun '1'
+	option persist_key '1'
+	option ifconfig_pool_persist '/tmp/openvpn-ipp.txt'
+	option fast_io 'on'
+	option comp_lzo 'adaptive'
+	option 'crl_verify' '/etc/easy-rsa/keys/crl.pem'
+
+root@wr841n:/etc/easy-rsa/keys# netstat -anp|grep openvpn
+udp        0      0 0.0.0.0:1194            0.0.0.0:*                           15474/openvpn
+root@wr841n:/etc/easy-rsa/keys# /etc/init.d/openvpn restart
+root@wr841n:/etc/easy-rsa/keys# netstat -anp|grep openvpn
+udp        0      0 0.0.0.0:1194            0.0.0.0:*                           27821/openvpn
+root@wr841n:/etc/easy-rsa/keys# 
+
+現在用戶tony的certificate已經被廢止掉了
+回到筆記型電腦
+將wlan0接口設成192.168.0.0/24網段的IP之後
+再試試看能不能使用剛才的tonyVPN連線？
+會得到
+-----
+VPN連線失敗
+VPN連線「tonyVPN」失敗，因為連線的嘗試已逾時
+-----
+
+如果那天又心情好
+覺得讓tony再連進來也沒關係
+那就把
+/etc/config/openvpn設定檔的
+這一行
+option 'crl_verify' '/etc/easy-rsa/keys/crl.pem'
+給拿掉
+再重新啟動一次OpenVPN Server
+然後用戶tony又可以連進來了
 
