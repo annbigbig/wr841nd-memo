@@ -48,6 +48,7 @@ qos-scripts - 1.2.1-7
 root@wr841n:~# 
 
 ＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+3.修改/etc/config/qos設定檔
 
 預設的/etc/config/qos沒有啟用qos服務
 （option enabled 0）

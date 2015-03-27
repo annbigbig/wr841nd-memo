@@ -1,0 +1,197 @@
+10.3.2 掛載遠端檔案系統
+
+參考資料
+http://wiki.openwrt.org/doc/howto/nfs.client
+https://help.ubuntu.com/community/SettingUpNFSHowTo#Portmap_Lockdown
+http://www.cyberciti.biz/faq/centos-fedora-rhel-iptables-open-nfs-server-ports/
+http://www.tldp.org/HOWTO/NFS-HOWTO/server.html
+
+NFS Server：
+安裝環境：Ubuntu Server Linaro 14.04 on cubieboard3
+1.安裝nfs-kernel-server套件
+2.建立要分享的/export/users目錄
+3.設定/etc/exports設定檔
+4.設定/etc/hosts.deny
+5.設定/etc/hosts.allow
+6.啟動NFS Server並確認服務狀態
+7.確認每次開機都會自動啟動NFS Server
+
+NFS Client：
+安裝環境：OpenWRT trunk 44893 on wr841n router
+8.NFS Client端掛載指令
+
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+1.安裝nfs-kernel-server套件
+
+套新套件源
+# apt-get update
+
+查看系統有沒有已安裝了nfs-kernel-server套件？
+# dpkg -l | grep nfs-kernel-server
+
+安裝套件
+# apt-get install nfs-kernel-server
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+2.建立要分享的/export/users目錄
+
+root@cubietruck:~# mkdir -p /export/users
+root@cubietruck:~# chown -R root:root /export
+root@cubietruck:~# chmod -R 777 /export
+root@cubietruck:~# ls -al /export
+total 12
+drwxrwxrwx  3 root root 4096 Mar 27 22:56 .
+drwxr-xr-x 22 root root 4096 Mar 27 22:56 ..
+drwxrwxrwx  2 root root 4096 Mar 27 22:56 users
+root@cubietruck:~#
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+3.設定/etc/exports設定檔
+
+就這兩行而已
+/export       10.1.1.0/24(rw,fsid=0,insecure,no_subtree_check,async)
+/export/users 10.1.1.0/24(rw,nohide,insecure,no_subtree_check,async)
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+4.設定/etc/hosts.deny
+
+把這一行加到/etc/hosts.deny檔案的最後面
+rpcbind mountd nfsd statd lockd rquotad : ALL
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+5.設定/etc/hosts.allow
+把這一行加到/etc/hosts.allow檔案的最後面
+rpcbind mountd nfsd statd lockd rquotad : 127.0.0.1, 10.1.1.0/255.255.255.0
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+6.啟動NFS Server並確認服務狀態
+
+# /etc/init.d/nfs-kernel-server start
+# ps aux |grep nfs
+# netstat -anp|grep 2049
+# netstat -anp|grep 111
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+7.確認每次開機都會自動啟動NFS Server
+
+安裝sysv-rc-conf套件
+# apt-get install sysv-rc-conf
+
+執行它
+# sysv-rc-conf
+
+在文字設定介面裡面
+確定「nfs-kernel-server」和「rpcbind」
+在RunLevel 2345都有被選取
+按下Space鍵選取，選好之後就按q離開
+這個動作會在
+/etc/rc2.d
+/etc/rc3.d
+/etc/rc4.d
+/etc/rc5.d
+這些目錄裡面，作Symbolic Link
+
+像這樣
+root@cubietruck:/etc/rc3.d# ls -al
+total 12
+drwxr-xr-x  2 root root 4096 Mar 27 23:36 .
+drwxrwxr-x 89 root root 4096 Mar 27 23:28 ..
+-rw-r--r--  1 root root  677 Mar 13  2014 README
+lrwxrwxrwx  1 root root   17 Jan 14 16:55 S20hostapd -> ../init.d/hostapd
+lrwxrwxrwx  1 root root   27 Mar 27 22:51 S20nfs-kernel-server -> ../init.d/nfs-kernel-server
+lrwxrwxrwx  1 root root   17 Mar 27 23:36 S20rpcbind -> ../init.d/rpcbind
+lrwxrwxrwx  1 root root   15 Oct 24 15:49 S20rsync -> ../init.d/rsync
+lrwxrwxrwx  1 root root   23 Mar 14 23:26 S20smartmontools -> ../init.d/smartmontools
+lrwxrwxrwx  1 root root   19 Oct 24 15:50 S70dns-clean -> ../init.d/dns-clean
+lrwxrwxrwx  1 root root   18 Oct 24 15:49 S70pppd-dns -> ../init.d/pppd-dns
+lrwxrwxrwx  1 root root   18 Oct 24 15:42 S99ondemand -> ../init.d/ondemand
+lrwxrwxrwx  1 root root   18 Oct 24 15:42 S99rc.local -> ../init.d/rc.local
+root@cubietruck:/etc/rc3.d# 
+
+S開頭的Symbolic Link指到的服務，在開機的時候都會自動啟動
+後面的數字是啟動的順序
+S20開頭的rpcbind會優先啟動於S99的rc.local
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+(待整理)
+
+參考資料
+http://postwarrior.com/nfs-support-on-openwrt/
+
+
+# mkdir -p /mnt/nfs-share
+
+
+ Base system  --->busybox ----> Linux System Utilities ----->Support mounting NFS file systems on Linux < 2.6.23 (NEW) 
+
+> Utilities > Filesystem >  nfs-utils
+
+我中幻術了嗎？
+root@wr841n:~# mount -t nfs 10.1.1.96:/ /mnt/nfs-share
+mount: mounting 10.1.1.96:/ on /mnt/nfs-share failed: Permission denied
+root@wr841n:~# mount -t nfs 10.1.1.96:/ /mnt/nfs-share -o nolock
+mount: mounting 10.1.1.96:/ on /mnt/nfs-share failed: Permission denied
+root@wr841n:~# mount -t nfs 10.1.1.96:/export /mnt/nfs-share -o nfsvers=4 -o nolock
+mount: mounting 10.1.1.96:/export on /mnt/nfs-share failed: Protocol not supported
+root@wr841n:~# mount -t nfs 10.1.1.96:/export /mnt/nfs-share -o nolock
+root@wr841n:~# df -h
+Filesystem                Size      Used Available Use% Mounted on
+rootfs                   10.8M    796.0K     10.0M   7% /
+/dev/root                 4.0M      4.0M         0 100% /rom
+tmpfs                    29.9M    880.0K     29.0M   3% /tmp
+/dev/mtdblock3           10.8M    796.0K     10.0M   7% /overlay
+overlayfs:/overlay       10.8M    796.0K     10.0M   7% /
+tmpfs                   512.0K         0    512.0K   0% /dev
+10.1.1.96:/export        14.4G    797.1M     13.0G   6% /mnt/nfs-share
+root@wr841n:~# 
+
+
+
+真的可以寫東西進去
+root@wr841n:~# cd /mnt/nfs-share/
+root@wr841n:/mnt/nfs-share# ls -al
+drwxrwxrwx    3 root     root          4096 Mar 27 22:56 .
+drwxr-xr-x    1 root     root             0 Mar 27 23:50 ..
+drwxrwxrwx    2 root     root          4096 Mar 27 22:56 users
+root@wr841n:/mnt/nfs-share# cd users/
+root@wr841n:/mnt/nfs-share/users# ls
+root@wr841n:/mnt/nfs-share/users# ls -al
+drwxrwxrwx    2 root     root          4096 Mar 27 22:56 .
+drwxrwxrwx    3 root     root          4096 Mar 27 22:56 ..
+root@wr841n:/mnt/nfs-share/users# pwd
+/mnt/nfs-share/users
+root@wr841n:/mnt/nfs-share/users# echo "Im pica chu" > ./testfile.txt
+root@wr841n:/mnt/nfs-share/users# ls -al
+drwxrwxrwx    2 root     root          4096 Mar 28 00:58 .
+drwxrwxrwx    3 root     root          4096 Mar 27 22:56 ..
+-rw-rw-rw-    1 nobody   nogroup         12 Mar 28 00:58 testfile.txt
+root@wr841n:/mnt/nfs-share/users# cat ./testfile.txt 
+Im pica chu
+root@wr841n:/mnt/nfs-share/users# dd if=/dev/zero of=./testzero bs=1M count=16
+16+0 records in
+16+0 records out
+root@wr841n:/mnt/nfs-share/users# ls -al
+drwxrwxrwx    2 root     root          4096 Mar 28 00:59 .
+drwxrwxrwx    3 root     root          4096 Mar 27 22:56 ..
+-rw-rw-rw-    1 nobody   nogroup         12 Mar 28 00:58 testfile.txt
+-rw-rw-rw-    1 nobody   nogroup   16777216 Mar 28 00:59 testzero
+root@wr841n:/mnt/nfs-share/users# sync
+root@wr841n:/mnt/nfs-share/users# cd /root
+root@wr841n:~# umount /mnt/nfs-share
+root@wr841n:~# df -h
+Filesystem                Size      Used Available Use% Mounted on
+rootfs                   10.8M    796.0K     10.0M   7% /
+/dev/root                 4.0M      4.0M         0 100% /rom
+tmpfs                    29.9M    880.0K     29.0M   3% /tmp
+/dev/mtdblock3           10.8M    796.0K     10.0M   7% /overlay
+overlayfs:/overlay       10.8M    796.0K     10.0M   7% /
+tmpfs                   512.0K         0    512.0K   0% /dev
+root@wr841n:~# 
+
+成功掛載是
+# mount -t nfs 10.1.1.96:/export /mnt/nfs-share -o nfsvers=3 -o nolock
+# mount -t nfs 10.1.1.96:/export /mnt/nfs-share -o nolock
+這兩行的意義是完全相同的
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
