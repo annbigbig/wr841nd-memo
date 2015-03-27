@@ -1,6 +1,8 @@
 10.2.2 QoS (服務品質 Quality of Service) 相關設定
 
-參考資料
+注意：步驟1,2,3,4,5和6,7,8,9是兩組不同的Qos設定，請執行其中一組即可
+
+參考資料1
 http://wiki.openwrt.org/doc/uci/qos#quick_start_guide
 
 快速啟動：
@@ -9,6 +11,21 @@ http://wiki.openwrt.org/doc/uci/qos#quick_start_guide
 3.修改/etc/config/qos設定檔
 4.啟動qos服務
 5.設定開機自動啟動qos服務
+
+
+參考資料2：
+http://wiki.openwrt.org/doc/howto/packet.scheduler/packet.scheduler
+http://wiki.openwrt.org/doc/howto/packet.scheduler/packet.scheduler.example3
+
+另一支流量控制的shell script：
+6.如果有作完前5個步驟，先關掉並取消剛才的qos
+7.確認一下有安裝需要的套件
+8.產生/etc/tc_hfsc.sh
+9.修改/etc/rc.local
+
+
+10.查看剛才的設定是否生效？
+11.怎麼測試網路流量真的有照Qos設定的被控制呢？
 
 ＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
 1.網路測速，取得Download/Upload的連線速度數值
@@ -189,11 +206,231 @@ root@wr841n:~#
 root@wr841n:~# /etc/init.d/qos start
 root@wr841n:~# 
 
-
 ＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
 5.設定開機自動啟動qos服務
 
 root@wr841n:~# /etc/init.d/qos enable
 root@wr841n:~#
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+6.如果有作完前5個步驟，先關掉並取消剛才的qos
+
+root@wr841n:~# /etc/init.d/qos stop
+root@wr841n:~# /etc/init.d/qos disable
+root@wr841n:~# /etc/init.d/firewall restart
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+7.確認一下有安裝需要的套件
+
+root@wr841n:~# opkg list-installed | grep ipopt
+iptables-mod-ipopt - 1.4.21-1
+kmod-ipt-ipopt - 3.18.9-1
+root@wr841n:~# opkg list-installed | grep tc
+libip4tc - 1.4.21-1
+libip6tc - 1.4.21-1
+tc - 3.19.0-1
+root@wr841n:~# 
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+8.產生/etc/tc_hfsc.sh
+
+內容如下
+
+#!/bin/sh
+#
+# racTC.sh - 2-Ebenen-traffic shaping with HFSC
+# Copyright (C) 2010  rac 
+# for use with OpenWrt
+# License GPLv2
+# Version 0.4
+ 
+##############################################################
+# Variables
+TC=/usr/sbin/tc #-------- location of traffic control
+IPT=/usr/sbin/iptables #- location of iptables
+IF_WAN=eth0 #------- interface to wan
+UP_RATE=4000 #------------ 90% of available bandwidth in kilobits/sec
+DOWN_RATE=12000
+IP_USER1=10.1.1.91
+IP_USER2=10.1.1.92
+IP_USER3=10.1.1.93
+IP_SERVER=10.1.1.96
+IP_WAN=$(ifconfig|grep 'inet addr:192'|cut -d':' -f2|awk '{print $1}')
+USER1=$(($UP_RATE/4))		# 25%
+USER2=$(($UP_RATE/4))		# 25%
+USER3=$(($UP_RATE/4))		# 25%
+SERVER=$((1*$UP_RATE/10))	# 10%
+ROUTER=$((1*$UP_RATE/20))	# 5%
+ 
+MODULES=''
+ 
+##############################################################
+# status
+if [ "$1" = "status" ]; then
+	tc -s qdisc ls dev $IF_WAN
+	tc -s class ls dev $IF_WAN
+	exit
+fi
+##############################################################
+# Delete existing qdiscs (hide errors)
+$TC qdisc del dev $IF_WAN root    2> /dev/null > /dev/null
+$TC qdisc del dev $IF_WAN ingress 2> /dev/null > /dev/null
+##############################################################
+# Unload modules
+if [ "$1" = "stop" ]; then 
+	for i in $MODULES ; do
+		rmmod $i
+	done
+	exit
+fi
+##############################################################
+# Load modules
+for i in $MODULES ; do
+        insmod $i
+done
+ 
+############################################################################################################################
+# Manipulating qdiscs
+$TC qdisc del dev $IF_WAN root    2> /dev/null > /dev/null
+$TC qdisc del dev $IF_WAN ingress 2> /dev/null > /dev/null
+###
+$TC qdisc add dev $IF_WAN root       handle  1:   hfsc default 50
+$TC class add dev $IF_WAN parent 1:  classid 1:1  hfsc sc rate ${UP_RATE}kbit ul rate ${UP_RATE}kbit
+$TC class add dev $IF_WAN parent 1:1 classid 1:10 hfsc ls rate ${USER1}kbit   ul rate ${UP_RATE}kbit
+$TC class add dev $IF_WAN parent 1:1 classid 1:20 hfsc ls rate ${USER2}kbit   ul rate ${UP_RATE}kbit
+$TC class add dev $IF_WAN parent 1:1 classid 1:30 hfsc ls rate ${USER3}kbit   ul rate ${UP_RATE}kbit
+$TC class add dev $IF_WAN parent 1:1 classid 1:40 hfsc sc rate ${SERVER}kbit  ul rate ${UP_RATE}kbit
+$TC class add dev $IF_WAN parent 1:1 classid 1:50 hfsc sc rate ${ROUTER}kbit  ul rate ${UP_RATE}kbit
+##################################################################################
+# Zweite Ebene: Priorisierung : Jede User-Klasse hat ihre eigenen 3-5 Sub-Klassen:
+##################################################################################
+# echo "User 1:"
+$TC class add dev $IF_WAN parent 1:10 classid 1:101 hfsc rt m1 ${USER1}kbit d  100ms m2 $((5*$USER1/10))kbit ls m1 ${USER1}kbit d 50ms m2 $((7*$USER1/10))kbit # real time
+$TC class add dev $IF_WAN parent 1:10 classid 1:102 hfsc sc m1 0            d  100ms m2 $((4*$USER1/10))kbit # http
+$TC class add dev $IF_WAN parent 1:10 classid 1:103 hfsc sc m1 0            d 4000ms m2 $((1*$USER1/10))kbit # Bulk
+ 
+# echo "User 2:"
+$TC class add dev $IF_WAN parent 1:20 classid 1:201 hfsc rt m1 ${USER2}kbit d  100ms m2 $((5*$USER2/10))kbit ls m1 ${USER2}kbit d 50ms m2 $((7*$USER2/10))kbit # real time
+$TC class add dev $IF_WAN parent 1:20 classid 1:202 hfsc sc m1 0            d  100ms m2 $((4*$USER2/10))kbit # http
+$TC class add dev $IF_WAN parent 1:20 classid 1:203 hfsc sc m1 0            d 4000ms m2 $((1*$USER2/10))kbit # Bulk
+ 
+# echo "User 3:"
+$TC class add dev $IF_WAN parent 1:30 classid 1:301 hfsc rt m1 ${USER3}kbit d  100ms m2 $((5*$USER3/10))kbit ls m1 ${USER3}kbit d 50ms m2 $((7*$USER3/10))kbit # real time
+$TC class add dev $IF_WAN parent 1:30 classid 1:302 hfsc sc m1 0            d  100ms m2 $((4*$USER3/10))kbit # http
+$TC class add dev $IF_WAN parent 1:30 classid 1:303 hfsc sc m1 0            d 4000ms m2 $((1*$USER3/10))kbit # Bulk
+ 
+##################################################################################
+# Filter für die zweite Ebene
+##################################################################################
+# We use iptables with "-j CLASSIFY", not further filters needed
+ 
+#############################################################################
+# MANGLE
+ 
+#================================
+# POSTROUTING (Policy: ACCEPT)
+#----------------------------
+$IPT -t mangle -F
+$IPT -t mangle -X
+ 
+IPTM="$IPT -t mangle"
+IPTMOD="$IPT -t mangle -A POSTROUTING -o $IF_WAN"
+ 
+$IPTM -N TC_USER1
+$IPTM -N TC_USER2
+$IPTM -N TC_USER3
+ 
+##################################################################################
+# jump to user chain; multiple IPs possible
+$IPTMOD -s $IP_USER1  -j TC_USER1
+$IPTMOD -s $IP_USER2  -j TC_USER2
+$IPTMOD -s $IP_USER3  -j TC_USER3
+$IPTMOD -s $IP_SERVER -j CLASSIFY --set-class 1:40
+$IPTMOD -s $IP_WAN    -j CLASSIFY --set-class 1:50
+ 
+# Link-sharing implemented, thus it is in everyones own interest to not mess with TOS-Flags.
+# Packets without a classification will be dropped! Make sure to classify all.
+##################################################################################
+$IPTM -A TC_USER1 -j CLASSIFY --set-class 1:103 -m tos --tos Maximize-Throughput #- BULK
+$IPTM -A TC_USER1 -j CLASSIFY --set-class 1:103 -m tos --tos Maximize-Throughput #- BULK
+$IPTM -A TC_USER1 -j CLASSIFY --set-class 1:101 -p icmp #-------------------------- superfluous
+$IPTM -A TC_USER1 -j CLASSIFY --set-class 1:101 -m tos --tos Maximize-Reliability
+$IPTM -A TC_USER1 -j CLASSIFY --set-class 1:101 -m tos --tos Minimize-Delay
+$IPTM -A TC_USER1 -j CLASSIFY --set-class 1:101 -p udp -m length --length :412 #--- small udp
+$IPTM -A TC_USER1 -j CLASSIFY --set-class 1:101 -p tcp -m length --length :128 #--- small tcp
+$IPTM -A TC_USER1 -j CLASSIFY --set-class 1:102 -p tcp --dport 1:1024 #------------ no better idea
+$IPTM -A TC_USER1 -j CLASSIFY --set-class 1:103 #---------------------------------- default
+ 
+#################################################################################
+$IPTM -A TC_USER2 -j CLASSIFY --set-class 1:201 -m tos --tos Minimize-Delay #------- 
+$IPTM -A TC_USER2 -j CLASSIFY --set-class 1:201 -m tos --tos Maximize-Reliability #- 
+$IPTM -A TC_USER2 -j CLASSIFY --set-class 1:202 -m tos --tos Normal-Service #-------
+$IPTM -A TC_USER2 -j CLASSIFY --set-class 1:203 -m tos --tos Maximize-Throughput #--
+$IPTM -A TC_USER2 -j CLASSIFY --set-class 1:203 -m tos --tos Minimize-Cost #--------
+ 
+#################################################################################
+$IPTM -A TC_USER3 -j CLASSIFY --set-class 1:301 -m tos --tos Minimize-Delay #------- 
+$IPTM -A TC_USER3 -j CLASSIFY --set-class 1:301 -m tos --tos Maximize-Reliability #-
+$IPTM -A TC_USER3 -j CLASSIFY --set-class 1:302 -m tos --tos Normal-Service #-------
+$IPTM -A TC_USER3 -j CLASSIFY --set-class 1:303 -m tos --tos Maximize-Throughput #--
+$IPTM -A TC_USER3 -j CLASSIFY --set-class 1:303 -m tos --tos Minimize-Cost #--------
+
+
+確認一下檔案擁有人和權限值
+root@wr841n:~# chmod +x /etc/tc_hfsc.sh
+root@wr841n:~# ls -al /etc/tc_hfsc.sh 
+-rwxr-xr-x    1 root     root          6907 Mar 27 00:15 /etc/tc_hfsc.sh
+root@wr841n:~# 
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+9.修改/etc/rc.local
+
+原來的/etc/rc.local長得這樣
+# Put your custom commands here that should be executed once
+# the system init finished. By default this file does nothing.
+
+exit 0
+
+在倒數第二行的地方呼叫/etc/tc_hfsc.sh
+這樣每一次wr841n路由器重新開機的時候，都會自動執行一次這個script
+# Put your custom commands here that should be executed once
+# the system init finished. By default this file does nothing.
+/etc/tc_hfsc.sh
+exit 0
+
+為什麼把script放在這裡呼叫，是因為我試了官網教的
+產生了/etc/init.d/trafficc
+然後試著
+/etc/init.d/trafficc start
+/etc/init.d/trafficc enable
+但是完全沒屁用
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+10.查看剛才的設定是否生效？
+
+不管你是使用步驟1,2,3,4,5的第一組qos-scripts
+或是使用步驟6,7,8.9的第二組/etc/tc_hfsc.sh
+下面的指令都可以拿來檢查Qos的設定是否生效
+
+# tc -s qdisc show dev eth0
+# tc class show dev eth0
+# tc filter show dev eth0
+# iptables -nL -v -x -t mangle
+
+或是登入Luci之後，在「Status」>「Firewall」，捲到 Table:Mangle的地方看一下就知道了
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+11.怎麼測試網路流量真的有照Qos設定的被控制呢？
+
+OpenWRT官網就寫這樣
+所以我也不知道，我如果翻到其他的書有了靈感，我會補上（混）
+
+Then measure and compare latency in different situations:
+
+with minimal traffic, without QoS
+with heavy traffic and congestion, without QoS
+with minimal traffic, with QoS
+with heavy traffic and congestion, with QoS
+If you successful please share your knowledge!
 
 ＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
