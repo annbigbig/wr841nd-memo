@@ -15,11 +15,12 @@ NFS Server：
 5.設定/etc/hosts.allow
 6.啟動NFS Server並確認服務狀態
 7.確認每次開機都會自動啟動NFS Server
+8.調整Firewall規則放行NFS Client
 
 NFS Client：
 安裝環境：OpenWRT trunk 44893 on wr841n router
-8.NFS Client端掛載指令
-
+9.NFS Client端掛載指令
+10.我的OpenWRT trunk 44893固件忘了編譯進去的東西
 
 ＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
 1.安裝nfs-kernel-server套件
@@ -114,84 +115,184 @@ S開頭的Symbolic Link指到的服務，在開機的時候都會自動啟動
 S20開頭的rpcbind會優先啟動於S99的rc.local
 
 ＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
-(待整理)
+8.調整Firewall規則放行NFS Client
 
-參考資料
-http://postwarrior.com/nfs-support-on-openwrt/
+請先看到Rehdat的這一篇
+https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/6/html/Storage_Administration_Guide/s2-nfs-nfs-firewall-config.html
 
+直接捲到那一頁裡關於防火牆的重點
+Procedure 9.1. Configure a firewall to allow NFS
 
-# mkdir -p /mnt/nfs-share
+Allow TCP and UDP port 2049 for NFS.
+Allow TCP and UDP port 111 (rpcbind/sunrpc).
+Allow the TCP and UDP port specified with MOUNTD_PORT="port"
+Allow the TCP and UDP port specified with STATD_PORT="port"
+Allow the TCP port specified with LOCKD_TCPPORT="port"
+Allow the UDP port specified with LOCKD_UDPPORT="port"
 
+所以我知道除了TCP與UDP端口的111和2049
+還有別的端口也要開放
+可是因為我有點火燒屁股，沒時間去仔細研究那麼細的細節了
+所以我決定
+乾脆直接認wr841n路由器的內網subnet
+10.1.1.0/24
+只要是這個網段來的全都放行啦（混，好孩子不要學）
 
- Base system  --->busybox ----> Linux System Utilities ----->Support mounting NFS file systems on Linux < 2.6.23 (NEW) 
+以下直接列出我的Cubieboard3機器上的完整/root/firewall.sh
+如下
 
-> Utilities > Filesystem >  nfs-utils
+#!/bin/bash
+# ============ Set your network parameters here ===================================================
+iptables=/sbin/iptables
+loopback=127.0.0.1
+#local=192.168.0.161
+#lan=192.168.0.0/24
+local=10.1.1.96
+lan=10.1.1.0/24
+vpn=10.8.0.0/24
+# =================================================================================================
+$iptables -t filter -F
+$iptables -t filter -A INPUT -i lo -s $loopback -d $loopback -p all -j ACCEPT
+$iptables -t filter -A INPUT -i eth0 -s $local -d $local -p all -j ACCEPT
+$iptables -t filter -A INPUT -i eth0 -s $lan -d $local -p all -j ACCEPT
+$iptables -t filter -A INPUT -d $local -p tcp --dport 36000 --syn -m state --state NEW -j ACCEPT
+$iptables -t filter -A INPUT -d $local -p tcp --dport 80 --syn -m state --state NEW -m limit --limit 10/s --limit-burst 40 -j ACCEPT
+$iptables -t filter -A INPUT -d $local -p tcp --dport 80 --syn -m state --state NEW -j DROP
+#$iptables -t filter -A INPUT -d $local -p tcp --dport 443 --syn -m state --state NEW -m limit --limit 10/s --limit-burst 40 -j ACCEPT
+#$iptables -t filter -A INPUT -d $local -p tcp --dport 443 --syn -m state --state NEW -j DROP
+$iptables -t filter -A INPUT -p icmp --icmp-type 8 -m recent --name icmp_db --update --second 60 --hitcount 6 -j DROP
+$iptables -t filter -A INPUT -p icmp --icmp-type 8 -m recent --set --name icmp_db
+$iptables -t filter -A INPUT -s $lan -d $local -p icmp -j ACCEPT
+$iptables -t filter -A INPUT -s $vpn -d $local -p icmp -j ACCEPT
+$iptables -t filter -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+$iptables -t filter -P INPUT DROP
+$iptables -t filter -L -n --line-number
+# =================================================================================================
 
-我中幻術了嗎？
+如果測試完或是沒在用NFS Server的時候
+記得把那行放行10.1.1.0/24網段的規則拿掉，比較安全
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+9.NFS Client端掛載指令
+
+現在來到wr841n路由器
+首先建立掛載點/mnt/nfs-share空目錄
+root@wr841n:~# mkdir -p /mnt/nfs-share
+
+看看我們現在的OpenWRT固件上有什麼套件是和NFS Client有關的？
+root@wr841n:~# opkg list-installed | grep nfs
+kmod-fs-nfs - 3.18.9-1
+kmod-fs-nfs-common - 3.18.9-1
+root@wr841n:~#
+
+然後請看到OpenWRT官網關於NFS Client的這一頁
+http://wiki.openwrt.org/doc/howto/nfs.client
+
+最前面寫著需要nfs-utils這個套件
+才能掛載nfs4的分割區
+Description: Updated mount.nfs command - allows mounting nfs4 volumes
+
+所以我現在的固件沒有把這個nfs-utils編譯進來
+那麼我到底可不可以掛載剛才NFS-Server分享出來的/export目錄呢？
+實驗一下之後，下面這裡是「失敗的」mount指令
+
+你以為剛才NFS Server分享出來的/export可以用10.1.1.96:/來掛上，錯
 root@wr841n:~# mount -t nfs 10.1.1.96:/ /mnt/nfs-share
 mount: mounting 10.1.1.96:/ on /mnt/nfs-share failed: Permission denied
+
+那麼加了-o nolock可以掛嗎？不行
 root@wr841n:~# mount -t nfs 10.1.1.96:/ /mnt/nfs-share -o nolock
 mount: mounting 10.1.1.96:/ on /mnt/nfs-share failed: Permission denied
+
+我指定nfsvers=4可以掛嗎？還是不行
 root@wr841n:~# mount -t nfs 10.1.1.96:/export /mnt/nfs-share -o nfsvers=4 -o nolock
 mount: mounting 10.1.1.96:/export on /mnt/nfs-share failed: Protocol not supported
-root@wr841n:~# mount -t nfs 10.1.1.96:/export /mnt/nfs-share -o nolock
+
+上面三個指令都是「失敗的」
+接下來的兩個指令才可以順利掛載
+# mount -t nfs 10.1.1.96:/export /mnt/nfs-share -o nolock
+或是
+# mount -t nfs 10.1.1.96:/export /mnt/nfs-share -o nfsvers=3 -o nolock
+都可以，上面兩行的效力是相同的
+
+掛上了之後，可以df -h看看
 root@wr841n:~# df -h
 Filesystem                Size      Used Available Use% Mounted on
 rootfs                   10.8M    796.0K     10.0M   7% /
 /dev/root                 4.0M      4.0M         0 100% /rom
-tmpfs                    29.9M    880.0K     29.0M   3% /tmp
+tmpfs                    29.9M    744.0K     29.1M   2% /tmp
 /dev/mtdblock3           10.8M    796.0K     10.0M   7% /overlay
 overlayfs:/overlay       10.8M    796.0K     10.0M   7% /
 tmpfs                   512.0K         0    512.0K   0% /dev
-10.1.1.96:/export        14.4G    797.1M     13.0G   6% /mnt/nfs-share
+10.1.1.96:/export        14.4G    813.5M     13.0G   6% /mnt/nfs-share
 root@wr841n:~# 
 
-
-
-真的可以寫東西進去
-root@wr841n:~# cd /mnt/nfs-share/
-root@wr841n:/mnt/nfs-share# ls -al
-drwxrwxrwx    3 root     root          4096 Mar 27 22:56 .
-drwxr-xr-x    1 root     root             0 Mar 27 23:50 ..
-drwxrwxrwx    2 root     root          4096 Mar 27 22:56 users
+剛才NFS Server分享出來的/export目錄
+已經被掛在wr841n路由器的/mnt/nfs-share目錄上了
+進去/mnt/nfs-share目錄裡面，寫些東西進去試試
+root@wr841n:~# cd /mnt/nfs-share
+root@wr841n:/mnt/nfs-share# ls
+users
 root@wr841n:/mnt/nfs-share# cd users/
 root@wr841n:/mnt/nfs-share/users# ls
-root@wr841n:/mnt/nfs-share/users# ls -al
-drwxrwxrwx    2 root     root          4096 Mar 27 22:56 .
-drwxrwxrwx    3 root     root          4096 Mar 27 22:56 ..
-root@wr841n:/mnt/nfs-share/users# pwd
-/mnt/nfs-share/users
-root@wr841n:/mnt/nfs-share/users# echo "Im pica chu" > ./testfile.txt
-root@wr841n:/mnt/nfs-share/users# ls -al
-drwxrwxrwx    2 root     root          4096 Mar 28 00:58 .
-drwxrwxrwx    3 root     root          4096 Mar 27 22:56 ..
--rw-rw-rw-    1 nobody   nogroup         12 Mar 28 00:58 testfile.txt
-root@wr841n:/mnt/nfs-share/users# cat ./testfile.txt 
-Im pica chu
-root@wr841n:/mnt/nfs-share/users# dd if=/dev/zero of=./testzero bs=1M count=16
+root@wr841n:/mnt/nfs-share/users# echo "Pi Ca Chu ~~~" > testfile.txt
+root@wr841n:/mnt/nfs-share/users# dd if=/dev/zero of=./zerofile.img bs=1M count=16
 16+0 records in
 16+0 records out
 root@wr841n:/mnt/nfs-share/users# ls -al
-drwxrwxrwx    2 root     root          4096 Mar 28 00:59 .
+drwxrwxrwx    2 root     root          4096 Mar 29 00:16 .
 drwxrwxrwx    3 root     root          4096 Mar 27 22:56 ..
--rw-rw-rw-    1 nobody   nogroup         12 Mar 28 00:58 testfile.txt
--rw-rw-rw-    1 nobody   nogroup   16777216 Mar 28 00:59 testzero
-root@wr841n:/mnt/nfs-share/users# sync
-root@wr841n:/mnt/nfs-share/users# cd /root
+-rw-rw-rw-    1 nobody   nogroup         14 Mar 29 00:15 testfile.txt
+-rw-rw-rw-    1 nobody   nogroup   16777216 Mar 29 00:16 zerofile.img
+root@wr841n:/mnt/nfs-share/users# cat ./testfile.txt 
+Pi Ca Chu ~~~
+root@wr841n:/mnt/nfs-share/users# 
+
+可以，讀寫都很正常
+沒有再用到這個NFS partition的時候
+記得要缷載它
+缷載指令如下
+root@wr841n:/mnt/nfs-share/users# cd ~
+root@wr841n:~# pwd
+/root
+root@wr841n:~# sync
 root@wr841n:~# umount /mnt/nfs-share
 root@wr841n:~# df -h
 Filesystem                Size      Used Available Use% Mounted on
 rootfs                   10.8M    796.0K     10.0M   7% /
 /dev/root                 4.0M      4.0M         0 100% /rom
-tmpfs                    29.9M    880.0K     29.0M   3% /tmp
+tmpfs                    29.9M    744.0K     29.1M   2% /tmp
 /dev/mtdblock3           10.8M    796.0K     10.0M   7% /overlay
 overlayfs:/overlay       10.8M    796.0K     10.0M   7% /
 tmpfs                   512.0K         0    512.0K   0% /dev
-root@wr841n:~# 
+root@wr841n:~#
 
-成功掛載是
-# mount -t nfs 10.1.1.96:/export /mnt/nfs-share -o nfsvers=3 -o nolock
-# mount -t nfs 10.1.1.96:/export /mnt/nfs-share -o nolock
-這兩行的意義是完全相同的
+這樣子就確認已經缷載掉了
+如果忘記缷載它，就把NFS Server給關機了
+再操作wr841n終端機時，會咬住wr841n路由器的終端機
+到時候只能把wr841n給重新開機（指令reboot）才能恢復正常
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+10.我的OpenWRT trunk 44893固件忘了編譯進去的東西
+
+參考資料
+http://postwarrior.com/nfs-support-on-openwrt/
+
+我用來編譯OpenWRT固件的筆記型電腦上，執行
+anntony@anntony-Lenovo-B590 ~ $ pwd
+/home/anntony
+anntony@anntony-Lenovo-B590 ~ $ cd openwrt/trunk
+anntony@anntony-Lenovo-B590 ~/openwrt/trunk $ make menuconfig
+
+進入 .config - OpenWrt Configuration設定畫面之後
+
+有編譯進去的
+> Kernel modules > Filesystems > kmod-fs-nfs
+> Kernel modules > Filesystems > kmod-fs-nfs-common
+
+
+沒有編譯進去的（下次記得補上，不然只能用-o nfsvers=3來掛載）
+> Base system > busybox > Linux System Utilities > mount (NEW) > Support mounting NFS file systems on Linux < 2.6.23
+> Utilities > Filesystem >  nfs-utils
 
 ＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊

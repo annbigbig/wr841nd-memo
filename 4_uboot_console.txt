@@ -1,0 +1,4 @@
+4.了解u-boot console刷固件的方式
+
+TODO
+maybe someday...
