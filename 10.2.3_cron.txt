@@ -1,0 +1,58 @@
+10.2.3 設定排程工作crond
+
+參考資料
+http://wiki.openwrt.org/doc/howto/notuci.config
+
+進入Luci設定介面
+在[ System ] > [ Startup] 可以看到cron現在是Enabled（每次開機自動啟動）而且是Start的狀態
+如果沒有
+可以在這個網頁裡直接按下[ Disabled ]讓它切換到[ Enabled]
+還有手動啟動它 [ Start ] 
+或是在終端機下指令
+# /etc/init.d/cron start
+# /etc/init.d/cron enable
+
+檢查一下/var/spool/cron目錄是否存在
+root@wr841n:~# ls -al /var/spool/cron
+drwxr-xr-x    2 root     root            60 Mar 27 16:29 .
+drwxr-xr-x    3 root     root            60 Mar 27 16:29 ..
+lrwxrwxrwx    1 root     root            13 Mar 27 16:29 crontabs -> /etc/crontabs
+root@wr841n:~# 
+
+上面訊息告訴我們它存在
+如果不存在的話，請執行
+# mkdir -p /var/spool/cron
+來產生它
+
+接下來執行
+# crontab -e
+
+然後就進入vi文字編輯器
+我寫入了這一行
+47 23 * * * /usr/sbin/ntpdate pool.ntp.org
+我希望每天23:47的時候，可以執行ntpdate指令校正一下系統時間
+編輯完之後存檔，離開vi文字編輯器（按ESC鍵再:wq）
+剛才的那一行存在/etc/crontabs/root
+所以這樣看得到
+root@wr841n:/etc/crontabs# cat ./root 
+47 23 * * * /usr/sbin/ntpdate pool.ntp.org
+root@wr841n:/etc/crontabs# 
+
+或是進入Luci，在[ System ] > [ Scheduled Tasks ] 那一頁也可以看得到排程的工作
+
+然後我想要知道到底我剛才排進去的工作
+wr841n路由器有沒有真的去作？
+於是我
+root@wr841n:~# logread | grep ntpdate
+（其他不重要的ntpdate訊息略過…）
+Tue Mar 31 23:47:01 2015 cron.info crond[934]: crond: USER root pid 4592 cmd /usr/sbin/ntpdate pool.ntp.org
+root@wr841n:~# 
+
+最下面那一條23:47分，然後是由crond去執行的
+執行了/usr/sbin/ntpdate 去pool.ntp.org主機拉回了正確時間
+這樣就確定有認真在執行排程工作了
+
+除了校正時間
+我暫時想不出需要把什麼工作給排程，讓它定期被執行
+大概先這樣，想到會補上來
+
