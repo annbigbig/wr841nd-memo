@@ -26,22 +26,99 @@ A3：如果只需要小規模的修改，例如重新設置root用戶的密碼�
 
 
 Q4：如何讓wr841n路由器進入FailSafe模式？
-A4：進入FailSafe 5個步驟
+A4：進入FailSafe 4個步驟
 
-1.路由器準備：斷電，並且把wan接口的那條網線拔掉，官網教程寫著如果不拔wan接口網線，無法進入FailSafe模式
+1.路由器準備：斷電，並且把wan接口的那條網線拔掉，官網教程寫著如果不拔wan接口網線，
+     無法進入FailSafe模式，然後拿一條網路線插在Lan任一個接口和電腦對接
 2.電腦IP設定：只要是192.168.1.0/24網段的IP都可以，進入FailSafe之後，路由器會是192.168.1.1，所以你的電腦可以設定成192.168.1.2
-3.觸發FailSafe模式
+3.觸發FailSafe模式，兩種方法二選一，盡量用3.1正常人的方法
      3.1（正常人）依路由器燈號觸發FailSafe模式：
-               打開路由器電源，看見燈號閃呀閃，然後按下路由器上的reset鈕，接著燈號閃得很快，這說明已進入FailSafe模式
+               打開路由器電源，看見燈號閃呀閃，然後按下路由器上的reset鈕，（間隔一秒我共按了五次）
+               接著左邊數來第二個燈閃得很快，且持續著一直閃動，這說明已進入FailSafe模式
      3.2 （非正常人）依路由器發出的broadcast packet觸發FailSafe模式：
-               打開筆記型電腦上的封包擷取軟體，像是wireshark，
-               盯著eth0接口收到的udp端口4919廣播封包的那個moment立刻按下路由器上的reset鍵
+               打開筆記型電腦上的終端機，以root身分執行
+               # tcpdump -Ani eth0 port 4919 and udp
+               然後打開wr841n路由器的電源，上面的tcpdump工具會盯著eth0接口，
+               在收到的udp端口4919廣播封包的那個moment，終端機會發出訊息通知你「現在立刻按下路由器上的reset鍵快快快啊」
+               實際的終端機輸出如下：
+               anntony-Lenovo-B590 ~ # tcpdump -Ani eth0 port 4919 and udp
+               tcpdump: verbose output suppressed, use -v or -vv for full protocol decode
+               listening on eth0, link-type EN10MB (Ethernet), capture size 65535 bytes
+               （應該有一行Please press the button now to enter failsafe...的提示訊息，
+               但是一直等不到，就這樣boot into normal mode...也許wr841n無法使用3.2的方法進入FailSafe模式）
 
      注意事項：有可能路由器上有很多顆按鈕，如果其中一顆你試了之後發現它不是reset鈕，就試按另一顆
+     有的reset按鈕在路由器的前面，有的在後面，也可能是凹進去的，要拿根退片針之類的東西才插得到
      還有按的次數可能一下可能很多下，每家路由器可能不會相同，自已試試看
 
 4.於FailSafe模式裡，登入路由器：執行telnet 192.168.1.1，預設不需要用戶名和密碼就能以root身分登入
 
 
-Q5：進入FailSafe模式了，也telnet登入了，啊然後哩？
-A5：明天會繼續寫，敬請期待
+Q5：請示範一下進入FailSafe模式之後，可能的修復動作
+A5：如下
+打開wr841n路由器電源約兩秒後，間隔一秒共按了5次reset鍵之後
+wr841n路由器的左邊數來第二顆燈號持續閃動，提示已經進入FailSafe模式
+我們從筆記型電腦上telnet連線進去，無需輸入用戶名及密碼
+
+anntony-Lenovo-B590 ~ # telnet 192.168.1.1
+Trying 192.168.1.1...
+Connected to 192.168.1.1.
+Escape character is '^]'.
+
+ === IMPORTANT ============================
+  Use 'passwd' to set your login password
+  this will disable telnet and enable SSH
+ ------------------------------------------
+
+
+BusyBox v1.22.1 (2015-03-20 02:02:26 CST) built-in shell (ash)
+Enter 'help' for a list of built-in commands.
+
+  _______                     ________        __
+ |       |.-----.-----.-----.|  |  |  |.----.|  |_
+ |   -   ||  _  |  -__|     ||  |  |  ||   _||   _|
+ |_______||   __|_____|__|__||________||__|  |____|
+          |__| W I R E L E S S   F R E E D O M
+ -----------------------------------------------------
+ CHAOS CALMER (Bleeding Edge, r44893)
+ -----------------------------------------------------
+  * 1 1/2 oz Gin            Shake with a glassful
+  * 1/4 oz Triple Sec       of broken ice and pour
+  * 3/4 oz Lime Juice       unstrained into a goblet.
+  * 1 1/2 oz Orange Juice
+  * 1 tsp. Grenadine Syrup
+ -----------------------------------------------------
+================= FAILSAFE MODE active ================
+special commands:
+* firstboot          reset settings to factory defaults
+* mount_root     mount root-partition with config files
+
+after mount_root:
+* passwd                         change root's password
+* /etc/config               directory with config files
+
+for more help see:
+http://wiki.openwrt.org/doc/howto/generic.failsafe
+=======================================================
+
+root@(none):/# 
+
+會看到這樣的畫面，和平常ssh連線進去看到的/etc/banner的有些不同，多提示了一些訊息
+如果這個時候什麼都不想作，只是鄉民進來看看而已，就執行
+# reboot -f
+路由器重新開機之後，然後一切又恢復到之前的你已經改了很多東西又安裝了很多套件的那個狀態
+
+如果你想要把root用戶的密碼改掉，就執行
+# mount_root
+# passwd
+# reboot -f
+
+如果你想要修改防火牆規則，就執行
+# mount_root
+# vi /etc/config/firewall
+# reboot -f
+
+如果你想要把整個JFFS2 partition都清空，回到剛刷上固件的那個最乾淨的狀態，就執行
+# mount_root
+# firstboot
+# reboot -f

@@ -1,0 +1,54 @@
+
+config dnsmasq
+	option domainneeded '1'
+	option boguspriv '1'
+	option localise_queries '1'
+	option rebind_protection '1'
+	option rebind_localhost '1'
+	option local '/lan/'
+	option domain 'lan'
+	option expandhosts '1'
+	option authoritative '1'
+	option readethers '1'
+	option leasefile '/tmp/dhcp.leases'
+	option resolvfile '/tmp/resolv.conf.auto'
+	option localservice '1'
+
+config dhcp 'lan'
+	option interface 'lan'
+	option dynamicdhcp 0
+	option start '100'
+	option limit '150'
+	option leasetime '12h'
+	option dhcpv6 'server'
+	option ra 'server'
+	option ra_management '1'
+
+config dhcp 'wan'
+	option interface 'wan'
+	option ignore '1'
+
+config odhcpd 'odhcpd'
+	option maindhcp '0'
+	option leasefile '/tmp/hosts/odhcpd'
+	option leasetrigger '/usr/sbin/odhcpd-update'
+
+config host
+	option name 'LenovoB590'
+	option mac '54:ee:75:09:dc:3e 9c:d2:1e:f1:0a:53'
+	option ip '10.1.1.91'
+
+config host
+	option name 'Cs918II'
+	option mac '98:3b:16:fc:a1:19'
+	option ip '10.1.1.92'
+
+config host
+	option name 'FakePSP'
+	option mac '00:13:ef:40:76:35'
+	option ip '10.1.1.93'
+
+config host
+	option name 'Cubieboard3'
+	option mac '02:cc:02:42:95:d3'
+	option ip '10.1.1.96'
