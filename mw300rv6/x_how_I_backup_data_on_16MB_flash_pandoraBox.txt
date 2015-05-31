@@ -1,0 +1,226 @@
+anntony@anntony-Lenovo-B590 ~ $ ssh root@192.168.1.1
+The authenticity of host '192.168.1.1 (192.168.1.1)' can't be established.
+RSA key fingerprint is 81:cf:a8:e8:e1:62:43:94:6c:82:63:47:43:30:95:4f.
+Are you sure you want to continue connecting (yes/no)? yes
+Warning: Permanently added '192.168.1.1' (RSA) to the list of known hosts.
+root@192.168.1.1's password: 
+
+
+BusyBox v1.22.1 (2014-09-02 11:58:19 CST) built-in shell (ash)
+Enter 'help' for a list of built-in commands.
+
+
+  _______________________________________________________________ 
+ |    ____                 _                 ____               |
+ |   |  _ \ __ _ _ __   __| | ___  _ __ __ _| __ )  _____  __   |
+ |   | |_) / _` | '_ \ / _` |/ _ \| '__/ _` |  _ \ / _ \ \/ /   |
+ |   |  __/ (_| | | | | (_| | (_) | | | (_| | |_) | (_) >  <    |
+ |   |_|   \__,_|_| |_|\__,_|\___/|_|  \__,_|____/ \___/_/\_\   |
+ |                                                              |
+ |                  PabdoraBox SDK Plantform                    |
+ |                    Copyright 2013-2014                       |
+ |             D-Team Technology Co.,Ltd. ShenZhen              |
+ |______________________________________________________________|
+  Base on OpenWrt BARRIER BREAKER (14.09, r61)
+[root@PandoraBox:/root]#cat /proc/mtd
+dev:    size   erasesize  name
+mtd0: 00030000 00010000 "u-boot"
+mtd1: 00010000 00010000 "u-boot-env"
+mtd2: 00010000 00010000 "Factory"
+mtd3: 01000000 00010000 "fullflash"
+mtd4: 00fb0000 00010000 "firmware"
+mtd5: 00110000 00010000 "kernel"
+mtd6: 00ea0000 00010000 "rootfs"
+mtd7: 00b00000 00010000 "rootfs_data"
+[root@PandoraBox:/root]#cd /tmp
+[root@PandoraBox:/tmp]#df -h
+Filesystem                Size      Used Available Use% Mounted on
+rootfs                   11.0M    412.0K     10.6M   4% /
+/dev/root                 3.8M      3.8M         0 100% /rom
+tmpfs                    30.2M    416.0K     29.8M   1% /tmp
+/dev/mtdblock7           11.0M    412.0K     10.6M   4% /overlay
+overlayfs:/overlay       11.0M    412.0K     10.6M   4% /
+tmpfs                   512.0K         0    512.0K   0% /dev
+[root@PandoraBox:/tmp]#dd if=/dev/mtd0 of=u-boot.bin
+384+0 records in
+384+0 records out
+[root@PandoraBox:/tmp]#dd if=/dev/mtd1 of=u-boot-env.bin
+128+0 records in
+128+0 records out
+[root@PandoraBox:/tmp]#dd if=/dev/mtd2 of=Factory.bin
+128+0 records in
+128+0 records out
+[root@PandoraBox:/tmp]#dd if=/dev/mtd3 of=fullflash.bin
+32768+0 records in
+32768+0 records out
+[root@PandoraBox:/tmp]#dd if=/dev/mtd4 of=firmware.bin
+dd: writing 'firmware.bin': No space left on device
+27601+0 records in
+27600+0 records out
+[root@PandoraBox:/tmp]#df -h
+Filesystem                Size      Used Available Use% Mounted on
+rootfs                   11.0M    412.0K     10.6M   4% /
+/dev/root                 3.8M      3.8M         0 100% /rom
+tmpfs                    30.2M     30.2M         0 100% /tmp
+/dev/mtdblock7           11.0M    412.0K     10.6M   4% /overlay
+overlayfs:/overlay       11.0M    412.0K     10.6M   4% /
+tmpfs                   512.0K         0    512.0K   0% /dev
+[root@PandoraBox:/tmp]#ls -al
+drwxrwxrwt   14 root     root           540 May 30 10:32 .
+drwxr-xr-x    1 root     root             0 Jan  1  1970 ..
+drwx------    2 root     root            40 Sep  4  2014 .uci
+-rw-r--r--    1 root     root         65536 May 30 10:31 Factory.bin
+-rw-r--r--    1 root     root             0 Sep  4  2014 MT7612.dat
+-rw-r--r--    1 root     root          3968 Sep  4  2014 RT2860.dat
+-rw-r--r--    1 root     root             6 Sep  4  2014 TZ
+-rw-r--r--    1 root     root            65 May 30 10:03 dhcp.leases
+drwxr-xr-x    2 root     root            40 Sep  4  2014 dnsmasq.d
+drwxr-xr-x    2 root     root            80 Sep  4  2014 etc
+drwxr-xr-x    2 root     root            40 Jan  1  1970 extroot
+-rw-r--r--    1 root     root      14131200 May 30 10:32 firmware.bin
+-rw-r--r--    1 root     root      16777216 May 30 10:31 fullflash.bin
+drwxr-xr-x    2 root     root            80 May 30 10:03 hosts
+drwxr-xr-x    3 root     root            60 Sep  4  2014 lib
+drwxr-xr-x    2 root     root            40 Jan  1  1970 lock
+drwxr-xr-x    2 root     root            80 Sep  4  2014 log
+-rw-------    1 root     root         67707 May 30 10:11 luci-indexcache
+drwxr-xr-x    2 root     root           580 May 30 10:11 luci-modulecache
+drwxr-xr-x    2 root     root            40 Jan  1  1970 overlay
+-rw-r--r--    1 root     root            32 Sep  4  2014 resolv.conf
+-rw-r--r--    1 root     root            81 Sep  4  2014 resolv.conf.auto
+drwxr-xr-x    2 root     root           240 Sep  4  2014 run
+drwxr-xr-x    2 root     root            80 Sep  4  2014 state
+-rw-r--r--    1 root     root         65536 May 30 10:30 u-boot-env.bin
+-rw-r--r--    1 root     root        196608 May 30 10:30 u-boot.bin
+-rw-r--r--    1 root     root            17 Sep  4  2014 wifi_encryption_ra0.dat
+[root@PandoraBox:/tmp]#after coping *.bin to laptop computer ...
+-ash: after: not found
+[root@PandoraBox:/tmp]#rm Factory.bin 
+[root@PandoraBox:/tmp]#rm firmware.bin 
+[root@PandoraBox:/tmp]#rm fullflash.bin 
+[root@PandoraBox:/tmp]#rm u-boot-env.bin 
+[root@PandoraBox:/tmp]#rm u-boot.bin 
+[root@PandoraBox:/tmp]#df -h
+Filesystem                Size      Used Available Use% Mounted on
+rootfs                   11.0M    412.0K     10.6M   4% /
+/dev/root                 3.8M      3.8M         0 100% /rom
+tmpfs                    30.2M    416.0K     29.8M   1% /tmp
+/dev/mtdblock7           11.0M    412.0K     10.6M   4% /overlay
+overlayfs:/overlay       11.0M    412.0K     10.6M   4% /
+tmpfs                   512.0K         0    512.0K   0% /dev
+[root@PandoraBox:/tmp]#dd if=/dev/mtd4 of=firmware.bin
+32128+0 records in
+32128+0 records out
+[root@PandoraBox:/tmp]#dd if=/dev/mtd5 of=kernel.bin
+2176+0 records in
+2176+0 records out
+[root@PandoraBox:/tmp]#dd if=/dev/mtd6 of=rootfs.bin
+dd: writing 'rootfs.bin': No space left on device
+26705+0 records in
+26704+0 records out
+[root@PandoraBox:/tmp]#dd if=/dev/mtd7 of=rootfs_data.bin
+dd: writing 'rootfs_data.bin': No space left on device
+1+0 records in
+0+0 records out
+[root@PandoraBox:/tmp]#ls -al|grep bin
+-rw-r--r--    1 root     root      16449536 May 30 10:42 firmware.bin
+-rw-r--r--    1 root     root       1114112 May 30 10:43 kernel.bin
+-rw-r--r--    1 root     root      13672448 May 30 10:43 rootfs.bin
+-rw-r--r--    1 root     root             0 May 30 10:44 rootfs_data.bin
+[root@PandoraBox:/tmp]#rm -rf ./rootfs.bin
+[root@PandoraBox:/tmp]#rm -rf ./rootfs_data.bin 
+[root@PandoraBox:/tmp]#after coping *.bin to laptop computer
+-ash: after: not found
+[root@PandoraBox:/tmp]#rm -rf ./firmware.bin 
+[root@PandoraBox:/tmp]#rm -rf ./kernel.bin 
+[root@PandoraBox:/tmp]#df -h
+Filesystem                Size      Used Available Use% Mounted on
+rootfs                   11.0M    412.0K     10.6M   4% /
+/dev/root                 3.8M      3.8M         0 100% /rom
+tmpfs                    30.2M    416.0K     29.8M   1% /tmp
+/dev/mtdblock7           11.0M    412.0K     10.6M   4% /overlay
+overlayfs:/overlay       11.0M    412.0K     10.6M   4% /
+tmpfs                   512.0K         0    512.0K   0% /dev
+[root@PandoraBox:/tmp]#dd if=/dev/mtd6 of=rootfs.bin
+29952+0 records in
+29952+0 records out
+[root@PandoraBox:/tmp]#after coping *.bin to laptop computer
+-ash: after: not found
+[root@PandoraBox:/tmp]#rm -rf ./rootfs.bin 
+[root@PandoraBox:/tmp]#df -h
+Filesystem                Size      Used Available Use% Mounted on
+rootfs                   11.0M    412.0K     10.6M   4% /
+/dev/root                 3.8M      3.8M         0 100% /rom
+tmpfs                    30.2M    416.0K     29.8M   1% /tmp
+/dev/mtdblock7           11.0M    412.0K     10.6M   4% /overlay
+overlayfs:/overlay       11.0M    412.0K     10.6M   4% /
+tmpfs                   512.0K         0    512.0K   0% /dev
+[root@PandoraBox:/tmp]#dd if=/dev/mtd7 of=rootfs_data.bin
+22528+0 records in
+22528+0 records out
+[root@PandoraBox:/tmp]#after coping *.bin to laptop computer
+-ash: after: not found
+[root@PandoraBox:/tmp]#rm -rf ./rootfs_data.bin 
+[root@PandoraBox:/tmp]#df -h
+Filesystem                Size      Used Available Use% Mounted on
+rootfs                   11.0M    412.0K     10.6M   4% /
+/dev/root                 3.8M      3.8M         0 100% /rom
+tmpfs                    30.2M    416.0K     29.8M   1% /tmp
+/dev/mtdblock7           11.0M    412.0K     10.6M   4% /overlay
+overlayfs:/overlay       11.0M    412.0K     10.6M   4% /
+tmpfs                   512.0K         0    512.0K   0% /dev
+[root@PandoraBox:/tmp]#
+[root@PandoraBox:/tmp]#ifconfig
+br-lan    Link encap:Ethernet  HWaddr 00:0C:43:76:20:77  
+          inet addr:192.168.1.1  Bcast:192.168.1.255  Mask:255.255.255.0
+          inet6 addr: fe80::20c:43ff:fe76:2077/64 Scope:Link
+          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+          RX packets:58154 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:127651 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:0 
+          RX bytes:11041683 (10.5 MiB)  TX bytes:122150935 (116.4 MiB)
+
+eth2      Link encap:Ethernet  HWaddr 00:0C:43:76:20:77  
+          inet6 addr: fe80::20c:43ff:fe76:2077/64 Scope:Link
+          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+          RX packets:129706 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:29827 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:1000 
+          RX bytes:48268749 (46.0 MiB)  TX bytes:9849022 (9.3 MiB)
+          Interrupt:3 
+
+eth2.1    Link encap:Ethernet  HWaddr 00:0C:43:76:20:77  
+          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+          RX packets:0 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:1096 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:0 
+          RX bytes:0 (0.0 B)  TX bytes:91477 (89.3 KiB)
+
+eth2.2    Link encap:Ethernet  HWaddr 00:0C:43:76:20:78  
+          inet addr:192.168.0.11  Bcast:192.168.0.255  Mask:255.255.255.0
+          inet6 addr: fe80::20c:43ff:fe76:2078/64 Scope:Link
+          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+          RX packets:129706 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:28727 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:0 
+          RX bytes:45934041 (43.8 MiB)  TX bytes:9757097 (9.3 MiB)
+
+lo        Link encap:Local Loopback  
+          inet addr:127.0.0.1  Mask:255.0.0.0
+          inet6 addr: ::1/128 Scope:Host
+          UP LOOPBACK RUNNING  MTU:65536  Metric:1
+          RX packets:184 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:184 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:0 
+          RX bytes:13952 (13.6 KiB)  TX bytes:13952 (13.6 KiB)
+
+ra0       Link encap:Ethernet  HWaddr 00:0C:43:76:20:40  
+          inet6 addr: fe80::20c:43ff:fe76:2040/64 Scope:Link
+          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+          RX packets:58958 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:88688 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:1000 
+          RX bytes:13087640 (12.4 MiB)  TX bytes:103403847 (98.6 MiB)
+          Interrupt:4 
+
+[root@PandoraBox:/tmp]#

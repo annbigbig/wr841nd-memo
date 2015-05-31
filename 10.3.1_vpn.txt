@@ -28,6 +28,7 @@ DIAGRAM s1: [client]– {Internet} –WAN iface-||firewall||-[OpenWrt router]-LA
      10.3.1.10 實驗 - 那麼建立vpn tunnel之後，可以連入wr841n內網嗎？怎麼設定？
      10.3.1.11 可以正常工作的/etc/config/openvpn
      10.3.1.12 可以正常工作的/etc/config/firewall
+     10.3.1.13 多個人類用戶同時使用一個openvpn帳號登入服務器
 
 進階篇
      10.3.1.13 Use-Case 1: Private Channel to the OpenWrt Router
@@ -2190,3 +2191,20 @@ option 'crl_verify' '/etc/easy-rsa/keys/crl.pem'
 再重新啟動一次OpenVPN Server
 然後用戶tony又可以連進來了
 
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+10.3.1.13 多個人類用戶同時使用一個openvpn帳號登入服務器
+
+參考資料
+http://serverfault.com/questions/128132/can-generated-openvpn-keys-be-used-on-multiple-clients/128164#128164
+http://serverfault.com/questions/104154/why-is-duplicate-cn-not-recommended-in-openvpn
+
+修改路由器的openvpn設定檔
+# vi /etc/config/openvpn
+
+加上這個選項
+option duplicate_cn 1
+
+改好之後重新啟動openvpn服務器
+/etc/init.d/openvpn restart
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊

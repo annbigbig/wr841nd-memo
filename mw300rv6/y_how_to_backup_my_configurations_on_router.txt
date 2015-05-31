@@ -1,0 +1,36 @@
+Q:要怎麼備份路由器設定？
+
+A:參考資料
+
+(這一頁的最下面)
+http://wiki.openwrt.org/doc/howto/generic.backup
+
+
+可以透過Luci介面來備份
+在
+System > Backup / Flash Firmware
+
+或是ssh登入路由器之後
+這樣操作
+root@mw300rv6:/tmp# ls -al|grep back
+root@mw300rv6:/tmp# sysupgrade --create-backup /tmp/backup-`cat /proc/sys/kernel/hostname`-`date +%F`.tar.gz; ls /tmp/backup*
+Saving config files...
+/tmp/backup-mw300rv6-2015-05-31.tar.gz
+root@mw300rv6:/tmp# ls -al|grep back
+-rw-r--r--    1 root     root         18230 May 31 16:52 backup-mw300rv6-2015-05-31.tar.gz
+root@mw300rv6:/tmp# 
+
+這樣就在路由器的/tmp目錄，產生了備份
+檔名是
+backup-mw300rv6-2015-05-31.tar.gz
+
+然後再回筆記型電腦的終端機
+用scp指令，把路由器上的這個備份檔複製下來
+anntony@anntony-Lenovo-B590 ~ $ cd /tmp
+anntony@anntony-Lenovo-B590 /tmp $ ls -al|grep backup
+anntony@anntony-Lenovo-B590 /tmp $ scp -P 35000 -i ~/.ssh/tonychacha@10.1.1.1 tonychacha@10.1.1.1:/tmp/backup-mw300rv6-2015-05-31.tar.gz .
+backup-mw300rv6-2015-05-31.tar.gz                                                                             100%   18KB  17.8KB/s   00:00    
+anntony@anntony-Lenovo-B590 /tmp $ 
+
+
+
