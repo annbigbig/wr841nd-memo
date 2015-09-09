@@ -1,0 +1,52 @@
+從淘寶買來的這三台MW300Rv6
+請自已進入不死uboot的httpd刷機控制台 (網頁介面) 看看
+怎麼進去呢？
+拔掉路由器的電源
+讓它關機之後
+按著reset鍵不要放
+然後把電源線插回去
+看著燈號
+等到全部的燈都閃了一下之後
+差不多就可以鬆開reset鍵了
+筆記型電腦開dhcp client
+用網路線接MW300Rv6的Lan任何一個接口
+然後打開瀏覽器連
+http://192.168.1.1
+就會看到左邊有一個修改Mac Address的功能
+請把wlan那個 (不是真的wlan)
+Mac Address
+改成路由器的外殼底部印刷的那個Mac Address
+那是水星原廠給的Mac Address
+這個Mac Address會當成Lan接口的來用
+至於Wan接口的Mac Address不用設定
+規則是固件會將你輸入的這個水星原廠Mac Address加上1來使用
+
+還有不要忘了
+備份OpenWRT的設定檔的時候
+居然在/etc/config/network
+會把覆寫mac address的設定一起備份下來
+像這樣
+config interface 'lan'
+	option ifname 'eth0.1'
+	option force_link '1'
+	option type 'bridge'
+	option proto 'static'
+	option netmask '255.255.255.0'
+	option ip6assign '60'
+	option macaddr '00:0c:43:76:20:40'
+	option dns '168.95.1.1 168.95.192.1 8.8.8.8 8.8.4.4'
+	option ipaddr '10.1.1.1'
+
+config interface 'wan'
+	option ifname 'eth0.2'
+	option proto 'dhcp'
+	option macaddr '00:0c:43:76:20:41'
+
+請把option macaddr的那2行
+換成你實際的Mac Address
+接口lan的Mac Address是路由器底部那一個水星出廠預設值
+然後接口wan的Mac Address是上面那個Mac Address再加1
+改好Mac Address之後
+再執行
+# reboot
+指令重新開機

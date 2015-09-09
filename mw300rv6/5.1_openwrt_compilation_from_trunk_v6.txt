@@ -1,0 +1,558 @@
+5.1 編譯16MB Flash專用的OpenWRT firmware
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+＊＊ v5開始的筆記，記錄的是編譯Asus RT-N14U固件的流程
+＊＊ v6：記錄日期2015-09-08，編譯trunk
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+參考資料：
+http://wiki.openwrt.org/zh-tw/doc/howto/build#清除
+http://coderazzi.net/howto/openwrt/tl841n/install.htm
+http://m.oschina.net/blog/282141
+http://my.oschina.net/osbin/blog/278782
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+編譯環境：運行X86_64版本的Linux Mint 17，筆記型電腦
+anntony-Lenovo-B590 ~ # uname -a
+Linux anntony-Lenovo-B590 3.13.0-24-generic #47-Ubuntu SMP Fri May 2 23:30:00 UTC 2014 x86_64 x86_64 x86_64 GNU/Linux
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+工作列表：
+     5.1.1 使用git拉下trunk分支的OpenWRT源代碼
+     5.1.2 看一下 README 寫什麼
+     5.1.3 確認編譯固件所需的依賴套件是否全裝上了？
+     5.1.4 更新feeds
+     5.1.6 修改固件預設的環境配置
+          5.1.6.1 預設的Lan IP
+          5.1.6.2 預設的無線網路配置
+          5.1.6.3 預設的主機名、時區、ntp校時服務器
+          5.1.6.4 預設的語言環境
+     5.1.7 進入make menuconfig 設定畫面
+     5.1.8 開始編譯
+     5.1.9 編譯好的影像檔在那兒？
+     5.1.10 雜記：編譯過程中產生的一些訊息
+     5.1.11 少安裝的套件，下次補上
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+細節：
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+5.1.1 使用git拉下trunk分支的OpenWRT源代碼
+
+確認一下你已經安裝好git了
+$ which git
+
+已經安裝好的話，就會看到終端機回答
+/usr/bin/git
+
+如果沒有安裝，請切換到root用戶，安裝
+$ sudo -i
+# apt-get install git
+
+待會的動作都是用一般用戶的身分執行，問一下終端機我是誰？
+$ whoami
+
+終端機說我是
+anntony
+
+切換到我的家目錄/home/anntony
+$ cd /home/anntony
+
+新增一個openwrt目錄
+$ mkdir openwrt
+
+進入該目錄
+$ cd openwrt
+
+問卦一下我人現在在那裡？
+$ pwd
+
+終端機告訴我
+/home/anntony/openwrt
+
+接著在這個目錄裡，把openwrt的源代碼拉下來
+先看一下OpenWRT官方的GetSource的網頁
+https://dev.openwrt.org/wiki/GetSource
+
+有很多版本，有trunk、有14.07 Barrier Breaker、有12.09 Attitude Adjustment
+我們去拉主要的開發分支trunk，執行
+$ git clone git://git.openwrt.org/openwrt.git
+
+如果這裡拉不下來source
+可以改下這個指令，到github上面去拉
+$ git clone https://github.com/openwrt-mirror/openwrt
+
+終端機輸出了
+Cloning into 'openwrt'...
+remote: Counting objects: 320092, done.
+remote: Compressing objects: 100% (86852/86852), done.
+remote: Total 320092 (delta 220071), reused 318771 (delta 219174)
+Receiving objects: 100% (320092/320092), 112.64 MiB | 1.65 MiB/s, done.
+Resolving deltas: 100% (220071/220071), done.
+Checking connectivity... done.
+Checking out files: 100% (7024/7024), done.
+anntony@anntony-Lenovo-B590 ~/openwrt $
+
+作到這裡，git為我把openwrt的代碼repository拉下來，放在
+/home/anntony/openwrt/openwrt
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+5.1.2 看一下 README 寫什麼
+
+原諒我這個懶鬼
+This is the buildsystem for the OpenWrt Linux distribution.
+
+Please use "make menuconfig" to configure your appreciated
+configuration for the toolchain and firmware.
+
+You need to have installed gcc, binutils, bzip2, flex, python, perl, make,
+find, grep, diff, unzip, gawk, getopt, subversion, libz-dev and libc headers.
+
+Run "./scripts/feeds update -a" to get all the latest package definitions
+defined in feeds.conf / feeds.conf.default respectively
+and "./scripts/feeds install -a" to install symlinks of all of them into
+package/feeds/.
+
+Use "make menuconfig" to configure your image.
+
+Simply running "make" will build your firmware.
+It will download all sources, build the cross-compile toolchain, 
+the kernel and all choosen applications.
+
+You can use "scripts/flashing/flash.sh" for remotely updating your embedded
+system via tftp.
+
+The OpenWrt system is documented in docs/. You will need a LaTeX distribution
+and the tex4ht package to build the documentation. Type "make -C docs/" to build it.
+
+To build your own firmware you need to have access to a Linux, BSD or MacOSX system
+(case-sensitive filesystem required). Cygwin will not be supported because of
+the lack of case sensitiveness in the file system.
+
+
+Sunshine!
+	Your OpenWrt Project
+	http://openwrt.org
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+5.1.3 確認編譯固件所需的依賴套件是否全裝上了？
+
+上面的README裡寫著
+You need to have installed gcc, binutils, bzip2, flex, python, perl, make,
+find, grep, diff, unzip, gawk, getopt, subversion, libz-dev and libc headers.
+
+所以打開Synaptic套件管理員
+一個一個把它們裝上去
+如果不小心漏了也沒關係
+之後的步驟裡如果發現編譯平台上少安裝了什麼套件或是lib
+會發出警告訊息，明確告訴你少安裝了什麼套件
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+ 5.1.4 更新feeds
+
+anntony@anntony-Lenovo-B590 ~/openwrt $ cd openwrt
+anntony@anntony-Lenovo-B590 ~/openwrt/openwrt $ pwd
+/home/anntony/openwrt/openwrt
+anntony@anntony-Lenovo-B590 ~/openwrt/openwrt $ ls
+BSDmakefile  config  Config.in  docs  feeds.conf.default  include  LICENSE  Makefile  package  README  rules.mk  scripts  target  toolchain  tools
+anntony@anntony-Lenovo-B590 ~/openwrt/openwrt $ ./scripts/feeds update -a
+（終端機輸出很長，不放上，大致上是執行git去拉一些放在github上的依賴套件的源碼repo）
+anntony@anntony-Lenovo-B590 ~/openwrt/openwrt $ ./scripts/feeds install -a
+（一樣終端機輸出很長，不放上）
+
+我有點在意的是，在執行了上面的指令
+$ ./scripts/feeds install -a
+之後
+出現了很多的WARNING訊息，像是
+WARNING: No feed for package 'freeradius-client' found, maybe it's already part of the standard packages?
+WARNING: No feed for package 'libedit' found, maybe it's already part of the standard packages?
+WARNING: No feed for package 'libsqlite2' found, maybe it's already part of the standard packages?
+WARNING: No feed for package 'libedit' found, maybe it's already part of the standard packages?
+WARNING: No feed for package 'libsqlite2' found, maybe it's already part of the standard packages?
+WARNING: No feed for package 'libedit' found, maybe it's already part of the standard packages?
+WARNING: No feed for package 'libsqlite2' found, maybe it's already part of the standard packages?
+
+一狗串，可是最後幾行的地方終端機輸出的訊息像這樣
+Installing package 'freenetconfd' from management
+Installing package 'freenetconfd-plugin-examples' from management
+Installing package 'freesub' from management
+Installing package 'libnetconf' from management
+Installing package 'libssh' from management
+Installing package 'shtool' from management
+Installing all packages from feed targets.
+anntony@anntony-Lenovo-B590 ~/openwrt/openwrt $ 
+
+感覺好像沒關係，繼續弄下去就知道了
+如果真的有問題，那麼要不是沒辦法編譯出
+openwrt-ramips-mt7620-rt-n14u-squashfs-sysupgrade.bin
+要不就是編譯出來的影像檔，刷進ROM裡有問題
+繼續弄下去好了，這不是ERROR而是WARNING，雖然看了不是很舒服
+
+搜尋關鍵字：
+openwrt WARNING: No feed for package
+
+參考資料：
+https://dev.openwrt.org.cn/wiki/installfeeds
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+5.1.6 修改固件預設的環境配置
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+5.1.6.1 預設的Lan IP
+
+$ vi ~/openwrt/openwrt/package/base-files/files/lib/functions/uci-defaults.sh
+
+找到這一行
+set network.lan.ipaddr='192.168.1.1'
+
+改成
+set network.lan.ipaddr='10.1.1.1'
+
+意外發現這裡還有個檔案，也是關於Lan IP設定
+預防萬一，一起改一下好了
+$ vi ~/openwrt/openwrt/package/base-files/files/etc/config/network
+
+把option ipaddr  192.168.1.1那行改掉
+改完後完整檔案內容如下
+
+# Copyright (C) 2006 OpenWrt.org
+
+config interface loopback
+        option ifname   lo
+        option proto    static
+        option ipaddr   127.0.0.1
+        option netmask  255.0.0.0
+
+config interface lan
+        option ifname   eth0
+        option type     bridge
+        option proto    static
+        option ipaddr   10.1.1.1
+        option netmask  255.255.255.0
+        option ip6assign 60
+
+config globals globals
+        option ula_prefix auto
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+5.1.6.2 預設的無線網路配置
+
+我希望wifi的功能預設是開啟的
+ssid維持預設的OpenWrt
+使用psk2加密
+連線密碼是88888888
+
+參考資料：
+http://my.oschina.net/osbin/blog/278782
+http://wiki.openwrt.org/doc/uci/wireless#wpamodes
+
+打開vi文字編輯器修改檔案
+$ vi ~/openwrt/openwrt/package/kernel/mac80211/files/lib/wifi/mac80211.sh 
+
+把原來的這個地方
+        # REMOVE THIS LINE TO ENABLE WIFI:
+        option disabled 1
+
+config wifi-iface
+        option device   radio$devidx
+        option network  lan
+        option mode     ap
+        option ssid     OpenWrt
+        option encryption none
+
+改成這樣
+        # REMOVE THIS LINE TO ENABLE WIFI:
+        # option disabled 1
+
+config wifi-iface
+        option device   radio$devidx
+        option network  lan
+        option mode     ap
+        option ssid     OpenWrt
+        option encryption psk2
+        option key 88888888
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+5.1.6.3 預設的主機名、時區、ntp校時服務器
+
+參考資料：
+http://wiki.openwrt.org/doc/uci/system
+http://my.oschina.net/osbin/blog/278782
+
+我希望預設的路由器主機名叫作mw300rv6
+時區是Asia/Taipei
+ntp校時服務器換成我們比較近的台灣的服務器
+
+打開vi文字編輯器修改檔案
+$ vi ~/openwrt/openwrt/package/base-files/files/etc/config/system
+
+原來的檔案內容長這樣
+config system
+        option hostname OpenWrt
+        option timezone UTC
+
+config timeserver ntp
+        list server     0.openwrt.pool.ntp.org
+        list server     1.openwrt.pool.ntp.org
+        list server     2.openwrt.pool.ntp.org
+        list server     3.openwrt.pool.ntp.org
+        option enabled 1
+        option enable_server 0
+
+把它改成這樣
+config system
+        option hostname mw300rv6
+        option zonename Asia/Taipei
+        option timezone CST-8
+
+config timeserver ntp
+        list server     0.asia.pool.ntp.org
+        list server     1.asia.pool.ntp.org
+        list server     2.asia.pool.ntp.org
+        list server     3.asia.pool.ntp.org
+        option enabled 1
+        option enable_server 0
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+5.1.6.4 預設的語言環境
+
+打開vi文字編輯器修改檔案
+$ vi ~/openwrt/openwrt/feeds/luci/modules/luci-base/root/etc/config/luci
+
+原來的檔案是
+config core main
+        option lang auto
+        option mediaurlbase /luci-static/openwrt.org
+        option resourcebase /luci-static/resources
+
+config extern flash_keep
+        option uci              "/etc/config/"
+        option dropbear "/etc/dropbear/"
+        option openvpn  "/etc/openvpn/"
+        option passwd   "/etc/passwd"
+        option opkg             "/etc/opkg.conf"
+        option firewall "/etc/firewall.user"
+        option uploads  "/lib/uci/upload/"
+
+config internal languages
+
+config internal sauth
+        option sessionpath "/tmp/luci-sessions"
+        option sessiontime 3600
+
+config internal ccache
+        option enable 1
+
+config internal themes
+
+
+改成這樣
+config core main
+        option lang en
+        option mediaurlbase /luci-static/openwrt.org
+        option resourcebase /luci-static/resources
+
+config extern flash_keep
+        option uci              "/etc/config/"
+        option dropbear "/etc/dropbear/"
+        option openvpn  "/etc/openvpn/"
+        option passwd   "/etc/passwd"
+        option opkg             "/etc/opkg.conf"
+        option firewall "/etc/firewall.user"
+        option uploads  "/lib/uci/upload/"
+
+config internal languages
+        option en "English"
+        option zh_tw "Chinese"
+
+config internal sauth
+        option sessionpath "/tmp/luci-sessions"
+        option sessiontime 3600
+
+config internal ccache
+        option enable 1
+
+config internal themes
+
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+5.1.7 進入make menuconfig 設定畫面
+
+參考資料：
+http://my.oschina.net/osbin/blog/278782
+https://forum.openwrt.org/viewtopic.php?pid=140470#p140470
+http://coderazzi.net/howto/openwrt/tl841n/install.htm
+
+參考資料：
+http://io.diveinedu.com/2015/03/10/%E9%9B%B6%E5%9F%BA%E7%A1%80OpenWRT%E5%9B%BA%E4%BB%B6%E7%BC%96%E8%AF%91.html
+
+MW300R V6硬改16M闪存、64M内存刷华硕N14U完美运行
+http://www.tui14.com/s/?a=url&k=1d354ba6&u=aHR0cDovL3d3dy5yaWdodC5jb20uY24vZm9ydW0vdGhyZWFkLTE0NzkwNC0xLTEuaHRtbA==&t=TVczMDBSIFY256Gs5pS5MTZN6Zeq5a2Y44CBNjRN5YaF5a2Y5Yi35Y2O56GVTjE0VeWujOe!jui@kOihjCAtIE9QRU5XUlQuLi4=&s=bXczMDByIHY2IG9wZW53cnQ=
+
+我發現少裝了一個依賴套件，先裝上它
+$ sudo apt-get install libssl-dev
+
+然後就
+$ cd ~/openwrt/openwrt
+$ make clean
+$ make menuconfig
+然後就進入了OpenWrt Configuration的藍底GUI操作選單
+選定一個target，這個意思是我們要選擇要編譯出的影像檔是給那一台路由器用的
+這裡當然是選擇
+Target System (Ralink RT288x/RT3xxx)  ---> 
+還有
+Subtarget (MT7620 based boards)  --->
+
+Target Profile (Default Profile (all drivers))  -
+
+然後先離開一下，選Exit
+Do you wish to save your new configuration ? 
+選< Yes >離開
+
+使用預設的選項
+$ make defconfig
+
+再次叫出藍底GUI操作選單
+$ make menuconfig
+
+然後又回到了藍底GUI操作選單
+我是這樣選擇的
+
+依晶片分類的Target System及路由器型號 (剛才已經選好了)
+Target System (Ralink RT288x/RT3xxx)  --->
+Subtarget (MT7620 based boards)  --->
+Target Profile (Default Profile)  ---> 
+
+Toolchain選起來
+ [*] Package the OpenWrt-based Toolchain    
+
+基本上保持原樣，不過加選了一個
+Base system  ---> wireless-tools
+
+Administration ---> Sudo
+
+NFS檔案系統支持
+Kernel modules  --->FileSystems  --->kmod-fs-nfs
+Kernel modules  --->FileSystems  --->kmod-fs-nfs-common
+
+語言支持
+Kernel modules  --->Native Language Support  --->kmod-nls-utf8
+
+USB支持 (只列出我加選的)
+Kernel modules  --->USB Support  --->kmod-usb-serial   --->kmod-usb-serial-cp210x
+
+NTP的功能，除了ntp server其他都選上
+Network  --->Time Synchronization  --->ntp-keygen
+Network  --->Time Synchronization  --->ntp-utils
+Network  --->Time Synchronization  --->ntpclient
+Network  --->Time Synchronization  --->ntpdate
+
+VPN支持
+Network  --->VPN   --->openven-openssl
+
+luci網頁操作GUI介面
+LuCI  --->Collections  --->luci
+LuCI  --->Collections  --->luci-ssl
+LuCI  --->Mudules      --->Minify Lua sources
+LuCI  --->Modules      --->Translations --->English (en)
+LuCI  --->Modules      --->Translations --->Taiwanse (zh-tw)
+LuCI  --->Modules      --->luci-mod-failsafe
+LuCI  --->Applications  --->luci-app-ddns
+LuCI  --->Applications  --->luci-app-diag-core
+LuCI  --->Applications  --->luci-app-diag-devinfo
+LuCI  --->Applications  --->luci-app-mwan3
+LuCI  --->Applications  --->luci-app-ntpc
+LuCI  --->Applications  --->luci-app-openvpn
+LuCI  --->Applications  --->luci-app-qos
+LuCI  --->Applications  --->luci-app-statistics
+LuCI  --->Themes  --->luci-theme-openwrt
+LuCI  --->Libraries  --->luci-lib-httpclient........HTTP(S) client library
+LuCI  --->Libraries  --->luci-lib-px5g
+
+Utilities  ---> shadow-utils......... Select shadow utilities  --->全選
+
+全都選好了，就選< Exit >退出藍底GUI操作選單
+Do you wish to save your new configuration ? 
+選< Yes >儲存剛才選得半死的設定值
+設定值會存在
+~/openwrt/openwrt/.config
+
+回到了終端機，開始編譯了
+$ cd ~/openwrt/openwrt
+$ make V=s
+
+記得保持網路有連線的狀態，因為編譯期間會從網路上抓一些檔案下來
+然後就是等等等
+編譯過程大概有一小時
+手氣好的話
+一次就編譯出來
+我有點衰小
+第三次才成功
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+ 5.1.9 編譯好的影像檔在那兒？
+
+anntony@anntony-Lenovo-B590 ~/openwrt/openwrt/bin/ramips $ pwd
+/home/anntony/openwrt/openwrt/bin/ramips
+anntony@anntony-Lenovo-B590 ~/openwrt/openwrt/bin/ramips $ ls -al
+總計 232604
+drwxr-xr-x 3 anntony anntony     4096  9月  9 01:20 .
+drwxr-xr-x 3 anntony anntony     4096  9月  9 00:31 ..
+-rw-r--r-- 1 anntony anntony     3027  9月  9 01:20 md5sums
+-rw-r--r-- 1 anntony anntony  6291460  9月  9 01:19 openwrt-ramips-mt7620-ai-br100-squashfs-sysupgrade.bin
+-rw-r--r-- 1 anntony anntony  7995392  9月  9 01:20 openwrt-ramips-mt7620-ArcherC20i-squashfs-sysupgrade.bin
+-rw-r--r-- 1 anntony anntony  6291460  9月  9 01:19 openwrt-ramips-mt7620-cf-wr800n-squashfs-sysupgrade.bin
+-rw-r--r-- 1 anntony anntony  6291460  9月  9 01:19 openwrt-ramips-mt7620-dir-810l-squashfs-sysupgrade.bin
+-rw-r--r-- 1 anntony anntony  6291460  9月  9 01:19 openwrt-ramips-mt7620-e1700-squashfs-factory.bin
+-rw-r--r-- 1 anntony anntony  6291460  9月  9 01:19 openwrt-ramips-mt7620-e1700-squashfs-sysupgrade.bin
+-rw-r--r-- 1 anntony anntony  6291460  9月  9 01:20 openwrt-ramips-mt7620-microwrt-squashfs-sysupgrade.bin
+-rw-r--r-- 1 anntony anntony  6291460  9月  9 01:20 openwrt-ramips-mt7620-miwifi-mini-squashfs-sysupgrade.bin
+-rw-r--r-- 1 anntony anntony  6291460  9月  9 01:19 openwrt-ramips-mt7620-mlw221-squashfs-sysupgrade.bin
+-rw-r--r-- 1 anntony anntony  6291460  9月  9 01:19 openwrt-ramips-mt7620-mlwg2-squashfs-sysupgrade.bin
+-rw-r--r-- 1 anntony anntony  6291460  9月  9 01:19 openwrt-ramips-mt7620-mt7620a_mt7530-squashfs-sysupgrade.bin
+-rw-r--r-- 1 anntony anntony  6291460  9月  9 01:19 openwrt-ramips-mt7620-mt7620a_mt7610e-squashfs-sysupgrade.bin
+-rw-r--r-- 1 anntony anntony  6291460  9月  9 01:19 openwrt-ramips-mt7620-mt7620a-squashfs-sysupgrade.bin
+-rw-r--r-- 1 anntony anntony  6291460  9月  9 01:19 openwrt-ramips-mt7620-mt7620a_v22sg-squashfs-sysupgrade.bin
+-rw-r--r-- 1 anntony anntony  6291460  9月  9 01:19 openwrt-ramips-mt7620-mzk-750dhp-squashfs-sysupgrade.bin
+-rw-r--r-- 1 anntony anntony  6291460  9月  9 01:19 openwrt-ramips-mt7620-na930-squashfs-sysupgrade.bin
+-rw-r--r-- 1 anntony anntony  6291460  9月  9 01:19 openwrt-ramips-mt7620-oy-0001-squashfs-sysupgrade.bin
+-rw-r--r-- 1 anntony anntony  4980736  9月  9 01:19 openwrt-ramips-mt7620-root.squashfs
+-rw-r--r-- 1 anntony anntony  6291460  9月  9 01:19 openwrt-ramips-mt7620-rp-n53-squashfs-sysupgrade.bin
+-rw-r--r-- 1 anntony anntony  6291460  9月  9 01:20 openwrt-ramips-mt7620-rt-n14u-squashfs-sysupgrade.bin
+-rw-r--r-- 1 anntony anntony  1149920  9月  9 01:18 openwrt-ramips-mt7620-uImage.bin
+-rwxr-xr-x 1 anntony anntony  3418372  9月  9 01:18 openwrt-ramips-mt7620-vmlinux.bin
+-rwxr-xr-x 1 anntony anntony  3423376  9月  9 01:18 openwrt-ramips-mt7620-vmlinux.elf
+-rw-r--r-- 1 anntony anntony  6291460  9月  9 01:19 openwrt-ramips-mt7620-whr-1166d-squashfs-sysupgrade.bin
+-rw-r--r-- 1 anntony anntony  6291460  9月  9 01:19 openwrt-ramips-mt7620-whr-300hp2-squashfs-sysupgrade.bin
+-rw-r--r-- 1 anntony anntony  6291460  9月  9 01:19 openwrt-ramips-mt7620-whr-600d-squashfs-sysupgrade.bin
+-rw-r--r-- 1 anntony anntony  6291460  9月  9 01:20 openwrt-ramips-mt7620-wmr-300-squashfs-sysupgrade.bin
+-rw-r--r-- 1 anntony anntony  6291460  9月  9 01:20 openwrt-ramips-mt7620-wrtnode-squashfs-sysupgrade.bin
+-rw-r--r-- 1 anntony anntony  6291490  9月  9 01:20 openwrt-ramips-mt7620-wt3020-8M-squashfs-factory.bin
+-rw-r--r-- 1 anntony anntony  6291460  9月  9 01:20 openwrt-ramips-mt7620-wt3020-8M-squashfs-sysupgrade.bin
+-rw-r--r-- 1 anntony anntony  6291460  9月  9 01:19 openwrt-ramips-mt7620-y1-squashfs-sysupgrade.bin
+-rw-r--r-- 1 anntony anntony  6291460  9月  9 01:19 openwrt-ramips-mt7620-y1s-squashfs-sysupgrade.bin
+-rw-r--r-- 1 anntony anntony  6291460  9月  9 01:20 openwrt-ramips-mt7620-zbt-wa05-squashfs-sysupgrade.bin
+-rw-r--r-- 1 anntony anntony  6291460  9月  9 01:20 openwrt-ramips-mt7620-zbt-wr8305rt-squashfs-sysupgrade.bin
+-rw-r--r-- 1 anntony anntony  6291460  9月  9 01:20 openwrt-ramips-mt7620-zte-q7-squashfs-sysupgrade.bin
+-rw-r--r-- 1 anntony anntony 28320165  9月  9 01:21 OpenWrt-Toolchain-ramips-mt7620_gcc-4.8-linaro_musl-1.1.11.Linux-x86_64.tar.bz2
+drwxr-xr-x 9 anntony anntony     4096  9月  9 01:21 packages
+-rw-r--r-- 1 anntony anntony     4512  9月  9 01:20 sha256sums
+anntony@anntony-Lenovo-B590 ~/openwrt/openwrt/bin/ramips $ ls -al|grep 14u
+-rw-r--r-- 1 anntony anntony  6291460  9月  9 01:20 openwrt-ramips-mt7620-rt-n14u-squashfs-sysupgrade.bin
+anntony@anntony-Lenovo-B590 ~/openwrt/openwrt/bin/ramips $
+上面的
+openwrt-ramips-mt7620-rt-n14u-squashfs-sysupgrade.bin
+我們要藉由不死uboot提供的web介面，刷進路由器
+
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+5.1.10 雜記：編譯過程中產生的一些訊息
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+
+
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+5.1.11 少安裝的套件，下次補上
+
+shadow-useradd
+
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
