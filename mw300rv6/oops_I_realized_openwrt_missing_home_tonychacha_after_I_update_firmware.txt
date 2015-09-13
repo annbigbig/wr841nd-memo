@@ -1,0 +1,143 @@
+我編譯完了一個新的OpenWRT CC的固件
+刷進路由器之後，而且在Luci介面的System > Backup / Flash Firmware
+我執行了Restore Backup，把我先前的backup-mw300rv6-2015-09-08.tar.gz這個設定檔倒回去之後
+但是我發現我不能使用之前放在筆記型電腦上的private key
+也就是/home/anntony/.ssh/tonychacha@10.1.1.1
+來登入OpenWRT路由器了，經過了解之後，我知道新刷上的OpenWRT固件的filesystem上面
+根本就沒有/home目錄，也不會有其下的/home/tonychacha，也不會有/home/tonychacha/.ssh/authorized_keys
+所以你要手動把它建回去，方法如下
+(好加在還有留一支root@10.1.1.1可以登入路由器)
+
+anntony@anntony-Lenovo-B590 ~ $ 
+anntony@anntony-Lenovo-B590 ~ $ ifconfig
+eth0      Link encap:Ethernet  HWaddr 54:ee:75:09:dc:3e  
+          inet addr:10.1.1.90  Bcast:10.1.1.255  Mask:255.255.255.0
+          inet6 addr: fe80::56ee:75ff:fe09:dc3e/64 Scope:Link
+          inet6 addr: fd7a:5cf:99b6::c7e/128 Scope:Global
+          inet6 addr: fd7a:5cf:99b6:0:56ee:75ff:fe09:dc3e/64 Scope:Global
+          inet6 addr: fd7a:5cf:99b6:0:5b3:6504:4c26:8e2d/64 Scope:Global
+          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+          RX packets:46437 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:53307 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:1000 
+          RX bytes:17977866 (17.9 MB)  TX bytes:18716538 (18.7 MB)
+
+lo        Link encap:Local Loopback  
+          inet addr:127.0.0.1  Mask:255.0.0.0
+          inet6 addr: ::1/128 Scope:Host
+          UP LOOPBACK RUNNING  MTU:65536  Metric:1
+          RX packets:48772 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:48772 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:0 
+          RX bytes:5423076 (5.4 MB)  TX bytes:5423076 (5.4 MB)
+
+anntony@anntony-Lenovo-B590 ~ $ ping 10.1.1.1
+PING 10.1.1.1 (10.1.1.1) 56(84) bytes of data.
+64 bytes from 10.1.1.1: icmp_seq=1 ttl=64 time=0.353 ms
+64 bytes from 10.1.1.1: icmp_seq=2 ttl=64 time=0.308 ms
+^C
+--- 10.1.1.1 ping statistics ---
+2 packets transmitted, 2 received, 0% packet loss, time 1001ms
+rtt min/avg/max/mdev = 0.308/0.330/0.353/0.028 ms
+anntony@anntony-Lenovo-B590 ~ $ ssh -p35000 -i /home/anntony/.ssh/tonychacha@10.1.1.1 tonychacha@10.1.1.1
+tonychacha@10.1.1.1's password: 
+Aiee, segfault! You should probably report this as a bug to the developer
+Connection to 10.1.1.1 closed.
+anntony@anntony-Lenovo-B590 ~ $ ssh -p35000 tonychacha@10.1.1.1
+tonychacha@10.1.1.1's password: 
+Aiee, segfault! You should probably report this as a bug to the developer
+Connection to 10.1.1.1 closed.
+anntony@anntony-Lenovo-B590 ~ $ scp -P 35000 /home/anntony/.ssh/tonychacha@10.1.1.1.pub root@10.1.1.1:/tmp
+tonychacha@10.1.1.1.pub                                                                                                100%  401     0.4KB/s   00:00    
+anntony@anntony-Lenovo-B590 ~ $ ssh -p35000 -i /home/anntony/.ssh/root@10.1.1.1 root@10.1.1.1
+
+
+BusyBox v1.23.2 (2015-09-13 17:47:44 CST) built-in shell (ash)
+
+  _______                     ________        __
+ |       |.-----.-----.-----.|  |  |  |.----.|  |_
+ |   -   ||  _  |  -__|     ||  |  |  ||   _||   _|
+ |_______||   __|_____|__|__||________||__|  |____|
+          |__| W I R E L E S S   F R E E D O M
+ -----------------------------------------------------
+ DESIGNATED DRIVER (Bleeding Edge, r46892)
+ -----------------------------------------------------
+  * 2 oz. Orange Juice         Combine all juices in a
+  * 2 oz. Pineapple Juice      tall glass filled with
+  * 2 oz. Grapefruit Juice     ice, stir well.
+  * 2 oz. Cranberry Juice
+ -----------------------------------------------------
+root@mw300rv6:~# cd /
+root@mw300rv6:/# ls
+bin      dev      etc      lib      mnt      overlay  proc     rom      root     sbin     sys      tmp      usr      var      www
+root@mw300rv6:/# mkdir -p home/tonychacha/.ssh
+root@mw300rv6:/# cd home/tonychacha/.ssh
+root@mw300rv6:/home/tonychacha/.ssh# touch ./authorized_keys
+root@mw300rv6:/home/tonychacha/.ssh# ls -al
+drwxr-xr-x    2 root     root             0 Sep 13 22:41 .
+drwxr-xr-x    3 root     root             0 Sep 13 22:41 ..
+-rw-r--r--    1 root     root             0 Sep 13 22:41 authorized_keys
+root@mw300rv6:/home/tonychacha/.ssh# chmod 600 ./authorized_keys 
+root@mw300rv6:/home/tonychacha/.ssh# ls -al
+drwxr-xr-x    2 root     root             0 Sep 13 22:41 .
+drwxr-xr-x    3 root     root             0 Sep 13 22:41 ..
+-rw-------    1 root     root             0 Sep 13 22:41 authorized_keys
+root@mw300rv6:/home/tonychacha/.ssh# cd ..
+root@mw300rv6:/home/tonychacha# ls -al
+drwxr-xr-x    3 root     root             0 Sep 13 22:41 .
+drwxr-xr-x    3 root     root             0 Sep 13 22:41 ..
+drwxr-xr-x    2 root     root             0 Sep 13 22:41 .ssh
+root@mw300rv6:/home/tonychacha# chmod 700 .ssh
+root@mw300rv6:/home/tonychacha# ls -al
+drwxr-xr-x    3 root     root             0 Sep 13 22:41 .
+drwxr-xr-x    3 root     root             0 Sep 13 22:41 ..
+drwx------    2 root     root             0 Sep 13 22:41 .ssh
+root@mw300rv6:/home/tonychacha# cd ..
+root@mw300rv6:/home# chown -R tonychacha:tonychacha /home/tonychacha
+root@mw300rv6:/home# ls -al
+drwxr-xr-x    3 root     root             0 Sep 13 22:41 .
+drwxr-xr-x    1 root     root             0 Sep 13 22:41 ..
+drwxr-xr-x    3 tonychac tonychac         0 Sep 13 22:41 tonychacha
+root@mw300rv6:/home# cat /tmp/tonychacha@10.1.1.1.pub >> /home/tonychacha/.ssh/authorized_keys 
+root@mw300rv6:/home# cat /home/tonychacha/.ssh/authorized_keys 
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDUp6tzrV01d7zEUhF0jLVrPskF6wDiTf27BtN17XBUUS+70T/EtZkTx5c7QvcupPAbxJWeJ6j8bLOtvxWV8u433yQhVGqDfPKWhUFC7lgvQhMYRldXM8ruvBE9IhczviGEf7OtSd+meh0+sCbn8bBbQX0k1oWiksyl1hK97GY8rNcQaIGDbJUsVCOXqiC62pGLkwlcN1L+iZnB9Td2BMfDoZ0XlCIZ3FyI/rj53e+p3Eu0z6GC2xmVHBmYH07Y/zIpiZb0oRPvCpay+LR2KMPJBuyZkE3JaiNRKegpZv1nePBVDqXMO1849D4R6DIHMS3qFT3zR08At6XmOADRK5S9 tonychacha@10.1.1.1
+root@mw300rv6:/home# exit;exitConnection to 10.1.1.1 closed.
+anntony@anntony-Lenovo-B590 ~ $ ssh -p35000 -i /home/anntony/.ssh/tonychacha@10.1.1.1 tonychacha@10.1.1.1
+
+
+BusyBox v1.23.2 (2015-09-13 17:47:44 CST) built-in shell (ash)
+
+  _______                     ________        __
+ |       |.-----.-----.-----.|  |  |  |.----.|  |_
+ |   -   ||  _  |  -__|     ||  |  |  ||   _||   _|
+ |_______||   __|_____|__|__||________||__|  |____|
+          |__| W I R E L E S S   F R E E D O M
+ -----------------------------------------------------
+ DESIGNATED DRIVER (Bleeding Edge, r46892)
+ -----------------------------------------------------
+  * 2 oz. Orange Juice         Combine all juices in a
+  * 2 oz. Pineapple Juice      tall glass filled with
+  * 2 oz. Grapefruit Juice     ice, stir well.
+  * 2 oz. Cranberry Juice
+ -----------------------------------------------------
+tonychacha@mw300rv6:~$ sudo -i
+Password: 
+
+
+BusyBox v1.23.2 (2015-09-13 17:47:44 CST) built-in shell (ash)
+
+  _______                     ________        __
+ |       |.-----.-----.-----.|  |  |  |.----.|  |_
+ |   -   ||  _  |  -__|     ||  |  |  ||   _||   _|
+ |_______||   __|_____|__|__||________||__|  |____|
+          |__| W I R E L E S S   F R E E D O M
+ -----------------------------------------------------
+ DESIGNATED DRIVER (Bleeding Edge, r46892)
+ -----------------------------------------------------
+  * 2 oz. Orange Juice         Combine all juices in a
+  * 2 oz. Pineapple Juice      tall glass filled with
+  * 2 oz. Grapefruit Juice     ice, stir well.
+  * 2 oz. Cranberry Juice
+ -----------------------------------------------------
+root@mw300rv6:~# 
+

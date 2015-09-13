@@ -455,7 +455,7 @@ LuCI  --->Collections  --->luci-ssl
 LuCI  --->Mudules      --->Minify Lua sources
 LuCI  --->Modules      --->Translations --->English (en)
 LuCI  --->Modules      --->Translations --->Taiwanse (zh-tw)
-LuCI  --->Modules      --->luci-mod-failsafe
+LuCI  --->Modules      --->luci-mod-failsafe(不要選這個，不知為何此套件會導致無法進入Luci操作介面)
 LuCI  --->Applications  --->luci-app-ddns
 LuCI  --->Applications  --->luci-app-diag-core
 LuCI  --->Applications  --->luci-app-diag-devinfo
@@ -548,11 +548,5 @@ openwrt-ramips-mt7620-rt-n14u-squashfs-sysupgrade.bin
 5.1.10 雜記：編譯過程中產生的一些訊息
 ＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
 
-
-
-＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
-5.1.11 少安裝的套件，下次補上
-
-shadow-useradd
 
 ＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊

@@ -1,0 +1,154 @@
+刷上新的Trunk r46892 build Image
+「並且」把舊的設定檔backup-mw300rv6-2015-09-08.tar.gz
+在Luci介面的System > Backup / Flash Firmware按下「選擇檔案」並「Upload archive」倒了回去之後
+路由器所有的燈號都不亮了，連電源燈都不會亮
+
+anntony@anntony-Lenovo-B590 ~ $ ssh luci-8000
+
+
+BusyBox v1.23.2 (2015-09-13 17:47:44 CST) built-in shell (ash)
+
+  _______                     ________        __
+ |       |.-----.-----.-----.|  |  |  |.----.|  |_
+ |   -   ||  _  |  -__|     ||  |  |  ||   _||   _|
+ |_______||   __|_____|__|__||________||__|  |____|
+          |__| W I R E L E S S   F R E E D O M
+ -----------------------------------------------------
+ DESIGNATED DRIVER (Bleeding Edge, r46892)
+ -----------------------------------------------------
+  * 2 oz. Orange Juice         Combine all juices in a
+  * 2 oz. Pineapple Juice      tall glass filled with
+  * 2 oz. Grapefruit Juice     ice, stir well.
+  * 2 oz. Cranberry Juice
+ -----------------------------------------------------
+tonychacha@mw300rv6:~$ sudo -i
+Password: 
+
+
+BusyBox v1.23.2 (2015-09-13 17:47:44 CST) built-in shell (ash)
+
+  _______                     ________        __
+ |       |.-----.-----.-----.|  |  |  |.----.|  |_
+ |   -   ||  _  |  -__|     ||  |  |  ||   _||   _|
+ |_______||   __|_____|__|__||________||__|  |____|
+          |__| W I R E L E S S   F R E E D O M
+ -----------------------------------------------------
+ DESIGNATED DRIVER (Bleeding Edge, r46892)
+ -----------------------------------------------------
+  * 2 oz. Orange Juice         Combine all juices in a
+  * 2 oz. Pineapple Juice      tall glass filled with
+  * 2 oz. Grapefruit Juice     ice, stir well.
+  * 2 oz. Cranberry Juice
+ -----------------------------------------------------
+
+
+注意這個目錄下面的這些目錄連結
+root@mw300rv6:~# cd /sys/class/leds/
+root@mw300rv6:/sys/class/leds# ls
+rt-n14u:blue:air         rt-n14u:blue:power       rt-n14u:blue:wan         rt2800soc-phy0::quality
+rt-n14u:blue:lan         rt-n14u:blue:usb         rt2800soc-phy0::assoc    rt2800soc-phy0::radio
+root@mw300rv6:/sys/class/leds#
+
+舊的/etc/config/system設定檔
+長得這樣，現在已經蓋掉你路由器上面的同名檔案
+config system
+	option hostname 'mw300rv6'
+	option zonename 'Asia/Taipei'
+	option timezone 'CST-8'
+
+config timeserver 'ntp'
+	list server '0.asia.pool.ntp.org'
+	list server '1.asia.pool.ntp.org'
+	list server '2.asia.pool.ntp.org'
+	list server '3.asia.pool.ntp.org'
+	option enabled '1'
+	option enable_server '0'
+
+config led 'led_power'
+	option name 'power'
+	option sysfs 'asus:blue:power'
+	option default '1'
+
+config led 'led_lan'
+	option name 'lan'
+	option sysfs 'asus:blue:lan'
+	option trigger 'netdev'
+	option dev 'eth0.1'
+	option mode 'link tx rx'
+
+config led 'led_wan'
+	option name 'wan'
+	option sysfs 'asus:blue:wan'
+	option trigger 'netdev'
+	option dev 'eth0.2'
+	option mode 'link tx rx'
+
+config led 'led_wifi_led'
+	option name 'wifi'
+	option sysfs 'asus:blue:air'
+	option trigger 'netdev'
+	option dev 'wlan0'
+	option mode 'link tx rx'
+
+config led 'led_usb'
+	option name 'USB'
+	option sysfs 'asus:blue:usb'
+	option trigger 'usbdev'
+	option dev '1-1'
+	option interval '50'
+
+正常的可以工作的/etc/config/system是這樣
+config system
+	option hostname 'mw300rv6'
+	option zonename 'Asia/Taipei'
+	option timezone 'CST-8'
+
+config timeserver 'ntp'
+	list server '0.asia.pool.ntp.org'
+	list server '1.asia.pool.ntp.org'
+	list server '2.asia.pool.ntp.org'
+	list server '3.asia.pool.ntp.org'
+	option enabled '1'
+	option enable_server '0'
+
+config led 'led_power'
+	option name 'power'
+	option sysfs 'rt-n14u:blue:power'
+	option default '1'
+
+config led 'led_lan'
+	option name 'lan'
+	option sysfs 'rt-n14u:blue:lan'
+	option dev 'eth0.1'
+	option trigger 'netdev'
+	option mode 'link tx rx'
+
+config led 'led_wan'
+	option name 'wan'
+	option sysfs 'rt-n14u:blue:wan'
+	option dev 'eth0.2'
+	option trigger 'netdev'
+	option mode 'link tx rx'
+
+config led 'led_wifi_led'
+	option name 'wifi'
+	option sysfs 'rt-n14u:blue:air'
+	option dev 'wlan0'
+	option trigger 'netdev'
+	option mode 'link tx rx'
+
+config led 'led_usb'
+	option name 'USB'
+	option sysfs 'rt-n14u:blue:usb'
+	option dev '1-1'
+	option trigger 'usbdev'
+	option interval '50'
+
+新的Image檔，關於led燈號控制的目錄連結，換了名字
+所以你要把
+option sysfs 'asus:blue:wan'
+換成
+option sysfs 'rt-n14u:blue:wan'
+注意
+所有的關鍵字asus都要換成rt-n14u
+接著reboot之後，你的路由器就會有燈號了
