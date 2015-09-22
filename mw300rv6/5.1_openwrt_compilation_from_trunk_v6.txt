@@ -459,6 +459,7 @@ LuCI  --->Modules      --->luci-mod-failsafe(不要選這個，不知為何此�
 LuCI  --->Applications  --->luci-app-ddns
 LuCI  --->Applications  --->luci-app-diag-core
 LuCI  --->Applications  --->luci-app-diag-devinfo
+LuCI  --->Applications  --->luci-app-multiwan
 LuCI  --->Applications  --->luci-app-mwan3
 LuCI  --->Applications  --->luci-app-ntpc
 LuCI  --->Applications  --->luci-app-openvpn
