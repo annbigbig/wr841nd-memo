@@ -80,13 +80,9 @@ config dnsmasq區塊
 option domain 'lan'
 改成
 option domain ''
-還有加上這行
-option port 0
-
 
 也就是
 config dnsmasq
-	option port 0
 	option domainneeded '1'
 	option boguspriv '1'
 	option localise_queries '1'
@@ -100,12 +96,17 @@ config dnsmasq
 	option leasefile '/tmp/dhcp.leases'
 	option resolvfile '/tmp/resolv.conf.auto'
 
-
-(用意：關掉port 53的DNS服務(來自程式dnsmasq)，還有不要把
+不要把
 search lan
 domain lan
 這兩行給PUSH到dhcp client機器的/etc/resolv.conf裡面，很煩耶)
 
-
 重新啟動
  /etc/init.d/dnsmasq restart
+
+如果想知道你的Ubuntu作業系統正在使用那些DNS Server為你作域名解析
+看這篇
+http://askubuntu.com/questions/197036/how-to-know-what-dns-am-i-using-in-ubuntu-12-04
+
+搜尋關鍵字
+how to know my current dns resolver ubuntu

@@ -1,0 +1,33 @@
+這個問題大概是這樣
+openwrt可以ping 8.8.8.8
+但是沒辦法ping任何的域名，像這樣
+
+root@mw300rv6:~# ping 8.8.8.8
+PING 8.8.8.8 (8.8.8.8): 56 data bytes
+64 bytes from 8.8.8.8: seq=0 ttl=49 time=14.520 ms
+64 bytes from 8.8.8.8: seq=1 ttl=49 time=13.740 ms
+64 bytes from 8.8.8.8: seq=2 ttl=49 time=13.560 ms
+^C
+--- 8.8.8.8 ping statistics ---
+3 packets transmitted, 3 packets received, 0% packet loss
+round-trip min/avg/max = 13.560/13.940/14.520 ms
+root@mw300rv6:~# ping www.google.com
+ping: bad address 'www.google.com'
+root@mw300rv6:~#
+
+原因是稍早前我自作聰明，把dnsmasq服務的設定檔
+/etc/config/dhcp
+
+其中config dnsmasq的區塊加了一行
+option port 0
+那個時候是因為dhcp client端機器的/etc/resolv.conf裡面
+一直有
+search lan
+domain lan
+這兩行的產生，覺得很煩想關掉它們
+但是寫上option port 0和刪除上面兩行自動產生的設定值一點關係都沒有
+加上option port 0之後，dnsmasq服務不會啟動tcp端口53
+整個路由器只能ping IP地址，不能ping Domain Name
+所以
+不要加上option port 0，不要加上這一行
+
