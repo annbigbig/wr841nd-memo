@@ -1,0 +1,138 @@
+說明
+	這個簡易的筆記，記錄了在我的筆記型電腦(Ubuntu 16.04)
+	產生OpenWrt (Chaos Calmer 15.05)firmware image的步驟
+
+前置條件
+    1.安裝OpenWrt build system
+		指令如下：
+			sudo apt-get update
+			sudo apt-get install build-essential subversion libncurses5-dev zlib1g-dev gawk gcc-multilib flex git-core gettext libssl-dev
+    2.預留3到4GB的硬碟空間
+
+
+注意事項：
+	所有的指令請使用一般權限的用戶來執行，不要使用root
+
+編譯程序
+	1.取得OpenWrt sources
+		指令如下：
+			cd ~
+			git clone https://github.com/openwrt/openwrt.git
+
+	2.下載及安裝package feeds
+		指令如下：
+			cd ~/openwrt
+			./scripts/feeds update -a
+			./scripts/feeds install -a
+
+
+	3.編譯前的設定
+		確定目前的目錄是~/openwrt，然後執行
+		make menuconfig 進入選單，選擇MT7620，然後存檔離開（Save 再 Exit)
+			(Target System > Ralink RT288x/RT3xxx 再到下方的 Subtarget 選 MT7620 based boards)
+		make defconfig 使用預設選項（套件的選擇）
+		
+		make menuconfig 再次進入選單，勾選你要的套件，<*>編譯於firmware內，<M>編譯成模組，稍後可用opkg指令安裝
+			我的套件選擇如下
+				Base System > <*> wireless-tools
+				Administration > <*> htop   <*> monit  <*> netdata <*> sudo
+				LuCI > Collections > <*> luci <*> luci-ssl-openssl
+				LuCI > Modules > Translations > <*> English (en)  <*> Chinese (zh-cn) <*> Taiwanese (zh-tw)
+				LuCI > Mudules >  <*> luci-mod-failsafe
+				LuCI > Applicatoins > <*> luci-app-ddns <*> luci-app-diag-core <*> luci-app-mwan3
+										 <*> luci-app-ntpc <*> luci-app-openvpn <*> luci-app-statistics
+				LuCI > Themes > <*> luci-theme-openwrt
+				Network > SSH > <*> openssh-client <*> openssh-keygen <*> openssh-server
+				Network > VPN > <*> openvpn-openssl <M> openvpn-easy-rsa
+			選完之後，一樣Save然後Exit
+
+		scripts/diffconfig.sh > mydiffconfig 儲存變更於純文字檔mydiffconfig
+
+		unset SED; unset GREP_OPTIONS;	(這兩個環境變數留白)
+		PATH=~/openwrt/staging_dir/host/bin:$PATH  
+		PATH=~/openwrt/staging_dir/toolchain-mipsel_24kec+dsp_gcc-5.3.0_musl-1.1.15/bin:$PATH
+
+		make V=s 2>&1 | tee build.log 開始編譯，並將編譯訊息同時輸出到螢幕及build.log檔
+
+
+	4.如果失敗就執行
+		make dirclean
+		make menuconfig (這次選少一點套件)
+		scripts/diffconfig.sh > mydiffconfig
+		rm *.log
+		make V=s 2>&1 | tee build.log
+	重新再build一次
+
+	這次只選	
+		Administration >  <*> sudo
+		LuCI > Collections > <*> luci <*> luci-ssl-openssl
+		LuCI > Modules > Translations > <*> English (en)  <*> Taiwanese (zh-tw)
+		LuCI > Mudules >  <*> luci-mod-failsafe
+		LuCI > Applicatoins > <*> luci-app-ddns <*> luci-app-openvpn
+		Network > SSH > <*> openssh-keygen <*> openssh-server
+		Network > VPN > <*> openvpn-openssl <M> openvpn-easy-rsa	
+
+結局（第一次）：
+build.log出現
+WARNING: Image file /home/labasky/openwrt/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/linux-ramips_mt7620/tmp/openwrt-ramips-mt7620-ex2700-squashfs-factory.bin is too big
+
+可能是勾選太多package
+
+
+結局（第二次）：
+build.log出現
+Image Name:   MIPS OpenWrt Linux-4.4.14
+Created:      Tue Oct 18 09:42:06 2016
+Image Type:   MIPS Linux Kernel Image (lzma compressed)
+Data Size:    1272686 Bytes = 1242.86 kB = 1.21 MB
+Load Address: 80000000
+Entry Point:  80000000
+這個訊息表示編譯出的Kernel有1272686 Bytes
+然後在Openwrt wiki 查看Lenovo y1s的flash layout
+如下
+dev:    size   erasesize  name
+mtd0: 00030000 00010000 "u-boot"
+mtd1: 00010000 00010000 "u-boot-env"
+mtd2: 00010000 00010000 "factory"
+mtd3: 00fb0000 00010000 "firmware"
+mtd4: 0010c943 00010000 "kernel"
+mtd5: 00ea36bd 00010000 "rootfs"
+mtd6: 00c80000 00010000 "rootfs_data"
+在mtd4也就是kernel放置的分區，能接受的最大kernel是十六進制的10c943
+換算成十進制也就是1100099 Bytes
+所以在build.log裡面
+一直叫too big too big
+WARNING: Image file /home/labasky/openwrt/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/linux-ramips_mt7620/tmp/openwrt-ramips-mt7620-ex2700-squashfs-sysupgrade.bin is too big
+
+再重新編譯吧，再少勾一點套件，只差1272686 - 1100099 = 172587 bytes = 168.54 KB只差這樣而已，再TM瘦一點
+
+
+參考資料
+https://forum.openwrt.org/viewtopic.php?id=41846
+
+
+額外的發現，這個檔裡面
+/openwrt/target/linux/ramips/image/mt7620.mk
+
+找y1s，可以找到
+define Device/y1s
+  DTS := Y1S
+  IMAGE_SIZE := $(ralink_default_fw_size_16M)
+  DEVICE_TITLE := Lenovo Y1S
+endef
+TARGET_DEVICES += y1s
+
+似乎是定義firmware的大小是16MB
+
+
+額外的發現（如何縮小kernel，整整減肥八百多KB？）
+關鍵句
+removing symbols + debug info produce uimage size of 864092
+執行
+make menuconfig
+進入選單後，選Global build settings
+把
+Compile the kernel with symbol table information 
+和
+Compile the kernel with debug information
+取消勾選
