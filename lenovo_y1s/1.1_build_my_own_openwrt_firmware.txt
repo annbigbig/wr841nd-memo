@@ -107,8 +107,133 @@ WARNING: Image file /home/labasky/openwrt/build_dir/target-mipsel_24kec+dsp_musl
 再重新編譯吧，再少勾一點套件，只差1272686 - 1100099 = 172587 bytes = 168.54 KB只差這樣而已，再TM瘦一點
 
 
+結局（第三次）
+編譯出的Kernel還是太大
+Image Name:   MIPS OpenWrt Linux-4.4.14
+Created:      Tue Oct 18 09:42:06 2016
+Image Type:   MIPS Linux Kernel Image (lzma compressed)
+Data Size:    1179781 Bytes = 1152.13 kB = 1.13 MB
+Load Address: 80000000
+Entry Point:  80000000
+
+離目標的1100099 Bytes還需要減肥1179781 - 1100099 = 79682 Bytes = 77.81KB
+make menuconfig之後
+只選擇了這些套件
+				Administration >  <*> sudo
+				LuCI > Collections > <*> luci <*> luci-ssl-openssl
+				LuCI > Modules > Translations > <*> English (en) 
+				LuCI > Mudules >  <*> luci-mod-failsafe
+				LuCI > Applicatoins > <M> luci-app-ddns 
+										 <*> luci-app-ntpc <M> luci-app-openvpn
+				Network > SSH > <*> openssh-keygen <*> openssh-server
+				Network > VPN > <*> openvpn-openssl <M> openvpn-easy-rsa
+
+結局（第四次）
+同第三次
+
+結局（第五次）
+決定只選預設的套件，其他想要的套件全選成<M>
+失敗，不知道為什麼Kernel還是這麼大
+Image Name:   MIPS OpenWrt Linux-4.4.14
+Created:      Tue Oct 18 09:42:06 2016
+Image Type:   MIPS Linux Kernel Image (lzma compressed)
+Data Size:    1179775 Bytes = 1152.12 kB = 1.13 MB
+Load Address: 80000000
+Entry Point:  80000000
+而且make defconfig好像也沒有回到預設的套件
+
+結局（第六次）
+全部重頭來過，從git clone那個步驟開始
+最後的編譯指令請改成
+make -j5 V=s TARGET_DEVICES=y1s 2>&1 | tee build.log
+只編譯y1s的firmware就好
+選擇的套件
+				Base System > <M> wireless-tools
+				Administration > <M> htop   <M> monit  <M> netdata <M> sudo
+				LuCI > Collections > <*> luci <*> luci-ssl-openssl
+				LuCI > Modules > Translations > <*> English (en)  <M> Chinese (zh-cn) <M> Taiwanese (zh-tw)
+				LuCI > Mudules >  <*> luci-mod-failsafe
+				LuCI > Applicatoins > <M> luci-app-ddns <M> luci-app-diag-core <M> luci-app-mwan3
+										 <M> luci-app-ntpc <M> luci-app-openvpn <M>luci-app-qos <M> luci-app-statistics
+				LuCI > Themes > <M> luci-theme-openwrt
+				Network > VPN > <M> openvpn-openssl <M> openvpn-easy-rsa
+
+成功，build.log裡查到的，編譯出的kernel這麼大
+Image Name:   MIPS OpenWrt Linux-4.4.14
+Created:      Tue Oct 18 09:42:06 2016
+Image Type:   MIPS Linux Kernel Image (lzma compressed)
+Data Size:    1279015 Bytes = 1249.04 kB = 1.22 MB
+Load Address: 80000000
+Entry Point:  80000000
+
+但是刷完固件，要再opkg一個一個把編譯的xxx.ipk套件裝回去，覺得很是靠杯
+
+結局（第七次）
+選擇的套件
+				Administration > <*> htop   <*> monit  <*> netdata <*> sudo
+				LuCI > Collections > <*> luci <*> luci-ssl-openssl
+				LuCI > Modules > Translations > <*> English (en)
+				LuCI > Mudules >  <*> luci-mod-failsafe
+				LuCI > Applicatoins > <*> luci-app-ddns <*> luci-app-diag-core
+									<*> luci-app-ntpc <*> luci-app-openvpn <*>luci-app-qos <*> luci-app-statistics
+				Network > VPN > <*> openvpn-openssl <M> openvpn-easy-rsa
+
+這次build是實驗性質，
+(想實驗只build y1s，然後這麼多<*>可否編譯成功？如果成功，到底我勾的這些，安裝成了那些套件？)
+執行
+make -j5 V=s TARGET_DEVICES=y1s 2>&1 | tee build.log
+只build我y1s路由器的firmware即可
+
+結果成功
+在build.log裡面查到的kernel的大小
+Image Name:   MIPS OpenWrt Linux-4.4.14
+Created:      Tue Oct 18 09:42:06 2016
+Image Type:   MIPS Linux Kernel Image (lzma compressed)
+Data Size:    1278865 Bytes = 1248.89 kB = 1.22 MB
+Load Address: 80000000
+Entry Point:  80000000
+
+發現先前build之所以失敗，是因為使用
+make V=s 2>&1 | tee build.log
+編譯所有mt7620的firmware
+而每次到型號ex2700的時候，就會失敗，然後中斷，導致沒辦法編譯出y1s的firmware
+這次（和第六次）是執行
+make -j5 V=s TARGET_DEVICES=y1s 2>&1 | tee build.log
+只編譯y1s的firmware，所以跳過ex2700的firmware產生，故成功
+
+
+然後固件的大小約6.25MB
+labasky@labasky-Lenovo-B590:~/openwrt/bin/ramips$ ls -al
+總計 6424
+drwxr-xr-x  3 labasky labasky    4096 10月 25 05:22 .
+drwxr-xr-x  3 labasky labasky    4096 10月 25 05:02 ..
+-rw-r--r--  1 labasky labasky      84 10月 25 05:22 md5sums
+-rw-r--r--  1 labasky labasky 6553604 10月 25 05:22 openwrt-ramips-mt7620-y1s-squashfs-sysupgrade.bin
+drwxr-xr-x 10 labasky labasky    4096 10月 25 05:23 packages
+-rw-r--r--  1 labasky labasky     124 10月 25 05:22 sha256sums
+
+
+刷入固件後，查看y1s路由器上安裝了那些軟體？
+root@OpenWrt:~# echo $(opkg list_installed | awk '{ print $1 }')
+base-files busybox collectd collectd-mod-cpu collectd-mod-interface collectd-mod-iwinfo collectd-mod-load collectd-mod-memory collectd-mod-network collectd-mod-rrdtool ddns-scripts dnsmasq dropbear firewall fstools hostapd-common htop ip6tables iptables iptables-mod-conntrack-extra iptables-mod-ipopt iw iwinfo jshn jsonfilter kernel kmod-cfg80211 kmod-eeprom-93cx6 kmod-gpio-button-hotplug kmod-ifb kmod-ip6tables kmod-ipt-conntrack kmod-ipt-conntrack-extra kmod-ipt-core kmod-ipt-ipopt kmod-ipt-nat kmod-leds-gpio kmod-ledtrig-usbdev kmod-lib-crc-ccitt kmod-lib-crc-itu-t kmod-mac80211 kmod-mt76 kmod-nf-conntrack kmod-nf-conntrack6 kmod-nf-ipt kmod-nf-ipt6 kmod-nf-nat kmod-nls-base kmod-ppp kmod-pppoe kmod-pppox kmod-rt2800-lib kmod-rt2800-mmio kmod-rt2800-pci kmod-rt2800-soc kmod-rt2x00-lib kmod-rt2x00-mmio kmod-rt2x00-pci kmod-sched-connmark kmod-sched-core kmod-slhc kmod-tun kmod-usb-core kmod-usb-ohci kmod-usb2 libblobmsg-json libc libgcc libip4tc libip6tc libiwinfo libiwinfo-lua libjson-c libjson-script libltdl liblua liblzo libncursesw libnl-tiny libopenssl libpolarssl libpthread librrd1 librt libubox libubus libubus-lua libuci libuci-lua libuclient libustream-openssl libuuid libxtables logd lua luci luci-app-ddns luci-app-diag-core luci-app-firewall luci-app-ntpc luci-app-openvpn luci-app-qos luci-app-statistics luci-base luci-i18n-base-en luci-i18n-diag-core-en luci-i18n-firewall-en luci-i18n-ntpc-en luci-i18n-openvpn-en luci-i18n-qos-en luci-i18n-statistics-en luci-lib-ip luci-lib-jsonc luci-lib-nixio luci-mod-admin-full luci-mod-failsafe luci-proto-ipv6 luci-proto-ppp luci-ssl-openssl luci-theme-bootstrap monit mtd netdata netifd ntpclient odhcp6c odhcpd openvpn-openssl opkg ppp ppp-mod-pppoe procd px5g qos-scripts rpcd rrdtool1 rt2800-pci-firmware sudo swconfig tc terminfo ubox ubus ubusd uci uclient-fetch uhttpd uhttpd-mod-ubus usign wpad-mini zlib
+root@OpenWrt:~# 
+
+不要忘了openvpn-easy-rsa並不在此列表裡
+剛才是把它選成<M>
+
 參考資料
 https://forum.openwrt.org/viewtopic.php?id=41846
+https://forum.openwrt.org/viewtopic.php?id=29761
+https://dev.openwrt.org/ticket/8781
+https://forum.openwrt.org/viewtopic.php?id=68220
+http://www.right.com.cn/forum/thread-189683-1-1.html
+https://forum.openwrt.org/viewtopic.php?id=42754
+https://cokebar.info/archives/90
+
+
+參考資料：教你使用Image Generator產生firmware
+https://fixmynix.com/build-openwrt-minimal-image-custom-firmware/
+https://homulilly.com/post/compile-wndr4300-openwrt-1505-firmware.html
 
 
 額外的發現，這個檔裡面

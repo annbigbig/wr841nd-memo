@@ -1,0 +1,148 @@
+參考資料
+https://wiki.openwrt.org/doc/howto/obtain.firmware.generate
+http://blog.rot13.org/2014/03/building-custom-openwrt-image-for-home-router.html
+
+
+取得官方release可以使用的套件列表
+trunk
+echo $(wget -qO - https://downloads.openwrt.org/snapshots/trunk/ramips/mt7620/config | sed -ne 's/^CONFIG_PACKAGE_\([a-z0-9-]*\)=y/\1/ip')
+
+cc 15.05.1
+echo $(wget -qO - https://downloads.openwrt.org/chaos_calmer/15.05.1/ramips/mt7620/config.diff | sed -ne 's/^CONFIG_PACKAGE_\([a-z0-9-]*\)=y/\1/ip')
+
+這個指令
+echo $(opkg list_installed | awk '{ print $1 }')
+是在已經刷好了OpenWRT固件的路由器console下執行
+可以查看目前已經安裝在路由器上面的package名稱
+
+
+開始吧，先下載Image Generator，然後解開它
+$ cd ~
+$ mkdir openwrt_img_generator && cd openwrt_img_generator
+$ wget https://downloads.openwrt.org/snapshots/trunk/ramips/mt7620/OpenWrt-ImageBuilder-ramips-mt7620.Linux-x86_64.tar.bz2
+$ tar -xvjf OpenWrt-ImageBuilder-ramips-mt7620.Linux-x86_64.tar.bz2
+$ cd OpenWrt-ImageBuilder-ramips-mt7620.Linux-x86_64/
+
+不知道要不要設定repositories.conf？
+原來的repositories.conf長這樣
+## Place your custom repositories here, they must match the architecture and version.
+# src/gz designated_driver http://downloads.openwrt.org/snapshots/trunk/ramips/mt7620/packages
+# src custom file:///usr/src/openwrt/bin/ramips/packages
+
+
+## This is the local package repository, do not remove!
+src imagebuilder file:packages
+
+請改成這樣
+## Place your custom repositories here, they must match the architecture and version.
+# src/gz designated_driver http://downloads.openwrt.org/snapshots/trunk/ramips/mt7620/packages
+# src custom file:///usr/src/openwrt/bin/ramips/packages
+
+src/gz designated_driver_base http://downloads.openwrt.org/snapshots/trunk/ramips/mt7620/packages/base
+src/gz designated_driver_luci http://downloads.openwrt.org/snapshots/trunk/ramips/mt7620/packages/luci
+src/gz designated_driver_management http://downloads.openwrt.org/snapshots/trunk/ramips/mt7620/packages/management
+src/gz designated_driver_packages http://downloads.openwrt.org/snapshots/trunk/ramips/mt7620/packages/packages
+src/gz designated_driver_routing http://downloads.openwrt.org/snapshots/trunk/ramips/mt7620/packages/routing
+src/gz designated_driver_telephony http://downloads.openwrt.org/snapshots/trunk/ramips/mt7620/packages/telephony
+
+## This is the local package repository, do not remove!
+src imagebuilder file:packages
+
+
+執行make info
+查看可以使用的Profile
+labasky@labasky-Lenovo-B590:~/openwrt_img_generator/OpenWrt-ImageBuilder-ramips-mt7620.Linux-x86_64$ make info
+Current Target: "ramips (MT7620 based boards)"
+Default Packages: base-files libc libgcc busybox dropbear mtd uci opkg netifd fstools uclient-fetch logd kmod-leds-gpio kmod-gpio-button-hotplug wpad-mini swconfig kmod-rt2800-pci kmod-rt2800-soc kmod-mt76 dnsmasq iptables ip6tables ppp ppp-mod-pppoe firewall odhcpd odhcp6c
+Available Profiles:
+
+Default:
+	Default Profile
+	Packages: kmod-usb-core kmod-usb2 kmod-usb-ohci kmod-ledtrig-usbdev
+labasky@labasky-Lenovo-B590:~/openwrt_img_generator/OpenWrt-ImageBuilder-ramips-mt7620.Linux-x86_64$ 
+
+Profile好像只能用Default
+
+稍早前第7次build出的Openwrt image，已經刷到y1s路由器上
+登入它的console，執行
+root@OpenWrt:~# echo $(opkg list_installed | awk '{ print $1 }')
+base-files busybox collectd collectd-mod-cpu collectd-mod-interface collectd-mod-iwinfo collectd-mod-load collectd-mod-memory collectd-mod-network collectd-mod-rrdtool ddns-scripts dnsmasq dropbear firewall fstools hostapd-common htop ip6tables iptables iptables-mod-conntrack-extra iptables-mod-ipopt iw iwinfo jshn jsonfilter kernel kmod-cfg80211 kmod-eeprom-93cx6 kmod-gpio-button-hotplug kmod-ifb kmod-ip6tables kmod-ipt-conntrack kmod-ipt-conntrack-extra kmod-ipt-core kmod-ipt-ipopt kmod-ipt-nat kmod-leds-gpio kmod-ledtrig-usbdev kmod-lib-crc-ccitt kmod-lib-crc-itu-t kmod-mac80211 kmod-mt76 kmod-nf-conntrack kmod-nf-conntrack6 kmod-nf-ipt kmod-nf-ipt6 kmod-nf-nat kmod-nls-base kmod-ppp kmod-pppoe kmod-pppox kmod-rt2800-lib kmod-rt2800-mmio kmod-rt2800-pci kmod-rt2800-soc kmod-rt2x00-lib kmod-rt2x00-mmio kmod-rt2x00-pci kmod-sched-connmark kmod-sched-core kmod-slhc kmod-tun kmod-usb-core kmod-usb-ohci kmod-usb2 libblobmsg-json libc libgcc libip4tc libip6tc libiwinfo libiwinfo-lua libjson-c libjson-script libltdl liblua liblzo libncursesw libnl-tiny libopenssl libpolarssl libpthread librrd1 librt libubox libubus libubus-lua libuci libuci-lua libuclient libustream-openssl libuuid libxtables logd lua luci luci-app-ddns luci-app-diag-core luci-app-firewall luci-app-ntpc luci-app-openvpn luci-app-qos luci-app-statistics luci-base luci-i18n-base-en luci-i18n-diag-core-en luci-i18n-firewall-en luci-i18n-ntpc-en luci-i18n-openvpn-en luci-i18n-qos-en luci-i18n-statistics-en luci-lib-ip luci-lib-jsonc luci-lib-nixio luci-mod-admin-full luci-mod-failsafe luci-proto-ipv6 luci-proto-ppp luci-ssl-openssl luci-theme-bootstrap monit mtd netdata netifd ntpclient odhcp6c odhcpd openvpn-openssl opkg ppp ppp-mod-pppoe procd px5g qos-scripts rpcd rrdtool1 rt2800-pci-firmware sudo swconfig tc terminfo ubox ubus ubusd uci uclient-fetch uhttpd uhttpd-mod-ubus usign wpad-mini zlib
+root@OpenWrt:~# 
+
+這個是現在路由器上面安裝的套件列表，不要忘了openvpn-easy-rsa並不在此列表裡
+在這個步驟搞到了我需要的套件列表名稱
+
+登入OpenWRT的Luci圖形介面，在System / Backup Flash Firmware
+按下「Generate Archive」，這會把路由器的configurations全備份下來，並且讓你下載
+檔名會是backup-OpenWrt-2016-10-25.tar.gz這樣
+解壓縮它
+假設它在/tmp/temp/backup-OpenWrt-2016-10-25.tar.gz
+
+$ tar zxvf /tmp/temp/backup-OpenWrt-2016-10-25.tar.gz
+
+接著在
+~/openwrt_img_generator/OpenWrt-ImageBuilder-ramips-mt7620.Linux-x86_64$
+建立一個叫files的新目錄
+
+$ mkdir files
+
+然後把解開的組態檔最上層的etc目錄，全移到剛才產生的files目錄下
+$ mv /tmp/temp/etc ~/openwrt_img_generator/OpenWrt-ImageBuilder-ramips-mt7620.Linux-x86_64/files/
+
+
+因為剛才make info
+只有得到一個PROFILE叫作Default
+如果你現在立刻執行下面的make image PROFILE=Default .....指令
+那麼Image Generator會產生所有mt7620路由器的image，包括Flash size 4MB的8MB的16MB的
+現在問題來了，路由器NetGear ex2700只有4MB的Flash
+所以你勾選了一大堆packages，使用Image Generator產生image的時候
+它是照路由器的字母順序產生image的，到ex2700的時候就會報錯，因為你產生的image大於4MB
+然後就停在這裡，你的y1s路由器的firmware還沒產生，就掛在這裡
+
+解決的方法是修改這個檔案
+OpenWrt-ImageBuilder-ramips-mt7620.Linux-x86_64/target/linux/ramips/image/mt7620.mk
+只留下y1s的這個區塊，其他都注解掉(在每一行前面加上#)
+define Device/y1s
+  DTS := Y1S
+  IMAGE_SIZE := $(ralink_default_fw_size_16M)
+  DEVICE_TITLE := Lenovo Y1S
+endef
+TARGET_DEVICES += y1s
+
+
+好緊張，要開始產生image了，執行
+$ make image PROFILE=Default PACKAGES="base-files busybox collectd collectd-mod-cpu collectd-mod-interface collectd-mod-iwinfo collectd-mod-load collectd-mod-memory collectd-mod-network collectd-mod-rrdtool ddns-scripts dnsmasq dropbear firewall fstools hostapd-common htop ip6tables iptables iptables-mod-conntrack-extra iptables-mod-ipopt iw iwinfo jshn jsonfilter kernel kmod-cfg80211 kmod-eeprom-93cx6 kmod-gpio-button-hotplug kmod-ifb kmod-ip6tables kmod-ipt-conntrack kmod-ipt-conntrack-extra kmod-ipt-core kmod-ipt-ipopt kmod-ipt-nat kmod-leds-gpio kmod-ledtrig-usbdev kmod-lib-crc-ccitt kmod-lib-crc-itu-t kmod-mac80211 kmod-mt76 kmod-nf-conntrack kmod-nf-conntrack6 kmod-nf-ipt kmod-nf-ipt6 kmod-nf-nat kmod-nls-base kmod-ppp kmod-pppoe kmod-pppox kmod-rt2800-lib kmod-rt2800-mmio kmod-rt2800-pci kmod-rt2800-soc kmod-rt2x00-lib kmod-rt2x00-mmio kmod-rt2x00-pci kmod-sched-connmark kmod-sched-core kmod-slhc kmod-tun kmod-usb-core kmod-usb-ohci kmod-usb2 libblobmsg-json libc libgcc libip4tc libip6tc libiwinfo libiwinfo-lua libjson-c libjson-script libltdl liblua liblzo libncursesw libnl-tiny libopenssl libpolarssl libpthread librrd1 librt libubox libubus libubus-lua libuci libuci-lua libuclient libustream-openssl libuuid libxtables logd lua luci luci-app-ddns luci-app-diag-core luci-app-firewall luci-app-ntpc luci-app-openvpn luci-app-qos luci-app-statistics luci-base luci-i18n-base-en luci-i18n-diag-core-en luci-i18n-firewall-en luci-i18n-ntpc-en luci-i18n-openvpn-en luci-i18n-qos-en luci-i18n-statistics-en luci-lib-ip luci-lib-jsonc luci-lib-nixio luci-mod-admin-full luci-mod-failsafe luci-proto-ipv6 luci-proto-ppp luci-ssl-openssl luci-theme-bootstrap monit mtd netdata netifd ntpclient odhcp6c odhcpd openvpn-easy-rsa openvpn-openssl opkg ppp ppp-mod-pppoe procd px5g qos-scripts rpcd rrdtool1 rt2800-pci-firmware sudo swconfig tc terminfo ubox ubus ubusd uci uclient-fetch uhttpd uhttpd-mod-ubus usign wpad-mini zlib" FILES=files/
+
+就可以產生image了
+產生好的image會在
+
+labasky@labasky-Lenovo-B590:~/openwrt_img_generator/OpenWrt-ImageBuilder-ramips-mt7620.Linux-x86_64/bin/ramips$ ls -al
+總計 93256
+drwxrwxr-x 2 labasky labasky    4096 10月 26 02:42 .
+drwxrwxr-x 3 labasky labasky    4096 10月 26 02:41 ..
+-rw-rw-r-- 1 labasky labasky    1231 10月 26 02:42 md5sums
+-rw-rw-r-- 1 labasky labasky 6815748 10月 26 02:42 openwrt-ramips-mt7620-gl-mt300a-squashfs-sysupgrade.bin
+-rw-rw-r-- 1 labasky labasky 6815748 10月 26 02:42 openwrt-ramips-mt7620-gl-mt300n-squashfs-sysupgrade.bin
+-rw-rw-r-- 1 labasky labasky 6815748 10月 26 02:42 openwrt-ramips-mt7620-gl-mt750-squashfs-sysupgrade.bin
+-rw-rw-r-- 1 labasky labasky 6815748 10月 26 02:42 openwrt-ramips-mt7620-hc5861-squashfs-sysupgrade.bin
+-rw-rw-r-- 1 labasky labasky 6815748 10月 26 02:42 openwrt-ramips-mt7620-miwifi-mini-squashfs-sysupgrade.bin
+-rw-rw-r-- 1 labasky labasky 6815748 10月 26 02:42 openwrt-ramips-mt7620-mlw221-squashfs-sysupgrade.bin
+-rw-rw-r-- 1 labasky labasky 6815748 10月 26 02:42 openwrt-ramips-mt7620-mlwg2-squashfs-sysupgrade.bin
+-rw-rw-r-- 1 labasky labasky 6815748 10月 26 02:42 openwrt-ramips-mt7620-oy-0001-squashfs-sysupgrade.bin
+-rw-rw-r-- 1 labasky labasky 6819840 10月 26 02:42 openwrt-ramips-mt7620-wrh-300cr-squashfs-factory.bin
+-rw-rw-r-- 1 labasky labasky 6815748 10月 26 02:42 openwrt-ramips-mt7620-wrh-300cr-squashfs-sysupgrade.bin
+-rw-rw-r-- 1 labasky labasky 6815748 10月 26 02:42 openwrt-ramips-mt7620-wrtnode-squashfs-sysupgrade.bin
+-rw-rw-r-- 1 labasky labasky 6815748 10月 26 02:42 openwrt-ramips-mt7620-y1-squashfs-sysupgrade.bin
+-rw-rw-r-- 1 labasky labasky 6815748 10月 26 02:42 openwrt-ramips-mt7620-y1s-squashfs-sysupgrade.bin
+-rw-rw-r-- 1 labasky labasky 6815748 10月 26 02:42 openwrt-ramips-mt7620-youku-yk1-squashfs-sysupgrade.bin
+-rw-rw-r-- 1 labasky labasky    1876 10月 26 02:42 sha256sums
+labasky@labasky-Lenovo-B590:~/openwrt_img_generator/OpenWrt-ImageBuilder-ramips-mt7620.Linux-x86_64/bin/ramips$ 
+
+
+如果有什麼問題
+可以
+make clean
+重來一次
+
+
+

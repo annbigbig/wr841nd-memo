@@ -1,0 +1,228 @@
+因為make menuconfig的時候
+很多packages都選成<M>
+編譯完成的時候可以在
+~/openwrt/bin/ramips/packages
+這個目錄下面找到副檔名是.ipk的套件安裝檔案
+
+
+指令備忘
+列出目前的目錄下所有的.ipk檔案
+find . -type f -name "*.ipk"
+
+可是好像不太對，我是要針對在目錄裡的每一個檔案
+執行指令
+
+搜尋了關鍵字linux how to list all files and execute command on it 
+
+找到這篇
+http://stackoverflow.com/questions/10523415/bash-script-to-execute-command-on-all-files-in-directory
+
+重點提示
+for file in /dir/*
+do
+  cmd [option] "$file" >> results.out
+done
+
+所以我依樣畫葫蘆，先這樣測試，把以下內容存成/tmp/test1.sh
+#!/bin/sh
+
+for file in ~/openwrt/bin/ramips/packages/luci/*.ipk
+do
+  echo "filename: $file"
+done
+
+要執行它
+$ chmod +x /tmp/test1.sh
+$ cd /tmp
+$ ./test1.sh
+
+然後如果它輸出
+(這裡很多…省略）
+filename: /home/labasky/openwrt/bin/ramips/packages/luci/luci-proto-ipv6_git-16.298.34250-95358ab-1_all.ipk
+filename: /home/labasky/openwrt/bin/ramips/packages/luci/luci-proto-ppp_git-16.298.34250-95358ab-1_all.ipk
+filename: /home/labasky/openwrt/bin/ramips/packages/luci/luci-ssl-openssl_git-16.298.34250-95358ab-1_all.ipk
+filename: /home/labasky/openwrt/bin/ramips/packages/luci/luci-theme-bootstrap_git-16.298.34250-95358ab-1_all.ipk
+filename: /home/labasky/openwrt/bin/ramips/packages/luci/luci-theme-openwrt_git-16.298.34250-95358ab-1_all.ipk
+
+好現在確定這個shell scirpt應該沒錯
+把它改存成/tmp/test2.sh
+內容變成
+#!/bin/sh
+
+for file in /tmp/opkg-packages/luci/*.ipk
+do
+  opkg install $file
+done
+
+現在在y1s路由器的console裡
+建立一個空的目錄
+# cd /tmp
+# mkdir -p opkg-packages/luci
+
+現在在筆記型電腦的console裡
+把這個shell script還有~/openwrt/bin/ramips/packages/luci目錄裡的.ipk
+全都複製到y1s路由器的/tmp目錄中
+
+$ scp *.ipk root@10.2.2.1:/tmp/opkg-packages/luci
+$ scp /tmp/test2.sh root@10.2.2.1:/tmp/test2.sh
+
+回到y1s路由器的console，安裝前
+root@OpenWrt:/tmp# df -h
+Filesystem                Size      Used Available Use% Mounted on
+/dev/root                 3.0M      3.0M         0 100% /rom
+tmpfs                   124.9M      1.1M    123.8M   1% /tmp
+/dev/mtdblock6           11.5M    416.0K     11.1M   4% /overlay
+overlayfs:/overlay       11.5M    416.0K     11.1M   4% /
+tmpfs                   512.0K         0    512.0K   0% /dev
+
+現在執行/tmp/test2.sh，安裝這些.ipk套件
+root@OpenWrt:/tmp# ./test2.sh 
+
+好像不能這樣一口氣列舉目錄裡的.ipk檔案安裝
+這裡是剛才的輸出
+root@OpenWrt:/tmp# ./test2.sh 
+Installing luci-app-firewall (git-16.298.34250-95358ab-1) to root...
+Configuring luci-app-firewall.
+Installing luci-app-ntpc (git-16.298.34250-95358ab-1) to root...
+Collected errors:
+ * satisfy_dependencies_for: Cannot satisfy the following dependencies for luci-app-ntpc:
+ * 	ntpclient * 
+ * opkg_install_cmd: Cannot install package luci-app-ntpc.
+Installing luci-app-openvpn (git-16.298.34250-95358ab-1) to root...
+Configuring luci-app-openvpn.
+Installing luci-app-qos (git-16.298.34250-95358ab-1) to root...
+Collected errors:
+ * satisfy_dependencies_for: Cannot satisfy the following dependencies for luci-app-qos:
+ * 	qos-scripts * 
+ * opkg_install_cmd: Cannot install package luci-app-qos.
+Installing luci-app-statistics (git-16.298.34250-95358ab-1) to root...
+Collected errors:
+ * satisfy_dependencies_for: Cannot satisfy the following dependencies for luci-app-statistics:
+ * 	collectd * 	rrdtool1 * 	collectd-mod-rrdtool * 	collectd-mod-iwinfo * 	collectd-mod-cpu * 	collectd-mod-memory * 	collectd-mod-interface * 	collectd-mod-load * 	collectd-mod-network * 
+ * opkg_install_cmd: Cannot install package luci-app-statistics.
+Installing luci-base (git-16.298.34250-95358ab-1) to root...
+Configuring luci-base.
+Installing luci-i18n-base-en (git-16.298.34250-95358ab-1) to root...
+Configuring luci-i18n-base-en.
+//usr/lib/opkg/info/luci-i18n-base-en.postinst: .: line 130: can't open './luci-i18n-base-en'
+//usr/lib/opkg/info/luci-i18n-base-en.postinst: .: line 130: can't open './luci-i18n-base-en'
+Installing luci-i18n-base-zh-cn (git-16.298.34250-95358ab-1) to root...
+Configuring luci-i18n-base-zh-cn.
+//usr/lib/opkg/info/luci-i18n-base-zh-cn.postinst: .: line 130: can't open './luci-i18n-base-zh-cn'
+//usr/lib/opkg/info/luci-i18n-base-zh-cn.postinst: .: line 130: can't open './luci-i18n-base-zh-cn'
+Installing luci-i18n-base-zh-tw (git-16.298.34250-95358ab-1) to root...
+Configuring luci-i18n-base-zh-tw.
+//usr/lib/opkg/info/luci-i18n-base-zh-tw.postinst: .: line 130: can't open './luci-i18n-base-zh-tw'
+//usr/lib/opkg/info/luci-i18n-base-zh-tw.postinst: .: line 130: can't open './luci-i18n-base-zh-tw'
+Installing luci-i18n-firewall-en (git-16.298.34250-95358ab-1) to root...
+Configuring luci-i18n-firewall-en.
+//usr/lib/opkg/info/luci-i18n-firewall-en.postinst: .: line 130: can't open './luci-i18n-firewall-en'
+//usr/lib/opkg/info/luci-i18n-firewall-en.postinst: .: line 130: can't open './luci-i18n-firewall-en'
+Installing luci-i18n-firewall-zh-cn (git-16.298.34250-95358ab-1) to root...
+Configuring luci-i18n-firewall-zh-cn.
+//usr/lib/opkg/info/luci-i18n-firewall-zh-cn.postinst: .: line 130: can't open './luci-i18n-firewall-zh-cn'
+//usr/lib/opkg/info/luci-i18n-firewall-zh-cn.postinst: .: line 130: can't open './luci-i18n-firewall-zh-cn'
+Installing luci-i18n-firewall-zh-tw (git-16.298.34250-95358ab-1) to root...
+Configuring luci-i18n-firewall-zh-tw.
+//usr/lib/opkg/info/luci-i18n-firewall-zh-tw.postinst: .: line 130: can't open './luci-i18n-firewall-zh-tw'
+//usr/lib/opkg/info/luci-i18n-firewall-zh-tw.postinst: .: line 130: can't open './luci-i18n-firewall-zh-tw'
+Installing luci-i18n-ntpc-en (git-16.298.34250-95358ab-1) to root...
+Collected errors:
+ * satisfy_dependencies_for: Cannot satisfy the following dependencies for luci-i18n-ntpc-en:
+ * 	luci-app-ntpc * 
+ * opkg_install_cmd: Cannot install package luci-i18n-ntpc-en.
+Installing luci-i18n-ntpc-zh-cn (git-16.298.34250-95358ab-1) to root...
+Collected errors:
+ * satisfy_dependencies_for: Cannot satisfy the following dependencies for luci-i18n-ntpc-zh-cn:
+ * 	luci-app-ntpc * 
+ * opkg_install_cmd: Cannot install package luci-i18n-ntpc-zh-cn.
+Installing luci-i18n-ntpc-zh-tw (git-16.298.34250-95358ab-1) to root...
+Collected errors:
+ * satisfy_dependencies_for: Cannot satisfy the following dependencies for luci-i18n-ntpc-zh-tw:
+ * 	luci-app-ntpc * 
+ * opkg_install_cmd: Cannot install package luci-i18n-ntpc-zh-tw.
+Installing luci-i18n-openvpn-en (git-16.298.34250-95358ab-1) to root...
+Configuring luci-i18n-openvpn-en.
+//usr/lib/opkg/info/luci-i18n-openvpn-en.postinst: .: line 130: can't open './luci-i18n-openvpn-en'
+//usr/lib/opkg/info/luci-i18n-openvpn-en.postinst: .: line 130: can't open './luci-i18n-openvpn-en'
+Installing luci-i18n-openvpn-zh-cn (git-16.298.34250-95358ab-1) to root...
+Configuring luci-i18n-openvpn-zh-cn.
+//usr/lib/opkg/info/luci-i18n-openvpn-zh-cn.postinst: .: line 130: can't open './luci-i18n-openvpn-zh-cn'
+//usr/lib/opkg/info/luci-i18n-openvpn-zh-cn.postinst: .: line 130: can't open './luci-i18n-openvpn-zh-cn'
+Installing luci-i18n-openvpn-zh-tw (git-16.298.34250-95358ab-1) to root...
+Configuring luci-i18n-openvpn-zh-tw.
+//usr/lib/opkg/info/luci-i18n-openvpn-zh-tw.postinst: .: line 130: can't open './luci-i18n-openvpn-zh-tw'
+//usr/lib/opkg/info/luci-i18n-openvpn-zh-tw.postinst: .: line 130: can't open './luci-i18n-openvpn-zh-tw'
+Installing luci-i18n-qos-en (git-16.298.34250-95358ab-1) to root...
+Collected errors:
+ * satisfy_dependencies_for: Cannot satisfy the following dependencies for luci-i18n-qos-en:
+ * 	luci-app-qos * 
+ * opkg_install_cmd: Cannot install package luci-i18n-qos-en.
+Installing luci-i18n-qos-zh-cn (git-16.298.34250-95358ab-1) to root...
+Collected errors:
+ * satisfy_dependencies_for: Cannot satisfy the following dependencies for luci-i18n-qos-zh-cn:
+ * 	luci-app-qos * 
+ * opkg_install_cmd: Cannot install package luci-i18n-qos-zh-cn.
+Installing luci-i18n-qos-zh-tw (git-16.298.34250-95358ab-1) to root...
+Collected errors:
+ * satisfy_dependencies_for: Cannot satisfy the following dependencies for luci-i18n-qos-zh-tw:
+ * 	luci-app-qos * 
+ * opkg_install_cmd: Cannot install package luci-i18n-qos-zh-tw.
+Installing luci-i18n-statistics-en (git-16.298.34250-95358ab-1) to root...
+Collected errors:
+ * satisfy_dependencies_for: Cannot satisfy the following dependencies for luci-i18n-statistics-en:
+ * 	luci-app-statistics * 
+ * opkg_install_cmd: Cannot install package luci-i18n-statistics-en.
+Installing luci-i18n-statistics-zh-cn (git-16.298.34250-95358ab-1) to root...
+Collected errors:
+ * satisfy_dependencies_for: Cannot satisfy the following dependencies for luci-i18n-statistics-zh-cn:
+ * 	luci-app-statistics * 
+ * opkg_install_cmd: Cannot install package luci-i18n-statistics-zh-cn.
+Installing luci-i18n-statistics-zh-tw (git-16.298.34250-95358ab-1) to root...
+Collected errors:
+ * satisfy_dependencies_for: Cannot satisfy the following dependencies for luci-i18n-statistics-zh-tw:
+ * 	luci-app-statistics * 
+ * opkg_install_cmd: Cannot install package luci-i18n-statistics-zh-tw.
+Installing luci-lib-ip (git-16.298.34250-95358ab-1) to root...
+Configuring luci-lib-ip.
+Installing luci-lib-jsonc (git-16.298.34250-95358ab-1) to root...
+Configuring luci-lib-jsonc.
+Installing luci-lib-nixio (git-16.298.34250-95358ab-1) to root...
+Configuring luci-lib-nixio.
+Installing luci-mod-admin-full (git-16.298.34250-95358ab-1) to root...
+Configuring luci-mod-admin-full.
+//usr/lib/opkg/info/luci-mod-admin-full.postinst: .: line 130: can't open './50_luci-mod-admin-full'
+//usr/lib/opkg/info/luci-mod-admin-full.postinst: .: line 130: can't open './50_luci-mod-admin-full'
+Installing luci-mod-failsafe (git-16.298.34250-95358ab-1) to root...
+Configuring luci-mod-failsafe.
+Installing luci-proto-ipv6 (git-16.298.34250-95358ab-1) to root...
+Configuring luci-proto-ipv6.
+Installing luci-proto-ppp (git-16.298.34250-95358ab-1) to root...
+Configuring luci-proto-ppp.
+Installing luci-ssl-openssl (git-16.298.34250-95358ab-1) to root...
+Configuring luci-ssl-openssl.
+Installing luci-theme-bootstrap (git-16.298.34250-95358ab-1) to root...
+Configuring luci-theme-bootstrap.
+//usr/lib/opkg/info/luci-theme-bootstrap.postinst: .: line 130: can't open './30_luci-theme-bootstrap'
+//usr/lib/opkg/info/luci-theme-bootstrap.postinst: .: line 130: can't open './30_luci-theme-bootstrap'
+Installing luci-theme-openwrt (git-16.298.34250-95358ab-1) to root...
+Configuring luci-theme-openwrt.
+//usr/lib/opkg/info/luci-theme-openwrt.postinst: .: line 130: can't open './30_luci-theme-openwrt'
+//usr/lib/opkg/info/luci-theme-openwrt.postinst: .: line 130: can't open './30_luci-theme-openwrt'
+Installing luci (git-16.298.34250-95358ab-1) to root...
+Configuring luci.
+root@OpenWrt:/tmp# 
+
+
+靠杯，要手動解決套件依賴問題
+要先安裝
+qos-scripts
+才能安裝
+luci-app-qos
+然後才能安裝
+luci-i18n-qos-zh-tw
+
+所以還是
+重build一個吧
+
+
