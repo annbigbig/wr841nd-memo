@@ -1,0 +1,320 @@
+參考資料
+https://wiki.openwrt.org/doc/howto/vpn.openvpn
+https://wiki.openwrt.org/doc/howto/vpn.server.openvpn.tun
+
+
+場景0 :
+	Openvpn client端可以ping到OpenWrt路由器的LAN IP
+	更精確的說，Openvpn client端的IP和OpenWrt路由器的LAN IP是在同一個subnet裡
+	Openvpn client端的IP是經由OpenWrt路由器的DHCP服務配發後得到的
+	場景0通常只拿來作測試用，因為它拿掉了防火牆配置，且兩個IP在同一個子網內，環境較為單純
+
+場景1 :
+	Openvpn client端可以ping到OpenWrt路由器的WAN IP
+	更精確的說，Openvpn client端的IP和OpenWrt路由器的WAN IP並不在同一個subnet裡
+	它們兩個IP被Internet給分隔開了
+	場景1通常是真實世界裡使用VPN的連接方式
+
+
+注意事項：
+	盡可能避開內網是192.168.0.x/24還有192.168.1.x/24這樣容易發生衝突的設定
+	如果你在公共場合的WIFI，被分配到一個192.168.0.5的IP
+	而連到遠端VPN Server，它的內網裡也剛好有一個正在使用192.168.0.5這個IP的機器
+	就會發生衝突
+
+前置作業
+	安裝必要軟體
+		執行 $ ssh root@10.2.2.1
+			(我的OpenWrt路由器的LAN IP是10.2.2.1，請置換成你的）
+		連入OpenWrt的console之後
+			root@OpenWrt:~# opkg list_installed | grep openvpn
+			luci-app-openvpn - git-16.288.36935-1e1a706-1
+			luci-i18n-openvpn-en - git-16.288.36935-1e1a706-1
+			openvpn-easy-rsa - 2013-01-30-2
+			openvpn-openssl - 2.3.11-1
+			root@OpenWrt:~#
+		這裡可以看到，我的OpenWrt路由器上已經安裝了openvpn-easy-rsa和openvpn-openssl兩個套件了
+		因為我用Image Generator產生image的時候，已經把openvpn-easy-rsa和openvpn-openssl兩個套件包含進去
+		如果你沒有的話，要執行
+			# opkg update
+			# opkg install openvpn-openssl openvpn-easy-rsa
+		把這兩個套件安裝上去
+
+
+建立憑證
+	執行指令前
+		root@OpenWrt:~# cd /etc/easy-rsa/
+		root@OpenWrt:/etc/easy-rsa# ls
+		keys               openssl-1.0.0.cnf  vars
+		root@OpenWrt:/etc/easy-rsa# cd keys/
+		root@OpenWrt:/etc/easy-rsa/keys# ls
+		index.txt  serial
+
+	執行指令
+		# build-ca
+				回答一些問題，基本上就隨便填
+				Country Name (2 letter code) [US]:TW
+				State or Province Name (full name) [CA]:TP
+				Locality Name (eg, city) [SanFrancisco]:Tamsui
+				Organization Name (eg, company) [Fort-Funston]:AnBiBi corp 
+				Organizational Unit Name (eg, section) [MyOrganizationalUnit]:Development
+				Common Name (eg, your name or your server's hostname) [Fort-Funston CA]:OpenVPN-tamsui
+				Name [EasyRSA]:annbigbig
+				Email Address [me@myhost.mydomain]:annbigbig@gmail.com
+
+		# build-dh
+		# build-key-server my-server
+		# build-key-pkcs12 my-client-01
+		# build-key-pkcs12 my-client-02
+
+	執行指令後
+		root@OpenWrt:/etc/easy-rsa/keys# ls -al
+		drwxr-xr-x    1 root     root             0 Oct 27 13:29 .
+		drwxr-xr-x    1 root     root             0 Oct 25 18:42 ..
+		-rw-r--r--    1 root     root          5549 Oct 27 13:11 01.pem
+		-rw-r--r--    1 root     root          5411 Oct 27 13:25 02.pem
+		-rw-r--r--    1 root     root          5411 Oct 27 13:29 03.pem
+		-rw-r--r--    1 root     root          1761 Oct 27 11:58 ca.crt
+		-rw-------    1 root     root          1708 Oct 27 11:58 ca.key
+		-rw-r--r--    1 root     root           424 Oct 27 13:00 dh2048.pem
+		-rw-r--r--    1 root     root           416 Oct 27 13:29 index.txt
+		-rw-r--r--    1 root     root            21 Oct 27 13:29 index.txt.attr
+		-rw-r--r--    1 root     root            21 Oct 27 13:25 index.txt.attr.old
+		-rw-r--r--    1 root     root           280 Oct 27 13:25 index.txt.old
+		-rw-r--r--    1 root     root          5411 Oct 27 13:25 my-client-01.crt
+		-rw-r--r--    1 root     root          1082 Oct 27 13:25 my-client-01.csr
+		-rw-------    1 root     root          1708 Oct 27 13:25 my-client-01.key
+		-rw-------    1 root     root          4229 Oct 27 13:25 my-client-01.p12
+		-rw-r--r--    1 root     root          5411 Oct 27 13:29 my-client-02.crt
+		-rw-r--r--    1 root     root          1082 Oct 27 13:29 my-client-02.csr
+		-rw-------    1 root     root          1704 Oct 27 13:29 my-client-02.key
+		-rw-------    1 root     root          4229 Oct 27 13:29 my-client-02.p12
+		-rw-r--r--    1 root     root          5549 Oct 27 13:11 my-server.crt
+		-rw-r--r--    1 root     root          1094 Oct 27 13:11 my-server.csr
+		-rw-------    1 root     root          1704 Oct 27 13:11 my-server.key
+		-rw-r--r--    1 root     root             3 Oct 27 13:29 serial
+		-rw-r--r--    1 root     root             3 Oct 27 13:25 serial.old
+
+
+
+發布(剛才建立的)憑證
+	Openvpn Server需要的檔案複製到Openwrt路由器的/etc/openvpn目錄下
+		執行指令
+			# cp /etc/easy-rsa/keys/ca.crt /etc/openvpn
+			# cp /etc/easy-rsa/keys/my-server.* /etc/openvpn
+			# cp /etc/easy-rsa/keys/dh2048.pem /etc/openvpn
+
+		複製過去之後，路由器的/etc/openvpn目錄下應該會有
+			root@OpenWrt:/etc/openvpn# ls -al
+			drwxr-xr-x    1 root     root             0 Oct 27 13:35 .
+			drwxrwxr-x    1 root     root             0 Oct 26 10:12 ..
+			-rw-r--r--    1 root     root          1761 Oct 27 13:34 ca.crt
+			-rw-r--r--    1 root     root           424 Oct 27 13:35 dh2048.pem
+			-rw-r--r--    1 root     root          5549 Oct 27 13:34 my-server.crt
+			-rw-r--r--    1 root     root          1094 Oct 27 13:34 my-server.csr
+			-rw-------    1 root     root          1704 Oct 27 13:34 my-server.key
+
+	Openvpn Client需要的檔案，以我的情況來說，安裝了Ubuntu 16.04的筆記型電腦就是我的Openvpn Client端
+	現在在路由器的console，把需要的Openvpn Client的檔案複製到/tmp/openvpn-client-files目錄下
+			# mkdir /tmp/openvpn-client-files
+			# cp /etc/easy-rsa/keys/ca.crt /tmp/openvpn-client-files/
+			# cp /etc/easy-rsa/keys/my-client-01.crt /tmp/openvpn-client-files/
+			# cp /etc/easy-rsa/keys/my-client-01.key /tmp/openvpn-client-files/
+	然後在筆記型電腦的bash console執行指令，把路由器上的Openvpn Client需要的檔案複製過來
+			$ cd ~
+			$ mkdir openvpn-client-files
+			$ cd openvpn-client-files
+			$ scp root@10.2.2.1:/tmp/openvpn-client-files/ca.crt .
+			$ scp root@10.2.2.1:/tmp/openvpn-client-files/my-client-01.crt .
+			$ scp root@10.2.2.1:/tmp/openvpn-client-files/my-client-01.key .
+	
+
+設定OpenWrt路由器需要的網路設定，在路由器的console下執行這些指令
+	建立vpn接口
+	uci set network.vpn0=interface
+	uci set network.vpn0.ifname=tun0
+	uci set network.vpn0.proto=none
+	uci set network.vpn0.auto=1
+
+	允許進入的vpn流量，注意我使用了custom port，原來的1194被我換成了1495
+	uci add firewall rule
+	uci set firewall.@rule[-1].name=Allow-OpenVPN-Inbound
+	uci set firewall.@rule[-1].target=ACCEPT
+	uci set firewall.@rule[-1].src=*
+	uci set firewall.@rule[-1].proto=udp
+	uci set firewall.@rule[-1].dest_port=1495
+
+	懶得翻譯 Allow OpenVPN tunnel utilization: (not needed when bridging using tap)
+	uci add firewall zone
+	uci set firewall.@zone[-1].name=vpn
+	uci set firewall.@zone[-1].input=ACCEPT
+	uci set firewall.@zone[-1].forward=REJECT
+	uci set firewall.@zone[-1].output=ACCEPT
+	uci set firewall.@zone[-1].network=vpn0
+	uci add firewall forwarding
+	uci set firewall.@forwarding[-1].src='vpn'
+	uci set firewall.@forwarding[-1].dest='wan'
+	uci add firewall forwarding
+	uci set firewall.@forwarding[-1].src='vpn'
+	uci set firewall.@forwarding[-1].dest='lan'
+
+	提交變更
+	uci commit network
+	/etc/init.d/network reload
+	uci commit firewall
+	/etc/init.d/firewall reload
+
+設定Openvpn Server
+	echo > /etc/config/openvpn # clear the openvpn uci config
+	uci set openvpn.myvpn=openvpn
+	uci set openvpn.myvpn.enabled=1
+	uci set openvpn.myvpn.verb=3
+	uci set openvpn.myvpn.port=1495
+	uci set openvpn.myvpn.proto=udp
+	uci set openvpn.myvpn.log=/tmp/openvpn.log
+	uci set openvpn.myvpn.dev=tun
+	uci set openvpn.myvpn.server='10.8.0.0 255.255.255.0'
+	uci set openvpn.myvpn.push='redirect-gateway def1'
+	uci set openvpn.myvpn.ca=/etc/openvpn/ca.crt
+	uci set openvpn.myvpn.cert=/etc/openvpn/my-server.crt
+	uci set openvpn.myvpn.key=/etc/openvpn/my-server.key
+	uci set openvpn.myvpn.dh=/etc/openvpn/dh2048.pem
+
+	這裡可能是錯的，因為底線_
+	uci set openvpn.myvpn.persist_tun=1
+	uci set openvpn.myvpn.persist_key=1
+	uci set openvpn.myvpn.ifconfig_pool_persist=/tmp/openvpn-ipp.txt
+	uci set openvpn.myvpn.fast_io=on 
+	uci set openvpn.myvpn.comp_lzo=adaptive
+	uci set openvpn.myvpn.push='comp_lzo adaptive'
+
+	請你改成這裡的Dash，也就是-
+	uci set openvpn.myvpn.persist-tun=1
+	uci set openvpn.myvpn.persist-key=1
+	uci set openvpn.myvpn.ifconfig-pool-persist=/tmp/openvpn-ipp.txt
+	uci set openvpn.myvpn.fast-io=on 
+	uci set openvpn.myvpn.comp-lzo=adaptive
+	uci set openvpn.myvpn.push='comp-lzo adaptive'
+
+	uci commit openvpn
+	/etc/init.d/openvpn enable
+	/etc/init.d/openvpn start
+
+
+設定Openvpn Client(在Ubuntu 16.04筆記型電腦上的Network Manager）
+	在桌面右上角的四分之一圓WiFi圖示上，按下右鍵，選「VPN 連線 > 設定 VPN(C)...」
+	按下「新增 (A)」並選下方的「OpenVPN」，按下「建立...」鈕
+	在VPN頁籤填入
+		連線名稱(N): VPN (Openvpn_Server_y1s)
+		Gateway: 192.168.0.10
+		User Certificate: 選取/home/labasky/openvpn-client-files/my-client-01.crt
+		CA 憑證: 選取/home/labasky/openvpn-client-files/ca.crt
+		Private Key: 選取/home/labasky/openvpn-client-files/my-client-01.key
+	按下「進階(V)...」
+		Use Custom gateway port : 1495
+		Use LZO data compression (這個一定不要打勾)
+	按下「確定(O)」
+
+要使用Ubuntu的Network Manager，對遠端的VPN Server進行連線
+就右鍵按下桌面右上角那個四分之一扇形，選「VPN 連線」> VPN (Openvpn_Server_y1s)
+
+
+如果選擇使用openvpn client進行連線
+確定有安裝openvpn套件，如果沒有，就安裝它
+# apt-get install openvpn
+
+把剛才的ca.crt
+my-client-01.crt
+my-client-01.key
+都複製到/etc/openvpn 目錄下
+
+並建立一個/etc/openvpn/client.conf
+
+內容如下
+dev tun
+proto udp
+
+log openvpn.log
+verb 3
+
+ca /etc/openvpn/ca.crt
+cert /etc/openvpn/my-client-01.crt
+key /etc/openvpn/my-client-01.key
+
+client
+remote-cert-tls server
+remote 192.168.0.11 1495
+
+redirect-gateway def1
+
+
+啟動Openvpn client，執行
+# service openvpn@client start
+或
+# systemctl start openvpn@client
+
+查看openvpn client的狀態
+# service openvpn@client status
+或
+# systemctl status openvpn@client
+
+停止openvpn client，執行
+# service openvpn@client stop
+或
+# systemctl stop openvpn@client
+
+設定開機時「不」自動執行Openvpn client向遠端VPN服務器連線
+# systemctl disable openvpn@client
+
+設定開機時「要」自動執行Openvpn client向遠端VPN服務器連線
+# systemctl enable openvpn@client
+
+建立VPN連線後，此時可以查看路由表
+# route -n
+
+root@labasky-Lenovo-B590:/etc/openvpn# route -n
+Kernel IP routing table
+Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
+0.0.0.0         10.8.0.5        128.0.0.0       UG    0      0        0 tun0
+0.0.0.0         10.1.1.1        0.0.0.0         UG    600    0        0 wlan0
+10.1.1.0        0.0.0.0         255.255.255.0   U     600    0        0 wlan0
+10.8.0.1        10.8.0.5        255.255.255.255 UGH   0      0        0 tun0
+10.8.0.5        0.0.0.0         255.255.255.255 UH    0      0        0 tun0
+128.0.0.0       10.8.0.5        128.0.0.0       UG    0      0        0 tun0
+192.168.0.11    10.1.1.1        255.255.255.255 UGH   0      0        0 wlan0
+
+
+然後試著ping這些IP
+10.1.1.1 (Ubuntu 筆電原來的default gateway)
+10.2.2.1 (OpenWRT 路由器的Lan IP)
+10.2.2.172 (遠方Lan裡的一個樹莓派設備)
+10.8.0.1 (OpenWRT 路由器的tun interface)
+8.8.8.8 (網際網路，使用IP）
+tw.yahoo.com (網際網路，使用域名)
+
+
+如果都可以ping通，就恭喜了
+這裡只為了使用VPN來翻牆，還有同時連到遠方的LAN內部，算是基礎用法
+如果有其他的需求，像是
+route WAN traffic but not for LAN (讓你當跳板但是別碰我內網)
+或
+route traffic only for LAN (讓你連回辦公室但是別拿我當跳板)
+之類的進階需求，不在此篇簡易筆記的涵蓋範圍內
+噗
+
+參考資料
+https://help.ubuntu.com/lts/serverguide/openvpn.html
+
+
+關鍵字
+openvpn client doesnt change default gateway to internet
+openvpn client doesnt change default gateway to remote tun
+openvpn client doesnt add route for default gateway
+ubuntu openvpn client doesnt use remote tun ip as default gateway
+why openvpn client doesnt route traffic via tunnel
+
+http://serverfault.com/questions/648118/openvpn-not-default-gateway-for-all-traffic
+
+http://askubuntu.com/questions/462533/route-all-traffic-through-openvpn
+
+https://astojanov.wordpress.com/2013/03/31/openvpn-to-route-all-traffic-or-a-specific-route-to-a-client/
