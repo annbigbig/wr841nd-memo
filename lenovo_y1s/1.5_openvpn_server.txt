@@ -18,6 +18,7 @@ https://wiki.openwrt.org/doc/howto/vpn.server.openvpn.tun
 
 注意事項：
 	盡可能避開內網是192.168.0.x/24還有192.168.1.x/24這樣容易發生衝突的設定
+	(因為192.168.0.x/24和192.168.1.x/24是很多路由器出廠預設的LAN網段)
 	如果你在公共場合的WIFI，被分配到一個192.168.0.5的IP
 	而連到遠端VPN Server，它的內網裡也剛好有一個正在使用192.168.0.5這個IP的機器
 	就會發生衝突
@@ -292,15 +293,18 @@ Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
 8.8.8.8 (網際網路，使用IP）
 tw.yahoo.com (網際網路，使用域名)
 
+然後觀察
+traceroute 8.8.8.8
+第一個hop是不是10.8.0.1 (OpenWRT路由器的tun interface)
 
-如果都可以ping通，就恭喜了
+如果都可以ping通，而且出去的時候也是從10.8.0.1出去的，就恭喜了
 這裡只為了使用VPN來翻牆，還有同時連到遠方的LAN內部，算是基礎用法
 如果有其他的需求，像是
 route WAN traffic but not for LAN (讓你當跳板但是別碰我內網)
 或
 route traffic only for LAN (讓你連回辦公室但是別拿我當跳板)
 之類的進階需求，不在此篇簡易筆記的涵蓋範圍內
-噗
+我只會簡單的，太難的不要找我，噗~
 
 參考資料
 https://help.ubuntu.com/lts/serverguide/openvpn.html
