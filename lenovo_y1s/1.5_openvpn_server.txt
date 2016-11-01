@@ -253,22 +253,30 @@ redirect-gateway def1
 # service openvpn@client start
 或
 # systemctl start openvpn@client
+或
+# systemctl start openvpn.service
 
 查看openvpn client的狀態
 # service openvpn@client status
 或
 # systemctl status openvpn@client
+或
+# systemctl status openvpn.service
 
 停止openvpn client，執行
 # service openvpn@client stop
 或
 # systemctl stop openvpn@client
+或
+# systemctl stop openvpn.service
 
 設定開機時「不」自動執行Openvpn client向遠端VPN服務器連線
 # systemctl disable openvpn@client
+# systemctl disable openvpn.service
 
 設定開機時「要」自動執行Openvpn client向遠端VPN服務器連線
 # systemctl enable openvpn@client
+# systemctl enable openvpn.service
 
 建立VPN連線後，此時可以查看路由表
 # route -n
@@ -296,6 +304,15 @@ tw.yahoo.com (網際網路，使用域名)
 然後觀察
 traceroute 8.8.8.8
 第一個hop是不是10.8.0.1 (OpenWRT路由器的tun interface)
+
+正確的輸出像是這樣，出去的第一站是10.8.0.1
+root@labasky-Lenovo-B590:~# traceroute 8.8.8.8
+traceroute to 8.8.8.8 (8.8.8.8), 30 hops max, 60 byte packets
+ 1  10.8.0.1 (10.8.0.1)  12.176 ms  12.257 ms  12.672 ms
+ 2  192.168.0.1 (192.168.0.1)  13.249 ms  13.394 ms  13.685 ms
+ 3  10.104.128.1 (10.104.128.1)  16.653 ms  21.171 ms  19.988 ms
+ 4  10.102.254.121 (10.102.254.121)  21.805 ms  27.488 ms  27.501 ms
+
 
 如果都可以ping通，而且出去的時候也是從10.8.0.1出去的，就恭喜了
 這裡只為了使用VPN來翻牆，還有同時連到遠方的LAN內部，算是基礎用法
