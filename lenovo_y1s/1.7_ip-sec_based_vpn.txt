@@ -1,0 +1,301 @@
+
+
+安裝套件
+opkg update
+opkg install strongswan-default strongswan-mod-dhcp strongswan-mod-af-alg strongswan-mod-gcrypt
+opkg install strongswan-mod-blowfish strongswan-mod-md4 strongswan-mod-openssl strongswan-mod-pkcs11
+opkg install strongswan-mod-pkcs8 strongswan-mod-test-vectors strongswan-mod-farp
+opkg install strongswan-mod-kernel-libipsec kmod-tun
+opkg install ipset iptables-mod-filter iptables-mod-nat-extra ppp-mod-pppoe
+
+這些套件一起裝上
+opkg install strongswan-mod-eap-identity strongswan-mod-eap-md5 strongswan-mod-eap-mschapv2 strongswan-mod-eap-radius strongswan-mod-eap-tls
+
+
+設定檔/etc/strongswan.conf
+# strongswan.conf - strongSwan configuration file
+#
+# Refer to the strongswan.conf(5) manpage for details
+#
+# Configuration changes should be made in the included files
+
+#charon {
+#	load_modular = yes
+#	plugins {
+#		include strongswan.d/charon/*.conf
+#	}
+#}
+
+#include strongswan.d/*.conf
+
+charon {
+        threads = 16
+        dns1 = 10.2.2.1
+		dns2 = 8.8.8.8
+}
+
+pluto {
+
+}
+
+#libstrongswan {
+#       crypto_test {
+#                on_add = yes
+#        }
+#}
+
+
+設定檔/etc/ipsec.conf
+config setup
+
+conn %default
+ keyexchange=ikev2
+
+conn roadwarrior
+ left=%any
+ leftauth=pubkey
+ leftcert=serverCert.pem
+ leftid=192.168.0.11
+ leftsubnet=0.0.0.0/0
+ leftfirewall=yes
+ right=%any
+ rightsourceip=10.5.3.0/24
+ rightauth=pubkey
+ rightcert=clientCert.pem
+ rightauth2=eap-mschapv2
+ auto=add
+ esp=aes-aes256-sha-modp1024,aes256-sha512-modp4096
+ ike=aes-aes256-sha-modp1024,aes256-sha512-modp4096
+
+(注意leftid要和下方產生serverCert.pem裡指定的CN=192.168.0.11還有--san="192.168.0.11"一致，最好將來有hostname不要用數字IP)
+
+設定檔
+# /etc/ipsec.secrets - strongSwan IPsec secrets file
+
+: RSA serverKey.pem
+tony : EAP "tonypassword"
+mary : EAP "marypassword"
+
+
+產生key和cert，執行此shell script，把它另存成generator.sh
+然後chmod +x generator.sh，接著在/root目錄裡執行它
+#!/bin/sh
+ipsec pki --gen --outform pem > caKey.pem
+ipsec pki --self --in caKey.pem --dn "C=TW, O=xxx, CN=xxxx" --ca --outform pem > caCert.pem
+ipsec pki --gen --outform pem > serverKey.pem
+ipsec pki --pub --in serverKey.pem | ipsec pki --issue --cacert caCert.pem --cakey caKey.pem --dn "C=TW, O=xxx, CN=192.168.0.11" --san="192.168.0.11" --flag serverAuth --flag ikeIntermediate --outform pem > serverCert.pem
+ipsec pki --gen --outform pem > clientKey.pem
+ipsec pki --pub --in clientKey.pem | ipsec pki --issue --cacert caCert.pem --cakey caKey.pem --dn "C=TW, O=xxx, CN=client" --outform pem > clientCert.pem
+openssl pkcs12 -export -inkey clientKey.pem -in clientCert.pem -name "client" -certfile caCert.pem -caname "xxxx" -out clientCert.p12
+
+
+把key和cert放到該放的地方
+# cp caCert.pem /etc/ipsec.d/cacerts/
+# cp serverCert.pem /etc/ipsec.d/certs/
+# cp serverKey.pem /etc/ipsec.d/private/
+# cp clientCert.pem /etc/ipsec.d/certs/
+# cp clientKey.pem /etc/ipsec.d/private/
+# cp caKey.pem /etc/ipsec.d/private/
+
+
+網路設定/etc/config/network
+加入這個區塊
+config interface 'vpn1'
+	option proto 'none'
+	option auto '1'
+	option ifname 'ipsec0'
+
+
+
+防火牆設定/etc/config/firewall
+加入這四個區塊
+config rule
+        option src 'wan'
+        option name 'IPSec ESP'
+        option proto 'esp'
+        option target 'ACCEPT'
+
+config rule
+        option src 'wan'
+        option name 'IPSec IKE'
+        option proto 'udp'
+        option dest_port '500'
+        option target 'ACCEPT'
+
+config rule
+        option src 'wan'
+        option name 'IPSec NAT-T'
+        option proto 'udp'
+        option dest_port '4500'
+        option target 'ACCEPT'
+
+config rule
+        option src 'wan'
+        option name 'Auth Header'
+        option proto 'ah'
+        option target 'ACCEPT'
+
+然後修改這個區塊 (原先你的zone vpn只有給openvpn用的vpn0，現在加入一個給strongswan用的vpn1)
+config zone                       
+        option name 'vpn'         
+        option input 'ACCEPT'     
+        option forward 'REJECT'   
+        option output 'ACCEPT'    
+        option network 'vpn0 vpn1'
+
+這兩個區塊是原先就有的，不要動它，有它翻牆後，網路才能通，不管是當跳板或是進內網
+config forwarding                 
+        option dest 'lan'     
+        option src 'vpn'       
+                            
+config forwarding        
+        option dest 'wan'
+        option src 'vpn' 
+
+
+在/etc/firewall.user加上這四行
+iptables -I INPUT -m policy --dir in --pol ipsec --proto esp -j ACCEPT
+iptables -I FORWARD -m policy --dir in --pol ipsec --proto esp -j ACCEPT
+iptables -I FORWARD -m policy --dir out --pol ipsec --proto esp -j ACCEPT
+iptables -I OUTPUT -m policy --dir out --pol ipsec --proto esp -j ACCEPT
+
+重新載入網路
+/etc/init.d/network reload
+
+重新載入防火牆
+/etc/init.d/firewall reload
+
+重新啟動ipsec
+# /etc/init.d/ipsec restart
+
+設定開機時自動啟動
+# /etc/init.d/ipsec enable
+
+Server這邊的設定已經完成，把剛才產生的clientCert.p12
+複製到安卓手機上，準備進行client端設定
+
+=====================================================================
+
+Android (vpn client端設定)
+打開「設定 > 安全性 > 從SD卡安裝」
+把剛才的clientCert.p12匯入
+然後到Play商店，下載strongswan client
+打開它，選「ADD VPN PROFILE」，填入下列資料
+Server : 192.168.0.11 (我是測試環境，你應該填入一個public IP，你的VPN Server的IP)
+VPN Type : IKEv2 Certificate + EAP (Username/Password)
+Username : tony
+Password (optional) : tonypassword
+User certificate : 選剛才那個clientCert.p12
+按下Advanced settings
+MTU of the VPN tunnel device : 1400  (我有填，但是不填好像也沒差)
+按下右上角的「Save」完成設定，然後點一下剛才的「Server:192.168.0.11」進行vpn連接
+成功的話會顯示
+Status: Connected
+Profile: 192.168.0.11
+		[ Disconnect ]
+
+可以再到Play商店下載traceroute工具，看看traceroute 8.8.8.8是不是從路由器的LAN IP 10.2.2.1出去的？
+
+=====================================================================
+
+Ubuntu（vpn client端設定)
+
+注意
+Versions before NetworkManager-strongswan 1.4.0 / strongSwan 5.5.1 don't work with NetworkManager 1.2 and newer
+
+這表示你就算
+# apt-get install network-manager-strongswan
+安裝了這個套件也沒有用
+
+確定把這些廢物包移除掉
+# apt-get --purge remove network-manager-strongswan strongswan-nm strongswan strongswan-charon
+# apt autoremove
+
+安裝依賴套件
+# apt-get install libssl-dev network-manager-dev libnm-glib-vpn-dev libnm-gtk-dev libnma-dev libgtk-3-dev libsecret-1-dev gnome-common 
+
+安裝strongswan
+# cd /usr/local/src
+# wget https://download.strongswan.org/strongswan-5.5.1.tar.gz
+檢查一下md5sum
+# md5sum ./strongswan-5.5.1.tar.gz
+如果輸出是
+874684cd30e35a2746ea32a54cc118c7  ./strongswan-5.5.1.tar.gz
+表示你下載的檔案和來源檔一致
+
+# tar -zxvf ./strongswan-5.5.1.tar.gz
+# cd ./strongswan-5.5.1
+# ./configure --sysconfdir=/etc --prefix=/usr --libexecdir=/usr/lib \
+ --disable-aes --disable-des --disable-md5 --disable-sha1 --disable-sha2 \
+ --disable-fips-prf --disable-gmp --enable-openssl --enable-nm --enable-agent \
+ --enable-eap-gtc --enable-eap-md5 --enable-eap-mschapv2 --enable-eap-identity
+
+輸出的最後一小段
+ strongSwan will be built with the following plugins
+-----------------------------------------------------
+libstrongswan: rc2 random nonce x509 revocation constraints pubkey pkcs1 pkcs7 pkcs8 pkcs12 pgp dnskey sshkey pem openssl agent xcbc cmac hmac
+libcharon:     attr kernel-netlink resolve socket-default stroke vici updown eap-identity eap-md5 eap-gtc eap-mschapv2 xauth-generic
+libtnccs:     
+
+編譯
+# make
+
+(記錄下這個指令的輸出結果，日後想要uninstall才有機會)
+# make -n install > ./output_of_strongswan_make_install
+
+安裝
+# make install
+
+
+安裝network-manager-strongswan
+# cd /usr/local/src
+# wget https://download.strongswan.org/NetworkManager/NetworkManager-strongswan-1.4.1.tar.bz2
+# md5sum ./NetworkManager-strongswan-1.4.1.tar.bz2
+輸出必須是
+f9f44af4725f7264cf0d5bcbd087fcf8  ./NetworkManager-strongswan-1.4.1.tar.bz2
+
+# tar xjf ./NetworkManager-strongswan-1.4.1.tar.bz2
+# cd ./NetworkManager-strongswan-1.4.1/
+# ./configure --sysconfdir=/etc --prefix=/usr
+# make
+# make -n install > output_of_NewtorkManager-strongswan_make_install
+# make install
+
+可是連了nm-applet就掛掉…？？？
+
+================================
+參考資料
+https://zhmail.com/2015/09/15/configuring-ikev1-xauth-psk-in-openwrt1505/
+
+https://wiki.openwrt.org/doc/uci/ipsec
+https://wiki.openwrt.org/inbox/strongswan.howto
+
+https://wiki.strongswan.org/projects/strongswan/wiki/StrongswanConf
+https://linux.die.net/man/5/ipsec.conf
+
+
+https://wiki.strongswan.org/projects/strongswan/wiki/ConfigurationExamples
+https://wiki.strongswan.org/projects/strongswan/wiki/NetworkManager
+
+主要參考這篇
+https://wiki.openwrt.org/doc/howto/vpn.ipsec.roadwarrior
+
+安裝了network-manager-strongswan但是什麼屁都沒有
+https://ubuntuforums.org/showthread.php?t=2327303
+
+用戶端設定
+https://strongswan.net/guides/ubuntu-linux/
+https://doc.pfsense.org/index.php/IKEv2_with_EAP-MSCHAPv2#Ubuntu-based_Client_Setup
+
+解決log裡出現的
+charon too long to start... - kill kill
+charon has died -- restart scheduled (5sec)
+的問題（使用指令logread && logread -f來查看log）
+http://eko.one.pl/forum/viewtopic.php?id=12930
+
+解決log裡出現的
+charon: 13[IKE] received EAP_FAILURE, EAP authentication failed
+你是不是沒安裝這個 eap-mschapv2 plugin
+
+https://community.hide.me/threads/solved-strongswan-ipsec-eap-authentication-failed.1182/
+

@@ -1,0 +1,69 @@
+前置條件
+	先到no-ip.com注冊一個帳戶
+	得到一個主機名，假設是 pika.ddns.net
+
+依賴套件
+	# opkg update
+	# opkg install ca-certificates
+	# opkg install ddns-scripts
+	# opkg install ddns-scripts_cloudflare
+	# opkg install ddns-scripts_no-ip_com
+	# opkg install ddns-scripts_nsupdate
+
+
+在LuCI介面的 Service > Dynamic DNS
+下方的myddns_ipv4按下Edit鈕，填入資料後，按下「Save & Apply」
+產生的組態檔在/etc/config/ddns，如下
+
+config ddns 'global'
+	option date_format '%F %R'
+	option log_lines '250'
+	option allow_local_ip '0'
+
+config service 'myddns_ipv4'
+	option interface 'wan'
+	option ip_source 'network'
+	option ip_network 'wan'
+	option service_name 'no-ip.com'
+	option lookup_host 'pika.ddns.net'
+	option username 'pika'
+	option password 'type_your_password_here'
+	option use_https '1'
+	option cacert '/etc/ssl/certs'
+	option domain 'pika.ddns.net'
+	option enabled '1'
+
+
+從BB開始之後的版本，記得要把ddns服務設成開機自動啟動
+指令是
+/etc/init.d/ddns enable
+或是在LuCI裡的「System > Startup」找到DDNS 確認它現在是「Enable」鈕 （預設是打開，你不用動它)
+
+log檔可以查看/tmp/log/ddns/myddns_ipv4.log
+注意：必須是public IP才能update，否則log檔會跳下面這種錯誤訊息，告訴你什麼都沒有update
+
+ 143839  WARN : Updating IP at DDNS provider failed - starting retry 1/0
+ 143839       : Detect local IP on 'network'
+ 143839       : Local IP '192.168.0.11' detected on network 'wan'
+ 143839       : Update needed - L: '192.168.0.11' <> R: '49.159.112.48'
+ 143839 ERROR : No or private or invalid IP '192.168.0.11' given! Please check your configuration
+ 143839 ERROR : No update send to DDNS Provider
+ 143839       : Waiting 600 seconds (Check Interval)
+
+
+如何知道DDNS client正確設定了呢？
+請執行指令
+
+labasky@labasky-Lenovo-B590:~$ ping pika.ddns.net
+PING pika.ddns.net (49.159.115.41) 56(84) bytes of data.
+64 bytes from 49-159-112-48.dynamic.elinx.com.tw (49.159.115.41): icmp_seq=1 ttl=63 time=1.70 ms
+64 bytes from 49-159-112-48.dynamic.elinx.com.tw (49.159.115.41): icmp_seq=2 ttl=63 time=23.1 ms
+^C
+--- pika.ddns.net ping statistics ---
+2 packets transmitted, 2 received, 0% packet loss, time 1001ms
+rtt min/avg/max/mdev = 1.704/12.410/23.117/10.707 ms
+labasky@labasky-Lenovo-B590:~$ 
+
+如果這裡得到的IP (49.159.115.41)
+和你路由器目前WAN接口的IP一樣
+那樣就確定新的IP有更新到DDNS provider了

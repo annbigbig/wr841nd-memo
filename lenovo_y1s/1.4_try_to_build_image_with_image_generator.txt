@@ -38,6 +38,7 @@ src imagebuilder file:packages
 # src/gz designated_driver http://downloads.openwrt.org/snapshots/trunk/ramips/mt7620/packages
 # src custom file:///usr/src/openwrt/bin/ramips/packages
 
+src/gz designated_driver_generic https://downloads.openwrt.org/snapshots/trunk/ramips/generic/packages/packages
 src/gz designated_driver_base http://downloads.openwrt.org/snapshots/trunk/ramips/mt7620/packages/base
 src/gz designated_driver_luci http://downloads.openwrt.org/snapshots/trunk/ramips/mt7620/packages/luci
 src/gz designated_driver_management http://downloads.openwrt.org/snapshots/trunk/ramips/mt7620/packages/management
@@ -110,10 +111,27 @@ endef
 TARGET_DEVICES += y1s
 
 
+補充：給2015年買的mw300rv6路由產生image，請保留這個區塊
+define Device/rt-n14u
+  DTS := RT-N14U
+  IMAGE_SIZE := $(ralink_default_fw_size_8M)
+  DEVICE_TITLE := Asus RT-N14u
+endef
+TARGET_DEVICES += rt-n14u
+
+並將原來的
+$(ralink_default_fw_size_8M)
+改成這樣
+$(ralink_default_fw_size_16M)
+
+
+
 好緊張，要開始產生image了，執行
 $ make image PROFILE=Default PACKAGES="base-files busybox collectd collectd-mod-cpu collectd-mod-interface collectd-mod-iwinfo collectd-mod-load collectd-mod-memory collectd-mod-network collectd-mod-rrdtool ddns-scripts dnsmasq dropbear firewall fstools hostapd-common htop ip6tables iptables iptables-mod-conntrack-extra iptables-mod-ipopt iw iwinfo jshn jsonfilter kernel kmod-cfg80211 kmod-eeprom-93cx6 kmod-gpio-button-hotplug kmod-ifb kmod-ip6tables kmod-ipt-conntrack kmod-ipt-conntrack-extra kmod-ipt-core kmod-ipt-ipopt kmod-ipt-nat kmod-leds-gpio kmod-ledtrig-usbdev kmod-lib-crc-ccitt kmod-lib-crc-itu-t kmod-mac80211 kmod-mt76 kmod-nf-conntrack kmod-nf-conntrack6 kmod-nf-ipt kmod-nf-ipt6 kmod-nf-nat kmod-nls-base kmod-ppp kmod-pppoe kmod-pppox kmod-rt2800-lib kmod-rt2800-mmio kmod-rt2800-pci kmod-rt2800-soc kmod-rt2x00-lib kmod-rt2x00-mmio kmod-rt2x00-pci kmod-sched-connmark kmod-sched-core kmod-slhc kmod-tun kmod-usb-core kmod-usb-ohci kmod-usb2 libblobmsg-json libc libgcc libip4tc libip6tc libiwinfo libiwinfo-lua libjson-c libjson-script libltdl liblua liblzo libncursesw libnl-tiny libopenssl libpolarssl libpthread librrd1 librt libubox libubus libubus-lua libuci libuci-lua libuclient libustream-openssl libuuid libxtables logd lua luci luci-app-ddns luci-app-diag-core luci-app-firewall luci-app-ntpc luci-app-openvpn luci-app-qos luci-app-statistics luci-base luci-i18n-base-en luci-i18n-diag-core-en luci-i18n-firewall-en luci-i18n-ntpc-en luci-i18n-openvpn-en luci-i18n-qos-en luci-i18n-statistics-en luci-lib-ip luci-lib-jsonc luci-lib-nixio luci-mod-admin-full luci-mod-failsafe luci-proto-ipv6 luci-proto-ppp luci-ssl-openssl luci-theme-bootstrap monit mtd netdata netifd ntpclient odhcp6c odhcpd openvpn-easy-rsa openvpn-openssl opkg ppp ppp-mod-pppoe procd px5g qos-scripts rpcd rrdtool1 rt2800-pci-firmware sudo swconfig tc terminfo ubox ubus ubusd uci uclient-fetch uhttpd uhttpd-mod-ubus usign wpad-mini zlib" FILES=files/
 
 就可以產生image了
+
+
 產生好的image會在
 
 labasky@labasky-Lenovo-B590:~/openwrt_img_generator/OpenWrt-ImageBuilder-ramips-mt7620.Linux-x86_64/bin/ramips$ ls -al
@@ -144,5 +162,41 @@ labasky@labasky-Lenovo-B590:~/openwrt_img_generator/OpenWrt-ImageBuilder-ramips-
 make clean
 重來一次
 
+
+補充：如果需要ddns，應該追加這些套件
+bind-libs bind-client ca-certificates curl ddns-scripts_cloudflare ddns-scripts_no-ip_com ddns-scripts_nsupdate libcurl
+
+
+請使用下列指令來產生image
+$ make image PROFILE=Default PACKAGES="base-files bind-libs bind-client busybox ca-certificates collectd collectd-mod-cpu collectd-mod-interface collectd-mod-iwinfo collectd-mod-load collectd-mod-memory collectd-mod-network collectd-mod-rrdtool curl ddns-scripts ddns-scripts_cloudflare ddns-scripts_no-ip_com ddns-scripts_nsupdate dnsmasq dropbear firewall fstools hostapd-common htop ip6tables iptables iptables-mod-conntrack-extra iptables-mod-ipopt iw iwinfo jshn jsonfilter kernel kmod-cfg80211 kmod-eeprom-93cx6 kmod-gpio-button-hotplug kmod-ifb kmod-ip6tables kmod-ipt-conntrack kmod-ipt-conntrack-extra kmod-ipt-core kmod-ipt-ipopt kmod-ipt-nat kmod-leds-gpio kmod-ledtrig-usbdev kmod-lib-crc-ccitt kmod-lib-crc-itu-t kmod-mac80211 kmod-mt76 kmod-nf-conntrack kmod-nf-conntrack6 kmod-nf-ipt kmod-nf-ipt6 kmod-nf-nat kmod-nls-base kmod-ppp kmod-pppoe kmod-pppox kmod-rt2800-lib kmod-rt2800-mmio kmod-rt2800-pci kmod-rt2800-soc kmod-rt2x00-lib kmod-rt2x00-mmio kmod-rt2x00-pci kmod-sched-connmark kmod-sched-core kmod-slhc kmod-tun kmod-usb-core kmod-usb-ohci kmod-usb2 libblobmsg-json libc libcurl libgcc libip4tc libip6tc libiwinfo libiwinfo-lua libjson-c libjson-script libltdl liblua liblzo libncursesw libnl-tiny libopenssl libpolarssl libpthread librrd1 librt libubox libubus libubus-lua libuci libuci-lua libuclient libustream-openssl libuuid libxtables logd lua luci luci-app-ddns luci-app-diag-core luci-app-firewall luci-app-ntpc luci-app-openvpn luci-app-qos luci-app-statistics luci-base luci-i18n-base-en luci-i18n-diag-core-en luci-i18n-firewall-en luci-i18n-ntpc-en luci-i18n-openvpn-en luci-i18n-qos-en luci-i18n-statistics-en luci-lib-ip luci-lib-jsonc luci-lib-nixio luci-mod-admin-full luci-mod-failsafe luci-proto-ipv6 luci-proto-ppp luci-ssl-openssl luci-theme-bootstrap monit mtd netdata netifd ntpclient odhcp6c odhcpd openvpn-easy-rsa openvpn-openssl opkg ppp ppp-mod-pppoe procd px5g qos-scripts rpcd rrdtool1 rt2800-pci-firmware sudo swconfig tc terminfo ubox ubus ubusd uci uclient-fetch uhttpd uhttpd-mod-ubus usign wpad-mini zlib" FILES=files/
+
+補充：如果除了上面的openvpn和ddns，還需要strongswan，應該追加這些套件
+strongswan-default strongswan-mod-dhcp strongswan-mod-af-alg strongswan-mod-gcrypt
+strongswan-mod-blowfish strongswan-mod-md4 strongswan-mod-openssl strongswan-mod-pkcs11
+strongswan-mod-pkcs8 strongswan-mod-test-vectors strongswan-mod-farp
+strongswan-mod-kernel-libipsec kmod-tun
+strongswan-mod-eap-identity strongswan-mod-eap-md5 strongswan-mod-eap-mschapv2 strongswan-mod-eap-radius strongswan-mod-eap-tls
+ipset iptables-mod-filter iptables-mod-nat-extra ppp-mod-pppoe
+
+
+請使用下列指令來產生image
+$ make image PROFILE=Default PACKAGES="base-files bind-libs bind-client busybox ca-certificates collectd collectd-mod-cpu collectd-mod-interface collectd-mod-iwinfo collectd-mod-load collectd-mod-memory collectd-mod-network collectd-mod-rrdtool curl ddns-scripts ddns-scripts_cloudflare ddns-scripts_no-ip_com ddns-scripts_nsupdate dnsmasq dropbear firewall fstools hostapd-common htop ip6tables ipset iptables iptables-mod-conntrack-extra iptables-mod-filter iptables-mod-ipopt iptables-mod-nat-extra iw iwinfo jshn jsonfilter kernel kmod-cfg80211 kmod-eeprom-93cx6 kmod-gpio-button-hotplug kmod-ifb kmod-ip6tables kmod-ipt-conntrack kmod-ipt-conntrack-extra kmod-ipt-core kmod-ipt-ipopt kmod-ipt-nat kmod-leds-gpio kmod-ledtrig-usbdev kmod-lib-crc-ccitt kmod-lib-crc-itu-t kmod-mac80211 kmod-mt76 kmod-nf-conntrack kmod-nf-conntrack6 kmod-nf-ipt kmod-nf-ipt6 kmod-nf-nat kmod-nls-base kmod-ppp kmod-pppoe kmod-pppox kmod-rt2800-lib kmod-rt2800-mmio kmod-rt2800-pci kmod-rt2800-soc kmod-rt2x00-lib kmod-rt2x00-mmio kmod-rt2x00-pci kmod-sched-connmark kmod-sched-core kmod-slhc kmod-tun kmod-usb-core kmod-usb-ohci kmod-usb2 libblobmsg-json libc libcurl libgcc libip4tc libip6tc libiwinfo libiwinfo-lua libjson-c libjson-script libltdl liblua liblzo libncursesw libnl-tiny libopenssl libpolarssl libpthread librrd1 librt libubox libubus libubus-lua libuci libuci-lua libuclient libustream-openssl libuuid libxtables logd lua luci luci-app-ddns luci-app-diag-core luci-app-firewall luci-app-ntpc luci-app-openvpn luci-app-qos luci-app-statistics luci-base luci-i18n-base-en luci-i18n-diag-core-en luci-i18n-firewall-en luci-i18n-ntpc-en luci-i18n-openvpn-en luci-i18n-qos-en luci-i18n-statistics-en luci-lib-ip luci-lib-jsonc luci-lib-nixio luci-mod-admin-full luci-mod-failsafe luci-proto-ipv6 luci-proto-ppp luci-ssl-openssl luci-theme-bootstrap monit mtd netdata netifd ntpclient odhcp6c odhcpd openvpn-easy-rsa openvpn-openssl opkg ppp ppp-mod-pppoe procd px5g qos-scripts rpcd rrdtool1 rt2800-pci-firmware strongswan-default strongswan-mod-dhcp strongswan-mod-af-alg strongswan-mod-gcrypt strongswan-mod-blowfish strongswan-mod-eap-identity strongswan-mod-eap-md5 strongswan-mod-eap-mschapv2 strongswan-mod-eap-radius strongswan-mod-eap-tls strongswan-mod-md4 strongswan-mod-openssl strongswan-mod-pkcs11 strongswan-mod-pkcs8 strongswan-mod-test-vectors strongswan-mod-farp strongswan-mod-kernel-libipsec sudo swconfig tc terminfo ubox ubus ubusd uci uclient-fetch uhttpd uhttpd-mod-ubus usign wpad-mini zlib" FILES=files/
+
+
+錯誤訊息？？？
+Collected errors:
+ * opkg_install_cmd: Cannot install package strongswan-default.
+ * opkg_install_cmd: Cannot install package strongswan-mod-af-alg.
+ * opkg_install_cmd: Cannot install package strongswan-mod-blowfish.
+ * opkg_install_cmd: Cannot install package strongswan-mod-dhcp.
+ * opkg_install_cmd: Cannot install package strongswan-mod-farp.
+ * opkg_install_cmd: Cannot install package strongswan-mod-gcrypt.
+ * opkg_install_cmd: Cannot install package strongswan-mod-kernel-libipsec.
+ * opkg_install_cmd: Cannot install package strongswan-mod-md4.
+ * opkg_install_cmd: Cannot install package strongswan-mod-openssl.
+ * opkg_install_cmd: Cannot install package strongswan-mod-pkcs11.
+ * opkg_install_cmd: Cannot install package strongswan-mod-pkcs8.
+ * opkg_install_cmd: Cannot install package strongswan-mod-test-vectors.
+Makefile:146: recipe for target 'package_install' failed
 
 
