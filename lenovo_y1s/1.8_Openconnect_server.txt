@@ -1,0 +1,260 @@
+Server端設定
+
+需要的套件
+ocserv
+luci-app-ocserv
+
+參考資料
+https://wiki.openwrt.org/doc/howto/openconnect-setup
+
+
+登入LuCI圖形介面，在Services > OpenConnect VPN作設定
+General Settings
+	□Enable Server 這個打勾
+	User Authentication : plain
+	Port : 443
+	Max clients : 8
+	Max same clients : 2
+	VPN IPv4-Network-Address : 10.2.2.224
+	VPN IPv4-Netmask : 255.255.255.248
+
+DNS Servers
+	8.8.8.8
+	8.8.4.4
+	168.95.192.1
+	168.95.1.1
+
+Edit Template
+	找到expose-iroutes = true把它註解掉
+	變成#expose-iroutes = true
+
+User Settings
+	按下[ Add ]建立兩個用戶，填入你想要的username和password
+
+都設置好就按下右下角的 [Save & Apply]
+
+完成後
+/etc/config/ocserv
+如下
+
+config ocserv 'config'
+	option dpd '180'
+	option max_clients '8'
+	option max_same '2'
+	option zone 'lan'
+	option auth 'plain'
+	option port '443'
+	option proxy_arp '1'
+	option ipaddr '10.2.2.224'
+	option netmask '255.255.255.248'
+	option _ca '-----BEGIN CERTIFICATE-----
+MIIC+jCCAeKgAwIBAgIBATANBgkqhkiG9w0BAQsFADAdMRswGQYDVQQDExJhbm5i
+aWdiaWcuZGRucy5uZXQwIBcNMTYxMTI0MTg1ODAzWhgPOTk5OTEyMzEyMzU5NTla
+MB0xGzAZBgNVBAMTEmFubmJpZ2JpZy5kZG5zLm5ldDCCASIwDQYJKoZIhvcNAQEB
+BQADggEPADCCAQoCggEBAKz3pcAvQ4I7nvJDxnKcBiUadyj7h7pSkkLwDqpby6n0
+WkMtBFb8S8lsnjEWbCw9PMC1x7N2605MQefnx8ftWXOdM8WjNPr1PC9BO5alYid3
+inV0HCp2s3rUBCglKy6IFxVd6ywZBkIyYSF5GHFABTHpKuHFeFaYmpy2aRgd1Z0W
+uv6QiCudsVbG34GCV5PKhl+fLslbBndc+Su7idiaGQBJzXV6FnhB3gIrzlSVh6ot
+F+5fS7kU8SLzK9nwfdpTP5aVjkM8hn71zs7xB+eB0+RkjHZf2Nc1uAI0vU2cg0Eh
+hvXmJUQzEDE6H7G2BNl4Vm+hOpUSmj5RLj1lVhpC1QMCAwEAAaNDMEEwDwYDVR0T
+AQH/BAUwAwEB/zAPBgNVHQ8BAf8EBQMDBwQAMB0GA1UdDgQWBBSRoxdglTdC/FsA
+hX9vJNF5FKRSdjANBgkqhkiG9w0BAQsFAAOCAQEAqbGkFJxAhnUEHC75WFBaNBH6
+GSqWyECuPY0Y/Q68RqmJ74ep6d55Y5EjQOQBBknGDEnmNR8/z6aMtaKwJbc382Mp
+/71meaS+0/exanBx0AJqKABGkMK0fYlnkAJKKU8J7eFj+LNrQFPDbXRXER946nIC
+cJc+MXVnHNE2mY3NAcMokD85wexneLrbLjSvhVTQte6gS5Mci6gRDPGYAmcZjchu
+8sYlJUiVVGSOU7oy9KTQpMwz6lVUpno0oJniYXrhkQW545XaIAkvjYmfc48k0J+W
+DC0kb00ATkit8VRHfkH5sdGlvWqnu8V82QuDbQN5qxwFZGfoc7Y+qmk/ALeeCw==
+-----END CERTIFICATE-----
+'
+	option enable '1'
+
+config dns
+	option ip '8.8.8.8'
+
+config ocservusers
+	option name 'naruto'
+	option password '$1$94617498$/UH46fEdf.5ediNr7ONhb/'
+
+config ocservusers
+	option name 'sakura'
+	option password '$1$11200781$cFGZr8sKCAvasjqXKeonZ.'
+
+config ocservusers
+
+config dns
+	option ip '8.8.4.4'
+
+config dns
+	option ip '168.95.192.1'
+
+config dns
+	option ip '168.95.1.1'
+
+
+
+編輯/etc/config/firewall
+加入兩條規則
+config rule                      
+      option name 'Allow SSL vpn in (tcp)'
+      option src 'wan'                    
+      option proto 'tcp'                  
+      option dest_port '443'              
+      option target 'ACCEPT'              
+                                          
+  config rule                                 
+      option name 'Allow SSL vpn in (udp)'
+      option src 'wan'                    
+      option proto 'udp'                  
+      option dest_port '443'              
+      option target 'ACCEPT'    
+
+
+編輯/etc/firewall.user
+加入四條規則
+iptables -A input_rule -i vpns+ -j ACCEPT
+iptables -A forwarding_rule -i vpns+ -j ACCEPT
+iptables -A forwarding_rule -o vpns+ -j ACCEPT
+iptables -A output_rule -o vpns+ -j ACCEPT
+
+編輯/etc/sysctl.conf
+加入這一行
+net.ipv4.conf.all.proxy_arp=1
+
+
+關掉原先uhttpd的443 port（LuCI管理介面的https://10.2.2.1)
+修改/etc/config/uhttpd
+把這三行註解掉，變成
+	#list listen_https '0.0.0.0:443'
+	#list listen_https '[::]:443'
+	#option redirect_https '1'
+
+
+
+重啟防火牆和服務
+# /etc/init.d/firewall reload
+# /etc/init.d/ocserv restart
+# /etc/init.d/uhttpd restart
+# sysctl -p
+
+
+===============================================================
+client端設定
+
+請安裝
+命令列工具
+# apt-get install openconnect vpnc-scripts
+
+圖形介面工具
+# apt-get install network-manager-openconnect
+
+(因為我路由器的WAN IP還是preserved ip才要作這件事，稍早前注冊的annbigbig.ddns.net指向了一個public IP，現在要將它覆寫)
+client端連線前請編輯/etc/hosts
+加入一行
+192.168.0.10	annbigbig.ddns.net
+
+如何連線
+使用指令
+# openconnect https://annbigbig.ddns.net
+
+輸入yes然後再輸入username和password
+
+連線後檢查是否有從tun0出去？default gateway變成了10.2.2.225 (OpenWRT路由器的vpns0接口的IP)
+root@labasky-Lenovo-B590:~# ifconfig tun0
+tun0: flags=4305<UP,POINTOPOINT,RUNNING,NOARP,MULTICAST>  mtu 1369
+        inet 10.2.2.228  netmask 255.255.255.255  destination 10.2.2.228
+        inet6 fe80::cc6:57b1:67c:8f80  prefixlen 64  scopeid 0x20<link>
+        unspec 00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00  txqueuelen 500  (UNSPEC)
+        RX packets 9059  bytes 9928157 (9.9 MB)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets 6401  bytes 594102 (594.1 KB)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+
+root@labasky-Lenovo-B590:~# route -n
+Kernel IP routing table
+Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
+0.0.0.0         0.0.0.0         0.0.0.0         U     0      0        0 tun0
+0.0.0.0         10.1.1.1        0.0.0.0         UG    600    0        0 wlan0
+10.1.1.0        0.0.0.0         255.255.255.0   U     600    0        0 wlan0
+10.2.2.224      0.0.0.0         255.255.255.248 U     0      0        0 tun0
+192.168.0.11    10.1.1.1        255.255.255.255 UGH   0      0        0 wlan0
+root@labasky-Lenovo-B590:~# traceroute tw.yahoo.com
+traceroute to tw.yahoo.com (206.190.36.105), 30 hops max, 60 byte packets
+ 1  10.2.2.225 (10.2.2.225)  22.829 ms  23.409 ms  24.158 ms
+ 2  192.168.0.1 (192.168.0.1)  25.546 ms  26.686 ms  27.470 ms
+ 3  10.104.128.1 (10.104.128.1)  45.240 ms  43.823 ms  44.932 ms
+ 
+(以下輸出略）
+
+root@labasky-Lenovo-B590:~# 
+
+===============================================================
+
+(下面不用看)
+
+錯誤
+/etc/init.d/ocserv restart
+uci: Parse error (invalid character in name field) at line 14, byte 20
+
+小心地雷，不要在/etc/config/xxxx裡面有dash
+https://lists.openwrt.org/pipermail/openwrt-tickets/2016-April/085993.html
+
+錯誤 logread && logread -f
+Thu Nov 24 20:03:38 2016 daemon.info procd: Instance ocserv::instance1 s in a crash loop 6 crashes, 0 seconds since last crash
+Thu Nov 24 20:07:22 2016 daemon.info hostapd: wlan1: STA 9c:d2:1e:f1:0a:53 WPA: group key handshake completed (RSN)
+Thu Nov 24 20:17:22 2016 daemon.info hostapd: wlan1: STA 9c:d2:1e:f1:0a:53 WPA: group key handshake completed (RSN)
+Thu Nov 24 20:17:35 2016 daemon.err uhttpd[2528]: error connecting to ocserv socket '/var/run/occtl.socket': No such file or directory
+Thu Nov 24 20:17:38 2016 daemon.err uhttpd[2528]: error connecting to ocserv socket '/var/run/occtl.socket': No such file or directory
+
+
+https://github.com/openwrt/packages/issues/2167
+
+重要訊息是
+UPDATE: in my case the problem is caused by the parameter "expose-iroutes = true" in ocserv.conf. After commenting the line the daemon starts normally, i'll send an email to the mantainer.
+
+
+https://www.mail-archive.com/search?l=openwrt-tickets@lists.openwrt.org&q=subject:%22%5C%5BOpenWrt%5C-Tickets%5C%5D+%5C%5BOpenWrt%5C%5D+%2321401%5C%3A+Segfault+in+libc.so+Openconnect%22&o=newest&f=1
+
+在LuCI介面的Services > OpenConnect VPN > Edit Template
+把expose-iroutes = true這一行
+註解掉
+變成
+#expose-iroutes = true
+(修改的是/etc/ocserv/ocserv.conf.template這個檔案的內容)
+
+
+使用network-manager連線後，但是default gateway沒改變的問題
+搜尋關鍵字
+ubuntu network manager openconnect doesnt route traffic
+ubuntu network manager openconnect default gateway
+
+http://ossnotebook.blogspot.tw/2014/07/ubuntu-how-to-setup-cisco-vpn-connection.html
+http://lists.infradead.org/pipermail/openconnect-devel/2014-August/002178.html
+http://superuser.com/questions/794922/routing-all-traffic-over-vpn-on-ubuntu-linux
+
+
+
+連線後網路流量並沒有從vpn服務器出去
+解決方法
+route add default gw 10.2.2.225 tun0
+
+然後看到這篇
+http://www.right.com.cn/forum/thread-185098-1-1.html
+重點是
+经过测试和研究：
+1、如果这里不填写任意网段，VPN Client 将使用Tunnel all Traffice模式，即设置客户端所有的流量发往OpenWRT，即新增一条默认路由到OpenWRT访问所有网络。
+2、如果填写网段，VPN Clinet将使用 Split Tunnel的分离隧道模式，只有指定的网段流量才通过VPN房网OpenWRT。
+這段文字的更白話意思
+是請確認OpenWRT路由器的/etc/config/ocserv組態檔
+不要有這個區塊
+config routes
+	option netmask '255.255.255.0'
+	option ip '10.2.2.0'
+
+
+
+在logread && logread -f看到的錯誤訊息
+Mon Nov 28 10:29:08 2016 daemon.info procd: Instance ocserv::instance1 s in a crash loop 6 crashes, 0 seconds since last crash
+Mon Nov 28 10:30:14 2016 daemon.info hostapd: wlan1: STA 9c:d2:1e:f1:0a:53 WPA: group key handshake completed (RSN)
+Mon Nov 28 10:32:08 2016 daemon.err uhttpd[3234]: error connecting to ocserv socket '/var/run/occtl.socket': No such file or directory
+
+（ocserv crash掉的原因可能是因為在port 443上面原先是uhttpd運行著，把它關掉之後持續再觀察看看)

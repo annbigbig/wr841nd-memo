@@ -174,6 +174,49 @@ iptables -I OUTPUT -m policy --dir out --pol ipsec --proto esp -j ACCEPT
 Server這邊的設定已經完成，把剛才產生的clientCert.p12
 複製到安卓手機上，準備進行client端設定
 
+如果要換成custom port (原先的是udp 500和udp 4500，假設我們換成udp 2805和udp 7777)
+你需要修改/etc/strongswan.conf
+這個區塊加入
+charon {
+        threads = 16
+        dns1 = 10.2.2.1
+		dns2 = 8.8.8.8
+		port = 2805
+		port_nat_t = 7777
+}
+
+修改/etc/config/firewall
+這兩個區塊
+config rule
+	option src 'wan'
+	option name 'IPSec IKE'
+	option dest_port '2805'
+	option proto 'udp'
+	option target 'ACCEPT'
+
+config rule
+	option src 'wan'
+	option name 'IPSec NAT-T'
+	option proto 'udp'
+	option dest_port '7777'
+	option target 'ACCEPT'
+
+重啟網路、防火牆、ipsec服務
+/etc/init.d/firewall reload
+/etc/init.d/network reload
+/etc/init.d/ipsec restart
+
+重啟ipsec後，可以用指令看一下有沒有在新的port跑起來？
+root@OpenWrt:/etc/config# netstat -anp|grep charon
+udp        0      0 0.0.0.0:68              0.0.0.0:*                           32069/charon
+udp        0      0 0.0.0.0:7777            0.0.0.0:*                           32069/charon
+udp        0      0 0.0.0.0:2805            0.0.0.0:*                           32069/charon
+udp        0      0 :::7777                 :::*                                32069/charon
+udp        0      0 :::2805                 :::*                                32069/charon
+unix  2      [ ACC ]     STREAM     LISTENING     128465 32069/charon        /var/run/charon.ctl
+unix  2      [ ]         DGRAM                    128286 32069/charon        
+root@OpenWrt:/etc/config#
+
 =====================================================================
 
 Android (vpn client端設定)
@@ -196,74 +239,19 @@ Profile: 192.168.0.11
 
 可以再到Play商店下載traceroute工具，看看traceroute 8.8.8.8是不是從路由器的LAN IP 10.2.2.1出去的？
 
+補充：如果是用上面custom port的設定，Server port請指定2805
+
 =====================================================================
 
 Ubuntu（vpn client端設定)
 
-注意
-Versions before NetworkManager-strongswan 1.4.0 / strongSwan 5.5.1 don't work with NetworkManager 1.2 and newer
+TODO
 
-這表示你就算
-# apt-get install network-manager-strongswan
-安裝了這個套件也沒有用
+可能的線索
+https://doc.pfsense.org/index.php/IKEv2_with_EAP-MSCHAPv2#Ubuntu-based_Client_Setup
+https://wiki.strongswan.org/projects/strongswan/wiki/NetworkManager
 
-確定把這些廢物包移除掉
-# apt-get --purge remove network-manager-strongswan strongswan-nm strongswan strongswan-charon
-# apt autoremove
-
-安裝依賴套件
-# apt-get install libssl-dev network-manager-dev libnm-glib-vpn-dev libnm-gtk-dev libnma-dev libgtk-3-dev libsecret-1-dev gnome-common 
-
-安裝strongswan
-# cd /usr/local/src
-# wget https://download.strongswan.org/strongswan-5.5.1.tar.gz
-檢查一下md5sum
-# md5sum ./strongswan-5.5.1.tar.gz
-如果輸出是
-874684cd30e35a2746ea32a54cc118c7  ./strongswan-5.5.1.tar.gz
-表示你下載的檔案和來源檔一致
-
-# tar -zxvf ./strongswan-5.5.1.tar.gz
-# cd ./strongswan-5.5.1
-# ./configure --sysconfdir=/etc --prefix=/usr --libexecdir=/usr/lib \
- --disable-aes --disable-des --disable-md5 --disable-sha1 --disable-sha2 \
- --disable-fips-prf --disable-gmp --enable-openssl --enable-nm --enable-agent \
- --enable-eap-gtc --enable-eap-md5 --enable-eap-mschapv2 --enable-eap-identity
-
-輸出的最後一小段
- strongSwan will be built with the following plugins
------------------------------------------------------
-libstrongswan: rc2 random nonce x509 revocation constraints pubkey pkcs1 pkcs7 pkcs8 pkcs12 pgp dnskey sshkey pem openssl agent xcbc cmac hmac
-libcharon:     attr kernel-netlink resolve socket-default stroke vici updown eap-identity eap-md5 eap-gtc eap-mschapv2 xauth-generic
-libtnccs:     
-
-編譯
-# make
-
-(記錄下這個指令的輸出結果，日後想要uninstall才有機會)
-# make -n install > ./output_of_strongswan_make_install
-
-安裝
-# make install
-
-
-安裝network-manager-strongswan
-# cd /usr/local/src
-# wget https://download.strongswan.org/NetworkManager/NetworkManager-strongswan-1.4.1.tar.bz2
-# md5sum ./NetworkManager-strongswan-1.4.1.tar.bz2
-輸出必須是
-f9f44af4725f7264cf0d5bcbd087fcf8  ./NetworkManager-strongswan-1.4.1.tar.bz2
-
-# tar xjf ./NetworkManager-strongswan-1.4.1.tar.bz2
-# cd ./NetworkManager-strongswan-1.4.1/
-# ./configure --sysconfdir=/etc --prefix=/usr
-# make
-# make -n install > output_of_NewtorkManager-strongswan_make_install
-# make install
-
-可是連了nm-applet就掛掉…？？？
-
-================================
+=====================================================================
 參考資料
 https://zhmail.com/2015/09/15/configuring-ikev1-xauth-psk-in-openwrt1505/
 
@@ -298,4 +286,11 @@ charon: 13[IKE] received EAP_FAILURE, EAP authentication failed
 你是不是沒安裝這個 eap-mschapv2 plugin
 
 https://community.hide.me/threads/solved-strongswan-ipsec-eap-authentication-failed.1182/
+
+
+發問了可是零回應
+https://forum.openwrt.org/viewtopic.php?id=68532
+
+我發的問題到mailing list
+https://lists.strongswan.org/pipermail/users/2016-November/010200.html
 

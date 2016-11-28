@@ -124,7 +124,16 @@ $(ralink_default_fw_size_8M)
 改成這樣
 $(ralink_default_fw_size_16M)
 
+補充：
+更快的方法是直接把mt7620.mk這個檔案裡所有的
+$(ralink_default_fw_size_4M)
+$(ralink_default_fw_size_8M)
+改成
+$(ralink_default_fw_size_16M)
 
+指令是
+$ sed -i -- 's/$(ralink_default_fw_size_4M)/$(ralink_default_fw_size_16M)/g' ./mt7620.mk
+$ sed -i -- 's/$(ralink_default_fw_size_8M)/$(ralink_default_fw_size_16M)/g' ./mt7620.mk
 
 好緊張，要開始產生image了，執行
 $ make image PROFILE=Default PACKAGES="base-files busybox collectd collectd-mod-cpu collectd-mod-interface collectd-mod-iwinfo collectd-mod-load collectd-mod-memory collectd-mod-network collectd-mod-rrdtool ddns-scripts dnsmasq dropbear firewall fstools hostapd-common htop ip6tables iptables iptables-mod-conntrack-extra iptables-mod-ipopt iw iwinfo jshn jsonfilter kernel kmod-cfg80211 kmod-eeprom-93cx6 kmod-gpio-button-hotplug kmod-ifb kmod-ip6tables kmod-ipt-conntrack kmod-ipt-conntrack-extra kmod-ipt-core kmod-ipt-ipopt kmod-ipt-nat kmod-leds-gpio kmod-ledtrig-usbdev kmod-lib-crc-ccitt kmod-lib-crc-itu-t kmod-mac80211 kmod-mt76 kmod-nf-conntrack kmod-nf-conntrack6 kmod-nf-ipt kmod-nf-ipt6 kmod-nf-nat kmod-nls-base kmod-ppp kmod-pppoe kmod-pppox kmod-rt2800-lib kmod-rt2800-mmio kmod-rt2800-pci kmod-rt2800-soc kmod-rt2x00-lib kmod-rt2x00-mmio kmod-rt2x00-pci kmod-sched-connmark kmod-sched-core kmod-slhc kmod-tun kmod-usb-core kmod-usb-ohci kmod-usb2 libblobmsg-json libc libgcc libip4tc libip6tc libiwinfo libiwinfo-lua libjson-c libjson-script libltdl liblua liblzo libncursesw libnl-tiny libopenssl libpolarssl libpthread librrd1 librt libubox libubus libubus-lua libuci libuci-lua libuclient libustream-openssl libuuid libxtables logd lua luci luci-app-ddns luci-app-diag-core luci-app-firewall luci-app-ntpc luci-app-openvpn luci-app-qos luci-app-statistics luci-base luci-i18n-base-en luci-i18n-diag-core-en luci-i18n-firewall-en luci-i18n-ntpc-en luci-i18n-openvpn-en luci-i18n-qos-en luci-i18n-statistics-en luci-lib-ip luci-lib-jsonc luci-lib-nixio luci-mod-admin-full luci-mod-failsafe luci-proto-ipv6 luci-proto-ppp luci-ssl-openssl luci-theme-bootstrap monit mtd netdata netifd ntpclient odhcp6c odhcpd openvpn-easy-rsa openvpn-openssl opkg ppp ppp-mod-pppoe procd px5g qos-scripts rpcd rrdtool1 rt2800-pci-firmware sudo swconfig tc terminfo ubox ubus ubusd uci uclient-fetch uhttpd uhttpd-mod-ubus usign wpad-mini zlib" FILES=files/
@@ -183,20 +192,20 @@ ipset iptables-mod-filter iptables-mod-nat-extra ppp-mod-pppoe
 $ make image PROFILE=Default PACKAGES="base-files bind-libs bind-client busybox ca-certificates collectd collectd-mod-cpu collectd-mod-interface collectd-mod-iwinfo collectd-mod-load collectd-mod-memory collectd-mod-network collectd-mod-rrdtool curl ddns-scripts ddns-scripts_cloudflare ddns-scripts_no-ip_com ddns-scripts_nsupdate dnsmasq dropbear firewall fstools hostapd-common htop ip6tables ipset iptables iptables-mod-conntrack-extra iptables-mod-filter iptables-mod-ipopt iptables-mod-nat-extra iw iwinfo jshn jsonfilter kernel kmod-cfg80211 kmod-eeprom-93cx6 kmod-gpio-button-hotplug kmod-ifb kmod-ip6tables kmod-ipt-conntrack kmod-ipt-conntrack-extra kmod-ipt-core kmod-ipt-ipopt kmod-ipt-nat kmod-leds-gpio kmod-ledtrig-usbdev kmod-lib-crc-ccitt kmod-lib-crc-itu-t kmod-mac80211 kmod-mt76 kmod-nf-conntrack kmod-nf-conntrack6 kmod-nf-ipt kmod-nf-ipt6 kmod-nf-nat kmod-nls-base kmod-ppp kmod-pppoe kmod-pppox kmod-rt2800-lib kmod-rt2800-mmio kmod-rt2800-pci kmod-rt2800-soc kmod-rt2x00-lib kmod-rt2x00-mmio kmod-rt2x00-pci kmod-sched-connmark kmod-sched-core kmod-slhc kmod-tun kmod-usb-core kmod-usb-ohci kmod-usb2 libblobmsg-json libc libcurl libgcc libip4tc libip6tc libiwinfo libiwinfo-lua libjson-c libjson-script libltdl liblua liblzo libncursesw libnl-tiny libopenssl libpolarssl libpthread librrd1 librt libubox libubus libubus-lua libuci libuci-lua libuclient libustream-openssl libuuid libxtables logd lua luci luci-app-ddns luci-app-diag-core luci-app-firewall luci-app-ntpc luci-app-openvpn luci-app-qos luci-app-statistics luci-base luci-i18n-base-en luci-i18n-diag-core-en luci-i18n-firewall-en luci-i18n-ntpc-en luci-i18n-openvpn-en luci-i18n-qos-en luci-i18n-statistics-en luci-lib-ip luci-lib-jsonc luci-lib-nixio luci-mod-admin-full luci-mod-failsafe luci-proto-ipv6 luci-proto-ppp luci-ssl-openssl luci-theme-bootstrap monit mtd netdata netifd ntpclient odhcp6c odhcpd openvpn-easy-rsa openvpn-openssl opkg ppp ppp-mod-pppoe procd px5g qos-scripts rpcd rrdtool1 rt2800-pci-firmware strongswan-default strongswan-mod-dhcp strongswan-mod-af-alg strongswan-mod-gcrypt strongswan-mod-blowfish strongswan-mod-eap-identity strongswan-mod-eap-md5 strongswan-mod-eap-mschapv2 strongswan-mod-eap-radius strongswan-mod-eap-tls strongswan-mod-md4 strongswan-mod-openssl strongswan-mod-pkcs11 strongswan-mod-pkcs8 strongswan-mod-test-vectors strongswan-mod-farp strongswan-mod-kernel-libipsec sudo swconfig tc terminfo ubox ubus ubusd uci uclient-fetch uhttpd uhttpd-mod-ubus usign wpad-mini zlib" FILES=files/
 
 
-錯誤訊息？？？
-Collected errors:
- * opkg_install_cmd: Cannot install package strongswan-default.
- * opkg_install_cmd: Cannot install package strongswan-mod-af-alg.
- * opkg_install_cmd: Cannot install package strongswan-mod-blowfish.
- * opkg_install_cmd: Cannot install package strongswan-mod-dhcp.
- * opkg_install_cmd: Cannot install package strongswan-mod-farp.
- * opkg_install_cmd: Cannot install package strongswan-mod-gcrypt.
- * opkg_install_cmd: Cannot install package strongswan-mod-kernel-libipsec.
- * opkg_install_cmd: Cannot install package strongswan-mod-md4.
- * opkg_install_cmd: Cannot install package strongswan-mod-openssl.
- * opkg_install_cmd: Cannot install package strongswan-mod-pkcs11.
- * opkg_install_cmd: Cannot install package strongswan-mod-pkcs8.
- * opkg_install_cmd: Cannot install package strongswan-mod-test-vectors.
-Makefile:146: recipe for target 'package_install' failed
+補充：除了上面的openvpn、ddns、strongswan、還需要openconnect server，應該追加這些套件
+ocserv
+luci-app-ocserv
 
+請使用下列指令來產生image
+$ make image PROFILE=Default PACKAGES="base-files bind-libs bind-client busybox ca-certificates collectd collectd-mod-cpu collectd-mod-interface collectd-mod-iwinfo collectd-mod-load collectd-mod-memory collectd-mod-network collectd-mod-rrdtool curl ddns-scripts ddns-scripts_cloudflare ddns-scripts_no-ip_com ddns-scripts_nsupdate dnsmasq dropbear firewall fstools hostapd-common htop ip6tables ipset iptables iptables-mod-conntrack-extra iptables-mod-filter iptables-mod-ipopt iptables-mod-nat-extra iw iwinfo jshn jsonfilter kernel kmod-cfg80211 kmod-eeprom-93cx6 kmod-gpio-button-hotplug kmod-ifb kmod-ip6tables kmod-ipt-conntrack kmod-ipt-conntrack-extra kmod-ipt-core kmod-ipt-ipopt kmod-ipt-nat kmod-leds-gpio kmod-ledtrig-usbdev kmod-lib-crc-ccitt kmod-lib-crc-itu-t kmod-mac80211 kmod-mt76 kmod-nf-conntrack kmod-nf-conntrack6 kmod-nf-ipt kmod-nf-ipt6 kmod-nf-nat kmod-nls-base kmod-ppp kmod-pppoe kmod-pppox kmod-rt2800-lib kmod-rt2800-mmio kmod-rt2800-pci kmod-rt2800-soc kmod-rt2x00-lib kmod-rt2x00-mmio kmod-rt2x00-pci kmod-sched-connmark kmod-sched-core kmod-slhc kmod-tun kmod-usb-core kmod-usb-ohci kmod-usb2 libblobmsg-json libc libcurl libgcc libip4tc libip6tc libiwinfo libiwinfo-lua libjson-c libjson-script libltdl liblua liblzo libncursesw libnl-tiny libopenssl libpolarssl libpthread librrd1 librt libubox libubus libubus-lua libuci libuci-lua libuclient libustream-openssl libuuid libxtables logd lua luci luci-app-ddns luci-app-diag-core luci-app-firewall luci-app-ntpc luci-app-ocserv luci-app-openvpn luci-app-qos luci-app-statistics luci-base luci-i18n-base-en luci-i18n-diag-core-en luci-i18n-firewall-en luci-i18n-ntpc-en luci-i18n-openvpn-en luci-i18n-qos-en luci-i18n-statistics-en luci-lib-ip luci-lib-jsonc luci-lib-nixio luci-mod-admin-full luci-mod-failsafe luci-proto-ipv6 luci-proto-ppp luci-ssl-openssl luci-theme-bootstrap monit mtd netdata netifd ntpclient ocserv odhcp6c odhcpd openvpn-easy-rsa openvpn-openssl opkg ppp ppp-mod-pppoe procd px5g qos-scripts rpcd rrdtool1 rt2800-pci-firmware strongswan-default strongswan-mod-dhcp strongswan-mod-af-alg strongswan-mod-gcrypt strongswan-mod-blowfish strongswan-mod-eap-identity strongswan-mod-eap-md5 strongswan-mod-eap-mschapv2 strongswan-mod-eap-radius strongswan-mod-eap-tls strongswan-mod-md4 strongswan-mod-openssl strongswan-mod-pkcs11 strongswan-mod-pkcs8 strongswan-mod-test-vectors strongswan-mod-farp strongswan-mod-kernel-libipsec sudo swconfig tc terminfo ubox ubus ubusd uci uclient-fetch uhttpd uhttpd-mod-ubus usign wpad-mini zlib" FILES=files/
+
+
+
+
+錯誤訊息
+Build dependency: Please install a static zlib. (Missing libz.a or zlib.h)
+Build dependency: Please install the openssl library (with development headers)
+
+因為你要先安裝這些依賴
+# apt-get install subversion build-essential libncurses5-dev zlib1g-dev gawk git ccache gettext libssl-dev xsltproc wget
 

@@ -181,7 +181,7 @@ https://wiki.openwrt.org/doc/howto/vpn.server.openvpn.tun
 	uci set openvpn.myvpn.key=/etc/openvpn/my-server.key
 	uci set openvpn.myvpn.dh=/etc/openvpn/dh2048.pem
 
-	這裡可能是錯的，因為底線_
+	這裡是底線_，而不是dash  -
 	uci set openvpn.myvpn.persist_tun=1
 	uci set openvpn.myvpn.persist_key=1
 	uci set openvpn.myvpn.ifconfig_pool_persist=/tmp/openvpn-ipp.txt
@@ -189,13 +189,6 @@ https://wiki.openwrt.org/doc/howto/vpn.server.openvpn.tun
 	uci set openvpn.myvpn.comp_lzo=adaptive
 	uci set openvpn.myvpn.push='comp_lzo adaptive'
 
-	請你改成這裡的Dash，也就是-
-	uci set openvpn.myvpn.persist-tun=1
-	uci set openvpn.myvpn.persist-key=1
-	uci set openvpn.myvpn.ifconfig-pool-persist=/tmp/openvpn-ipp.txt
-	uci set openvpn.myvpn.fast-io=on 
-	uci set openvpn.myvpn.comp-lzo=adaptive
-	uci set openvpn.myvpn.push='comp-lzo adaptive'
 
 	uci commit openvpn
 	/etc/init.d/openvpn enable
