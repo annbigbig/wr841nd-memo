@@ -1,0 +1,364 @@
+$ cd ~
+$ mdkir temp
+$ cd ~/temp
+$ wget https://downloads.openwrt.org/chaos_calmer/15.05.1/ramips/mt7620/OpenWrt-SDK-15.05.1-ramips-mt7620_gcc-4.8-linaro_uClibc-0.9.33.2.Linux-x86_64.tar.bz2
+$ tar jxf ./OpenWrt-SDK-15.05.1-ramips-mt7620_gcc-4.8-linaro_uClibc-0.9.33.2.Linux-x86_64.tar.bz2
+$ cd OpenWrt-SDK-15.05.1-ramips-mt7620_gcc-4.8-linaro_uClibc-0.9.33.2.Linux-x86_64/
+$ ./scripts/feeds update packages
+$ ./scripts/feeds install libpcre
+# 如果是 musl 函数库的 SDK (LEDE), 需要额外添加的 feeds
+$ ./scripts/feeds update base
+$ ./scripts/feeds install libc zlib libopenssl libpolarssl libmbedtls
+$ rm -rf package/feeds/base/mbedtls/patches
+# 获取 shadowsocks-libev Makefile
+git clone https://github.com/shadowsocks/openwrt-shadowsocks.git package/shadowsocks-libev
+# 选择要编译的包 Network -> shadowsocks-libev
+$ make distclean
+$ ln -s /usr/bin/autoreconf /home/labasky/temp/OpenWrt-SDK-15.05.1-ramips-mt7620_gcc-4.8-linaro_uClibc-0.9.33.2.Linux-x86_64/staging_dir/host/bin/autoreconf
+$ ln -s /usr/bin/aclocal /home/labasky/temp/OpenWrt-SDK-15.05.1-ramips-mt7620_gcc-4.8-linaro_uClibc-0.9.33.2.Linux-x86_64/staging_dir/host/bin/aclocal
+$ make menuconfig
+# 开始编译
+$ make package/shadowsocks-libev/compile V=99
+
+
+結果出現了錯誤
+labasky@labasky-Lenovo-B590:~/temp/OpenWrt-SDK-15.05.1-ramips-mt7620_gcc-4.8-linaro_uClibc-0.9.33.2.Linux-x86_64$ make package/shadowsocks-libev/compile V=99
+#
+# configuration written to .config
+#
+make[1]: Entering directory '/home/labasky/temp/OpenWrt-SDK-15.05.1-ramips-mt7620_gcc-4.8-linaro_uClibc-0.9.33.2.Linux-x86_64'
+make[2]: Entering directory '/home/labasky/temp/OpenWrt-SDK-15.05.1-ramips-mt7620_gcc-4.8-linaro_uClibc-0.9.33.2.Linux-x86_64/package/shadowsocks-libev'
+CFLAGS="-Os -pipe -mno-branch-likely -mips32r2 -mtune=24kec -mdsp -fno-caller-saves -fhonour-copts -Wno-error=unused-but-set-variable -Wno-error=unused-result -msoft-float  -I/home/labasky/temp/OpenWrt-SDK-15.05.1-ramips-mt7620_gcc-4.8-linaro_uClibc-0.9.33.2.Linux-x86_64/staging_dir/target-mipsel_24kec+dsp_uClibc-0.9.33.2/usr/include -I/home/labasky/temp/OpenWrt-SDK-15.05.1-ramips-mt7620_gcc-4.8-linaro_uClibc-0.9.33.2.Linux-x86_64/staging_dir/target-mipsel_24kec+dsp_uClibc-0.9.33.2/include -I/home/labasky/temp/OpenWrt-SDK-15.05.1-ramips-mt7620_gcc-4.8-linaro_uClibc-0.9.33.2.Linux-x86_64/staging_dir/toolchain-mipsel_24kec+dsp_gcc-4.8-linaro_uClibc-0.9.33.2/usr/include -I/home/labasky/temp/OpenWrt-SDK-15.05.1-ramips-mt7620_gcc-4.8-linaro_uClibc-0.9.33.2.Linux-x86_64/staging_dir/toolchain-mipsel_24kec+dsp_gcc-4.8-linaro_uClibc-0.9.33.2/include " CXXFLAGS="-Os -pipe -mno-branch-likely -mips32r2 -mtune=24kec -mdsp -fno-caller-saves -fhonour-copts -Wno-error=unused-but-set-variable -Wno-error=unused-result -msoft-float  -I/home/labasky/temp/OpenWrt-SDK-15.05.1-ramips-mt7620_gcc-4.8-linaro_uClibc-0.9.33.2.Linux-x86_64/staging_dir/target-mipsel_24kec+dsp_uClibc-0.9.33.2/usr/include -I/home/labasky/temp/OpenWrt-SDK-15.05.1-ramips-mt7620_gcc-4.8-linaro_uClibc-0.9.33.2.Linux-x86_64/staging_dir/target-mipsel_24kec+dsp_uClibc-0.9.33.2/include -I/home/labasky/temp/OpenWrt-SDK-15.05.1-ramips-mt7620_gcc-4.8-linaro_uClibc-0.9.33.2.Linux-x86_64/staging_dir/toolchain-mipsel_24kec+dsp_gcc-4.8-linaro_uClibc-0.9.33.2/usr/include -I/home/labasky/temp/OpenWrt-SDK-15.05.1-ramips-mt7620_gcc-4.8-linaro_uClibc-0.9.33.2.Linux-x86_64/staging_dir/toolchain-mipsel_24kec+dsp_gcc-4.8-linaro_uClibc-0.9.33.2/include " LDFLAGS="-L/home/labasky/temp/OpenWrt-SDK-15.05.1-ramips-mt7620_gcc-4.8-linaro_uClibc-0.9.33.2.Linux-x86_64/staging_dir/target-mipsel_24kec+dsp_uClibc-0.9.33.2/usr/lib -L/home/labasky/temp/OpenWrt-SDK-15.05.1-ramips-mt7620_gcc-4.8-linaro_uClibc-0.9.33.2.Linux-x86_64/staging_dir/target-mipsel_24kec+dsp_uClibc-0.9.33.2/lib -L/home/labasky/temp/OpenWrt-SDK-15.05.1-ramips-mt7620_gcc-4.8-linaro_uClibc-0.9.33.2.Linux-x86_64/staging_dir/toolchain-mipsel_24kec+dsp_gcc-4.8-linaro_uClibc-0.9.33.2/usr/lib -L/home/labasky/temp/OpenWrt-SDK-15.05.1-ramips-mt7620_gcc-4.8-linaro_uClibc-0.9.33.2.Linux-x86_64/staging_dir/toolchain-mipsel_24kec+dsp_gcc-4.8-linaro_uClibc-0.9.33.2/lib " make   -C /home/labasky/temp/OpenWrt-SDK-15.05.1-ramips-mt7620_gcc-4.8-linaro_uClibc-0.9.33.2.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_uClibc-0.9.33.2/shadowsocks-libev/openssl/shadowsocks-libev-2.5.6/. AR="mipsel-openwrt-linux-uclibc-gcc-ar" AS="ccache_cc -c -Os -pipe -mno-branch-likely -mips32r2 -mtune=24kec -mdsp -fno-caller-saves -fhonour-copts -Wno-error=unused-but-set-variable -Wno-error=unused-result -msoft-float" LD=mipsel-openwrt-linux-uclibc-ld NM="mipsel-openwrt-linux-uclibc-gcc-nm" CC="ccache_cc" GCC="ccache_cc" CXX="ccache_cxx" RANLIB="mipsel-openwrt-linux-uclibc-gcc-ranlib" STRIP=mipsel-openwrt-linux-uclibc-strip OBJCOPY=mipsel-openwrt-linux-uclibc-objcopy OBJDUMP=mipsel-openwrt-linux-uclibc-objdump SIZE=mipsel-openwrt-linux-uclibc-size CROSS="mipsel-openwrt-linux-uclibc-" ARCH="mipsel" ;
+make[3]: Entering directory '/home/labasky/temp/OpenWrt-SDK-15.05.1-ramips-mt7620_gcc-4.8-linaro_uClibc-0.9.33.2.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_uClibc-0.9.33.2/shadowsocks-libev/openssl/shadowsocks-libev-2.5.6'
+make[3]: *** No targets specified and no makefile found.  Stop.
+make[3]: Leaving directory '/home/labasky/temp/OpenWrt-SDK-15.05.1-ramips-mt7620_gcc-4.8-linaro_uClibc-0.9.33.2.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_uClibc-0.9.33.2/shadowsocks-libev/openssl/shadowsocks-libev-2.5.6'
+Makefile:83: recipe for target '/home/labasky/temp/OpenWrt-SDK-15.05.1-ramips-mt7620_gcc-4.8-linaro_uClibc-0.9.33.2.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_uClibc-0.9.33.2/shadowsocks-libev/openssl/shadowsocks-libev-2.5.6/.built' failed
+make[2]: *** [/home/labasky/temp/OpenWrt-SDK-15.05.1-ramips-mt7620_gcc-4.8-linaro_uClibc-0.9.33.2.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_uClibc-0.9.33.2/shadowsocks-libev/openssl/shadowsocks-libev-2.5.6/.built] Error 2
+make[2]: Leaving directory '/home/labasky/temp/OpenWrt-SDK-15.05.1-ramips-mt7620_gcc-4.8-linaro_uClibc-0.9.33.2.Linux-x86_64/package/shadowsocks-libev'
+package/Makefile:191: recipe for target 'package/shadowsocks-libev/compile' failed
+make[1]: *** [package/shadowsocks-libev/compile] Error 2
+make[1]: Leaving directory '/home/labasky/temp/OpenWrt-SDK-15.05.1-ramips-mt7620_gcc-4.8-linaro_uClibc-0.9.33.2.Linux-x86_64'
+/home/labasky/temp/OpenWrt-SDK-15.05.1-ramips-mt7620_gcc-4.8-linaro_uClibc-0.9.33.2.Linux-x86_64/include/toplevel.mk:174: recipe for target 'package/shadowsocks-libev/compile' failed
+make: *** [package/shadowsocks-libev/compile] Error 2
+
+
+
+
+不行
+我在想是不是應該把Ubuntu 16.10預設的gcc/g++ 6.2版，換成4.8版的？
+
+使用關鍵字
+ubuntu how to change gcc version
+
+搜出了
+http://askubuntu.com/questions/26498/choose-gcc-and-g-version
+
+目前我的gcc/g++都是6.2版
+$ gcc -v
+$ g++ -v
+
+照著下面的步驟，把預設6.2版的gcc/g++降級到4.8版
+
+sudo apt-get install gcc-4.8 gcc-4.9 g++-4.8 g++-4.9
+
+sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.8 20
+sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.9 10
+
+sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.8 20
+sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.9 10
+
+sudo update-alternatives --install /usr/bin/cc cc /usr/bin/gcc 30
+sudo update-alternatives --set cc /usr/bin/gcc
+
+sudo update-alternatives --install /usr/bin/c++ c++ /usr/bin/g++ 30
+sudo update-alternatives --set c++ /usr/bin/g++
+
+sudo update-alternatives --config gcc
+
+
+再全部重來試試
+cd ~
+$ mdkir temp
+$ cd ~/temp
+$ wget https://downloads.openwrt.org/chaos_calmer/15.05.1/ramips/mt7620/OpenWrt-SDK-15.05.1-ramips-mt7620_gcc-4.8-linaro_uClibc-0.9.33.2.Linux-x86_64.tar.bz2
+$ tar jxf ./OpenWrt-SDK-15.05.1-ramips-mt7620_gcc-4.8-linaro_uClibc-0.9.33.2.Linux-x86_64.tar.bz2
+$ cd OpenWrt-SDK-15.05.1-ramips-mt7620_gcc-4.8-linaro_uClibc-0.9.33.2.Linux-x86_64/
+$ ./scripts/feeds update packages
+$ ./scripts/feeds install libpcre
+# 如果是 musl 函数库的 SDK (LEDE), 需要额外添加的 feeds
+$ ./scripts/feeds update base
+$ ./scripts/feeds install libc zlib libopenssl libpolarssl libmbedtls
+$ rm -rf package/feeds/base/mbedtls/patches
+# 获取 shadowsocks-libev Makefile
+git clone https://github.com/shadowsocks/openwrt-shadowsocks.git package/shadowsocks-libev
+# 选择要编译的包 Network -> shadowsocks-libev
+$ make menuconfig
+# 开始编译
+$ make package/shadowsocks-libev/compile V=99
+
+
+
+雖然進展了很大一步，但還是報錯
+checking for library containing floor... -lm
+checking for thread local storage (TLS) class... __thread
+checking for mbedtls_cipher_setup in -lmbedcrypto... no
+configure: error: mbed TLS libraries not found.
+Makefile:83: recipe for target '/home/labasky/temp/OpenWrt-SDK-15.05.1-ramips-mt7620_gcc-4.8-linaro_uClibc-0.9.33.2.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_uClibc-0.9.33.2/shadowsocks-libev/mbedtls/shadowsocks-libev-2.5.6/.configured_yynnn' failed
+make[2]: *** [/home/labasky/temp/OpenWrt-SDK-15.05.1-ramips-mt7620_gcc-4.8-linaro_uClibc-0.9.33.2.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_uClibc-0.9.33.2/shadowsocks-libev/mbedtls/shadowsocks-libev-2.5.6/.configured_yynnn] Error 1
+make[2]: Leaving directory '/home/labasky/temp/OpenWrt-SDK-15.05.1-ramips-mt7620_gcc-4.8-linaro_uClibc-0.9.33.2.Linux-x86_64/package/shadowsocks-libev'
+package/Makefile:191: recipe for target 'package/shadowsocks-libev/compile' failed
+make[1]: *** [package/shadowsocks-libev/compile] Error 2
+make[1]: Leaving directory '/home/labasky/temp/OpenWrt-SDK-15.05.1-ramips-mt7620_gcc-4.8-linaro_uClibc-0.9.33.2.Linux-x86_64'
+/home/labasky/temp/OpenWrt-SDK-15.05.1-ramips-mt7620_gcc-4.8-linaro_uClibc-0.9.33.2.Linux-x86_64/include/toplevel.mk:174: recipe for target 'package/shadowsocks-libev/compile' failed
+make: *** [package/shadowsocks-libev/compile] Error 2
+labasky@labasky-Lenovo-B590:~/temp/OpenWrt-SDK-15.05.1-ramips-mt7620_gcc-4.8-linaro_uClibc-0.9.33.2.Linux-x86_64$ 
+
+
+再試一次，這次不要執行README的這一段
+# 如果是 musl 函数库的 SDK (LEDE), 需要额外添加的 feeds
+./scripts/feeds update base
+./scripts/feeds install libc zlib libopenssl libpolarssl libmbedtls
+rm -rf package/feeds/base/mbedtls/patches
+
+也就是
+cd ~
+$ mdkir temp
+$ cd ~/temp
+$ wget https://downloads.openwrt.org/chaos_calmer/15.05.1/ramips/mt7620/OpenWrt-SDK-15.05.1-ramips-mt7620_gcc-4.8-linaro_uClibc-0.9.33.2.Linux-x86_64.tar.bz2
+$ tar jxf ./OpenWrt-SDK-15.05.1-ramips-mt7620_gcc-4.8-linaro_uClibc-0.9.33.2.Linux-x86_64.tar.bz2
+$ cd OpenWrt-SDK-15.05.1-ramips-mt7620_gcc-4.8-linaro_uClibc-0.9.33.2.Linux-x86_64/
+$ ./scripts/feeds update packages
+$ ./scripts/feeds install libpcre
+
+# 获取 shadowsocks-libev Makefile
+git clone https://github.com/shadowsocks/openwrt-shadowsocks.git package/shadowsocks-libev
+# 选择要编译的包 Network -> shadowsocks-libev
+$ make menuconfig
+# 开始编译
+$ make package/shadowsocks-libev/compile V=99
+
+還是出錯，一樣的錯
+checking for thread local storage (TLS) class... __thread
+checking for mbedtls_cipher_setup in -lmbedcrypto... no
+configure: error: mbed TLS libraries not found.
+Makefile:83: recipe for target '/home/labasky/temp/OpenWrt-SDK-15.05.1-ramips-mt7620_gcc-4.8-linaro_uClibc-0.9.33.2.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_uClibc-0.9.33.2/shadowsocks-libev/mbedtls/shadowsocks-libev-2.5.6/.configured_yynn' failed
+make[2]: *** [/home/labasky/temp/OpenWrt-SDK-15.05.1-ramips-mt7620_gcc-4.8-linaro_uClibc-0.9.33.2.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_uClibc-0.9.33.2/shadowsocks-libev/mbedtls/shadowsocks-libev-2.5.6/.configured_yynn] Error 1
+make[2]: Leaving directory '/home/labasky/temp/OpenWrt-SDK-15.05.1-ramips-mt7620_gcc-4.8-linaro_uClibc-0.9.33.2.Linux-x86_64/package/shadowsocks-libev'
+package/Makefile:191: recipe for target 'package/shadowsocks-libev/compile' failed
+make[1]: *** [package/shadowsocks-libev/compile] Error 2
+make[1]: Leaving directory '/home/labasky/temp/OpenWrt-SDK-15.05.1-ramips-mt7620_gcc-4.8-linaro_uClibc-0.9.33.2.Linux-x86_64'
+/home/labasky/temp/OpenWrt-SDK-15.05.1-ramips-mt7620_gcc-4.8-linaro_uClibc-0.9.33.2.Linux-x86_64/include/toplevel.mk:174: recipe for target 'package/shadowsocks-libev/compile' failed
+make: *** [package/shadowsocks-libev/compile] Error 2
+labasky@labasky-Lenovo-B590:~/temp/OpenWrt-SDK-15.05.1-ramips-mt7620_gcc-4.8-linaro_uClibc-0.9.33.2.Linux-x86_64$
+
+
+
+使用上面的關鍵字
+configure: error: mbed TLS libraries not found.
+找到這篇
+https://github.com/shadowsocks/shadowsocks-libev/issues/663
+
+大俠說
+把
+https://github.com/wongsyrone/lede-1/tree/master/package/libs/mbedtls/patches
+999的那個補丁
+放在SDK目錄下的package/libs/mbedtls/patches子目錄裡即可
+(200號的那個補丁不知道要不要一起放入，乾脆一起放進去好了)
+
+
+再重來一次（現在是第幾次了？）
+cd ~
+$ mdkir temp
+$ cd ~/temp
+$ wget https://downloads.openwrt.org/chaos_calmer/15.05.1/ramips/mt7620/OpenWrt-SDK-15.05.1-ramips-mt7620_gcc-4.8-linaro_uClibc-0.9.33.2.Linux-x86_64.tar.bz2
+$ tar jxf ./OpenWrt-SDK-15.05.1-ramips-mt7620_gcc-4.8-linaro_uClibc-0.9.33.2.Linux-x86_64.tar.bz2
+$ cd OpenWrt-SDK-15.05.1-ramips-mt7620_gcc-4.8-linaro_uClibc-0.9.33.2.Linux-x86_64/
+$ ./scripts/feeds update packages
+$ ./scripts/feeds install libpcre
+
+# 获取 shadowsocks-libev Makefile
+$ git clone https://github.com/shadowsocks/openwrt-shadowsocks.git package/shadowsocks-libev
+
+# 把補丁放到SDK根目錄下的子目錄(確定你現在在SDK目錄下)
+$ mkdir -p package/libs/mbedtls/patches
+$ cd package/libs/mbedtls/patches
+$ wget https://github.com/wongsyrone/lede-1/blob/master/package/libs/mbedtls/patches/200-config.patch
+$ wget https://github.com/wongsyrone/lede-1/blob/master/package/libs/mbedtls/patches/999-tweak-config-for-shadowsocks.patch
+$ cd -
+
+# 选择要编译的包 Network -> shadowsocks-libev
+$ make menuconfig
+# 开始编译
+$ make package/shadowsocks-libev/compile V=99
+
+
+結果還是失敗
+checking for mbedtls_cipher_setup in -lmbedcrypto... no
+configure: error: mbed TLS libraries not found.
+Makefile:83: recipe for target '/home/labasky/temp/OpenWrt-SDK-15.05.1-ramips-mt7620_gcc-4.8-linaro_uClibc-0.9.33.2.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_uClibc-0.9.33.2/shadowsocks-libev/mbedtls/shadowsocks-libev-2.5.6/.configured_yynn' failed
+make[2]: *** [/home/labasky/temp/OpenWrt-SDK-15.05.1-ramips-mt7620_gcc-4.8-linaro_uClibc-0.9.33.2.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_uClibc-0.9.33.2/shadowsocks-libev/mbedtls/shadowsocks-libev-2.5.6/.configured_yynn] Error 1
+make[2]: Leaving directory '/home/labasky/temp/OpenWrt-SDK-15.05.1-ramips-mt7620_gcc-4.8-linaro_uClibc-0.9.33.2.Linux-x86_64/package/shadowsocks-libev'
+package/Makefile:191: recipe for target 'package/shadowsocks-libev/compile' failed
+make[1]: *** [package/shadowsocks-libev/compile] Error 2
+make[1]: Leaving directory '/home/labasky/temp/OpenWrt-SDK-15.05.1-ramips-mt7620_gcc-4.8-linaro_uClibc-0.9.33.2.Linux-x86_64'
+/home/labasky/temp/OpenWrt-SDK-15.05.1-ramips-mt7620_gcc-4.8-linaro_uClibc-0.9.33.2.Linux-x86_64/include/toplevel.mk:174: recipe for target 'package/shadowsocks-libev/compile' failed
+make: *** [package/shadowsocks-libev/compile] Error 2
+
+
+大俠又說了
+./scripts/feeds update base
+./scripts/feeds install libpolarssl libmbedtls
+rm -rf package/feeds/base/mbedtls/patches
+
+？？？
+好我照作
+再一次重來
+$ cd ~
+$ mdkir temp
+$ cd ~/temp
+$ wget https://downloads.openwrt.org/chaos_calmer/15.05.1/ramips/mt7620/OpenWrt-SDK-15.05.1-ramips-mt7620_gcc-4.8-linaro_uClibc-0.9.33.2.Linux-x86_64.tar.bz2
+$ tar jxf ./OpenWrt-SDK-15.05.1-ramips-mt7620_gcc-4.8-linaro_uClibc-0.9.33.2.Linux-x86_64.tar.bz2
+$ cd OpenWrt-SDK-15.05.1-ramips-mt7620_gcc-4.8-linaro_uClibc-0.9.33.2.Linux-x86_64/
+$ ./scripts/feeds update packages
+$ ./scripts/feeds install libpcre
+$ ./scripts/feeds update base
+$ ./scripts/feeds install libc zlib libopenssl libpolarssl libmbedtls
+$ rm -rf package/feeds/base/mbedtls/patches
+(先幹掉patches再git clone)
+
+# 获取 shadowsocks-libev Makefile
+$ git clone https://github.com/shadowsocks/openwrt-shadowsocks.git package/shadowsocks-libev
+
+# 选择要编译的包 Network -> shadowsocks-libev
+make menuconfig
+# 开始编译
+make package/shadowsocks-libev/compile V=99
+
+最後依然是
+checking for thread local storage (TLS) class... __thread
+checking for mbedtls_cipher_setup in -lmbedcrypto... no
+configure: error: mbed TLS libraries not found.
+Makefile:83: recipe for target '/home/labasky/temp/OpenWrt-SDK-15.05.1-ramips-mt7620_gcc-4.8-linaro_uClibc-0.9.33.2.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_uClibc-0.9.33.2/shadowsocks-libev/mbedtls/shadowsocks-libev-2.5.6/.configured_yynnn' failed
+make[2]: *** [/home/labasky/temp/OpenWrt-SDK-15.05.1-ramips-mt7620_gcc-4.8-linaro_uClibc-0.9.33.2.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_uClibc-0.9.33.2/shadowsocks-libev/mbedtls/shadowsocks-libev-2.5.6/.configured_yynnn] Error 1
+make[2]: Leaving directory '/home/labasky/temp/OpenWrt-SDK-15.05.1-ramips-mt7620_gcc-4.8-linaro_uClibc-0.9.33.2.Linux-x86_64/package/shadowsocks-libev'
+package/Makefile:191: recipe for target 'package/shadowsocks-libev/compile' failed
+make[1]: *** [package/shadowsocks-libev/compile] Error 2
+make[1]: Leaving directory '/home/labasky/temp/OpenWrt-SDK-15.05.1-ramips-mt7620_gcc-4.8-linaro_uClibc-0.9.33.2.Linux-x86_64'
+/home/labasky/temp/OpenWrt-SDK-15.05.1-ramips-mt7620_gcc-4.8-linaro_uClibc-0.9.33.2.Linux-x86_64/include/toplevel.mk:174: recipe for target 'package/shadowsocks-libev/compile' failed
+make: *** [package/shadowsocks-libev/compile] Error 2
+
+
+大俠提示了
+如果你使用 15.05.1 的 SDK ，因为它不带 base feeds, 需要手动加入 libpolarssl libmbedtls 这两个软件包的 Makefile, 或者 make menuconfig 的时候不选择编译下面这四个 ipk
+
+shadowsocks-libev-mbedtls
+shadowsocks-libev-server-mbedtls
+shadowsocks-libev-polarssl
+shadowsocks-libev-server-polarssl
+
+
+這個訊息可能有提示
+labasky@labasky-Lenovo-B590:~/temp/OpenWrt-SDK-15.05.1-ramips-mt7620_gcc-4.8-linaro_uClibc-0.9.33.2.Linux-x86_64$ ./scripts/feeds install libc zlib libopenssl libpolarssl libmbedtls
+Ignoring feed 'luci' - index missing
+Ignoring feed 'routing' - index missing
+Ignoring feed 'telephony' - index missing
+Ignoring feed 'management' - index missing
+Installing package 'toolchain'
+Installing package 'zlib'
+Installing package 'openssl'
+Installing package 'ocf-crypto-headers'
+Installing package 'polarssl'
+WARNING: No feed for package 'libmbedtls' found, maybe it's already part of the standard packages?
+
+
+照著大俠說的，make menuconfig之後，不要選那四個ipk，然後再試一次，成功
+以上是使用chaos_calmer(15.05.1)的SDK
+
+********************************************************************************************************
+
+自已再下trunk (DD)的SDK再編譯一次試試看
+我注意到SDK的檔案名稱
+https://downloads.openwrt.org/snapshots/trunk/ramips/mt7620/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64.tar.bz2
+
+所以可能gcc/g++ compiler的版本號要調整成5.3才行
+指令是
+sudo apt-get install gcc-5 g++-5
+
+sudo update-alternatives --remove-all gcc 
+sudo update-alternatives --remove-all g++
+
+sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-5 25
+sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.8 20
+sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.9 10
+
+sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-5 25
+sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.8 20
+sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.9 10
+
+sudo update-alternatives --install /usr/bin/cc cc /usr/bin/gcc 30
+sudo update-alternatives --set cc /usr/bin/gcc
+
+sudo update-alternatives --install /usr/bin/c++ c++ /usr/bin/g++ 30
+sudo update-alternatives --set c++ /usr/bin/g++
+
+sudo update-alternatives --config gcc
+sudo update-alternatives --config g++
+最後確認版本號
+gcc -v
+g++ -v
+
+
+開始下載SDK然後進行編譯(先不解壓toolchain先這樣幹看看)
+cd ~/temp
+wget https://downloads.openwrt.org/snapshots/trunk/ramips/mt7620/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64.tar.bz2
+wget https://downloads.openwrt.org/snapshots/trunk/ramips/mt7620/OpenWrt-Toolchain-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64.tar.bz2
+tar jxf ./OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64.tar.bz2 
+cd OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/
+$ ./scripts/feeds update packages
+$ ./scripts/feeds install libpcre
+# 如果是 musl 函数库的 SDK (LEDE), 需要额外添加的 feeds
+$ ./scripts/feeds update base
+$ ./scripts/feeds install libc zlib libopenssl libpolarssl libmbedtls
+$ rm -rf package/feeds/base/mbedtls/patches
+# 获取 shadowsocks-libev Makefile
+git clone https://github.com/shadowsocks/openwrt-shadowsocks.git package/shadowsocks-libev
+make menuconfig
+作到這裡就失敗了
+labasky@labasky-Lenovo-B590:~/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64$ make menuconfig
+make -s -C scripts/config all CC=cc: build failed. Please re-run make with -j1 V=s to see what's going on
+/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/include/toplevel.mk:100: recipe for target 'scripts/config/mconf' failed
+make: *** [scripts/config/mconf] Error 1
+
+
+於是
+$ make -j1 V=s |tee build.log
+
+雖然不能進make menuconfig的那個藍色GUI畫面
+可是居然就這樣編譯成功了
+
+labasky@labasky-Lenovo-B590:~/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/bin/ramips/packages/base$ ls -al
+總計 3164
+drwxr-xr-x  2 labasky labasky   4096 12月 28 02:17 .
+drwxr-xr-x 10 labasky labasky   4096 12月 28 02:17 ..
+-rw-r--r--  1 labasky labasky   5845 12月 28 02:05 libatomic_5.3.0-1_ramips.ipk
+-rw-r--r--  1 labasky labasky 273431 12月 28 02:05 libc_1.1.15-1_ramips.ipk
+-rw-r--r--  1 labasky labasky  34996 12月 28 02:05 libgcc_5.3.0-1_ramips.ipk
+-rw-r--r--  1 labasky labasky 244556 12月 28 02:06 libmbedtls_2.2.1-1_ramips.ipk
+-rw-r--r--  1 labasky labasky 744150 12月 28 02:09 libopenssl_1.0.2h-1_ramips.ipk
+-rw-r--r--  1 labasky labasky 141064 12月 28 02:10 libpolarssl_1.3.16-1_ramips.ipk
+-rw-r--r--  1 labasky labasky    875 12月 28 02:05 libpthread_1.1.15-1_ramips.ipk
+-rw-r--r--  1 labasky labasky    886 12月 28 02:05 librt_1.1.15-1_ramips.ipk
+-rw-r--r--  1 labasky labasky 360579 12月 28 02:05 libstdcpp_5.3.0-1_ramips.ipk
+-rw-r--r--  1 labasky labasky 198317 12月 28 02:09 openssl-util_1.0.2h-1_ramips.ipk
+-rw-r--r--  1 labasky labasky   9265 12月 28 02:17 Packages
+-rw-r--r--  1 labasky labasky   2507 12月 28 02:17 Packages.gz
+-rw-r--r--  1 labasky labasky 249595 12月 28 02:13 shadowsocks-libev_2.6.0-1_ramips.ipk
+-rw-r--r--  1 labasky labasky 249982 12月 28 02:15 shadowsocks-libev-mbedtls_2.6.0-1_ramips.ipk
+-rw-r--r--  1 labasky labasky 250245 12月 28 02:17 shadowsocks-libev-polarssl_2.6.0-1_ramips.ipk
+-rw-r--r--  1 labasky labasky 103104 12月 28 02:13 shadowsocks-libev-server_2.6.0-1_ramips.ipk
+-rw-r--r--  1 labasky labasky 103305 12月 28 02:15 shadowsocks-libev-server-mbedtls_2.6.0-1_ramips.ipk
+-rw-r--r--  1 labasky labasky 103217 12月 28 02:17 shadowsocks-libev-server-polarssl_2.6.0-1_ramips.ipk
+-rw-r--r--  1 labasky labasky  36440 12月 28 02:06 zlib_1.2.8-1_ramips.ipk
+-rw-r--r--  1 labasky labasky  69827 12月 28 02:06 zlib-dev_1.2.8-1_ramips.ipk
+labasky@labasky-Lenovo-B590:~/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/bin/ramips/packages/base$ 
+

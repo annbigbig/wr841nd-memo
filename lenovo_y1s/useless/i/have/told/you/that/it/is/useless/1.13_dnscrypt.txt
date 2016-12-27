@@ -1,0 +1,4 @@
+解決dns汙染的問題
+
+https://wiki.openwrt.org/inbox/dnscrypt
+http://demon.tw/hardware/openwrt-dnscrypt.html

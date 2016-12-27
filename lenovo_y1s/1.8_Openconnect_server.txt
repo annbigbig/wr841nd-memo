@@ -138,7 +138,7 @@ net.ipv4.conf.all.proxy_arp=1
 
 
 ===============================================================
-client端設定
+client端設定 (Ubuntu)
 
 請安裝
 命令列工具
@@ -155,6 +155,10 @@ client端連線前請編輯/etc/hosts
 如何連線
 使用指令
 # openconnect https://annbigbig.ddns.net
+或
+# openconnect 192.168.0.10:443
+
+(其實這樣也行，不一定要寫域名寫IP也可以)
 
 輸入yes然後再輸入username和password
 
@@ -186,6 +190,24 @@ traceroute to tw.yahoo.com (206.190.36.105), 30 hops max, 60 byte packets
 (以下輸出略）
 
 root@labasky-Lenovo-B590:~# 
+
+===============================================================
+
+client端設定 (Android)
+
+到Play商店下載OpenConnect Client端
+
+打開後按下右上角的 [+添加]
+
+輸入主機名、IP地址或網址：192.168.0.11  (這裡輸入OpenConnect Server的地址)
+
+按 <- 回到上一層選單，然後按下 192.168.0.11
+
+彈出了 
+
+認證警告 - 來自VPN服務器"192.168.0.11"的認證無法成功驗證。原因："signer not found" SHA1: xxxxxx 是否仍然連接？
+
+選「始終保持連接」，接著輸入用戶名naruto，按確定，然後密碼narutopassword按確定，即可連線
 
 ===============================================================
 
@@ -258,3 +280,5 @@ Mon Nov 28 10:30:14 2016 daemon.info hostapd: wlan1: STA 9c:d2:1e:f1:0a:53 WPA: 
 Mon Nov 28 10:32:08 2016 daemon.err uhttpd[3234]: error connecting to ocserv socket '/var/run/occtl.socket': No such file or directory
 
 （ocserv crash掉的原因可能是因為在port 443上面原先是uhttpd運行著，把它關掉之後持續再觀察看看)
+
+補充：gfw可能會封鎖port 443的流量，所以請改成custom port，不要用port 443

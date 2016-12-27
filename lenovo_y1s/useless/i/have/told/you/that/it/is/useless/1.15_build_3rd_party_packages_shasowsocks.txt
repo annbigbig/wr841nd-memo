@@ -1,0 +1,572 @@
+大俠說這些也要安裝
+apt-get install autoconf automake autotools-dev autopoint libtool
+可是我都已經安裝了
+
+
+labasky@labasky-Lenovo-B590:~/temp$ tar jxf ./OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64.tar.bz2 
+labasky@labasky-Lenovo-B590:~/temp$ cd OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/
+labasky@labasky-Lenovo-B590:~/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64$ ./scripts/feeds update packages
+./scripts/feeds install libpcre
+git clone https://github.com/shadowsocks/openwrt-shadowsocks.git package/shadowsocks-libev
+make menuconfig 
+
+結果出現
+make -s -C scripts/config all CC=cc: build failed. Please re-run make with -j1 V=s to see what's going on
+/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/include/toplevel.mk:100: recipe for target 'scripts/config/mconf' failed
+make: *** [scripts/config/mconf] Error 1
+
+所以我再
+$ make -j1 V=s | tee build.log
+
+我打印build.log
+labasky@labasky-Lenovo-B590:~/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64$ cat ./build.log 
+
+#
+# configuration written to .config
+#
+make[1]: Entering directory '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64'
+make[2]: Entering directory '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64'
+make[3]: Entering directory '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/feeds/packages/libs/pcre'
+mkdir -p /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/dl
+SHELL= flock /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/tmp/.pcre-8.39.tar.bz2.flock -c '	/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/scripts/download.pl "/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/dl" "pcre-8.39.tar.bz2" "e3fca7650a0556a2647821679d81f585" "" "ftp://ftp.csx.cam.ac.uk/pub/software/programming/pcre/"'
+. /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/include/shell.sh; bzcat /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/dl/pcre-8.39.tar.bz2 | tar -C /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/.. -xf - 
+touch /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/.prepared_ffd63618f202b8bbe6f90788f3a27051
+rm -f /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/target-mipsel_24kec+dsp_musl-1.1.15/stamp/.pcre_installed
+(cd /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39; rm -f aclocal.m4; if [ -f ./configure.ac ] || [ -f ./configure.in ]; then [ -d ./autom4te.cache ] && rm -rf autom4te.cache; [ -e ./config.rpath ] || ln -s /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/scripts/config.rpath ./config.rpath; touch NEWS AUTHORS COPYING ABOUT-NLS ChangeLog; AUTOM4TE=/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/host/bin/autom4te AUTOCONF=/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/host/bin/autoconf AUTOMAKE=/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/host/bin/automake ACLOCAL=/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/host/bin/aclocal AUTOHEADER=/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/host/bin/autoheader LIBTOOLIZE=/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/host/bin/libtoolize LIBTOOL=/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/host/bin/libtool M4=/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/host/bin/m4 AUTOPOINT=true /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/host/bin/autoreconf -v -f -i -s -B /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/host/share/aclocal -I /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/target-mipsel_24kec+dsp_musl-1.1.15/host/share/aclocal -I /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/target-mipsel_24kec+dsp_musl-1.1.15/usr/share/aclocal -I m4 -I . . || true; fi; );
+OpenWrt-libtoolize: putting auxiliary files in `.'.
+OpenWrt-libtoolize: linking file `./ltmain.sh'
+OpenWrt-libtoolize: putting macros in AC_CONFIG_MACRO_DIR, `m4'.
+OpenWrt-libtoolize: linking file `m4/libtool.m4'
+OpenWrt-libtoolize: linking file `m4/ltoptions.m4'
+OpenWrt-libtoolize: linking file `m4/ltsugar.m4'
+OpenWrt-libtoolize: linking file `m4/ltversion.m4'
+OpenWrt-libtoolize: linking file `m4/lt~obsolete.m4'
+(cd /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/./; if [ -x ./configure ]; then find /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ -name config.guess | xargs -r chmod u+w; find /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ -name config.guess | xargs -r -n1 cp --remove-destination /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/scripts/config.guess; find /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ -name config.sub | xargs -r chmod u+w; find /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ -name config.sub | xargs -r -n1 cp --remove-destination /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/scripts/config.sub; AR="mipsel-openwrt-linux-musl-gcc-ar" AS="mipsel-openwrt-linux-musl-gcc -c -Os -pipe -mno-branch-likely -mips32r2 -mtune=24kec -mdsp -fno-caller-saves -fno-plt -fhonour-copts -Wno-error=unused-but-set-variable -Wno-error=unused-result -msoft-float -iremap /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39:pcre-8.39 -Wformat -Werror=format-security -fstack-protector -D_FORTIFY_SOURCE=1 -Wl,-z,now -Wl,-z,relro -fpic" LD=mipsel-openwrt-linux-musl-ld NM="mipsel-openwrt-linux-musl-gcc-nm" CC="mipsel-openwrt-linux-musl-gcc" GCC="mipsel-openwrt-linux-musl-gcc" CXX="mipsel-openwrt-linux-musl-g++" RANLIB="mipsel-openwrt-linux-musl-gcc-ranlib" STRIP=mipsel-openwrt-linux-musl-strip OBJCOPY=mipsel-openwrt-linux-musl-objcopy OBJDUMP=mipsel-openwrt-linux-musl-objdump SIZE=mipsel-openwrt-linux-musl-size CFLAGS="-Os -pipe -mno-branch-likely -mips32r2 -mtune=24kec -mdsp -fno-caller-saves -fno-plt -fhonour-copts -Wno-error=unused-but-set-variable -Wno-error=unused-result -msoft-float -mips16 -minterlink-mips16 -iremap /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39:pcre-8.39 -Wformat -Werror=format-security -fstack-protector -D_FORTIFY_SOURCE=1 -Wl,-z,now -Wl,-z,relro -fpic " CXXFLAGS="-Os -pipe -mno-branch-likely -mips32r2 -mtune=24kec -mdsp -fno-caller-saves -fno-plt -fhonour-copts -Wno-error=unused-but-set-variable -Wno-error=unused-result -msoft-float -mips16 -minterlink-mips16 -iremap /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39:pcre-8.39 -Wformat -Werror=format-security -fstack-protector -D_FORTIFY_SOURCE=1 -Wl,-z,now -Wl,-z,relro -fpic " CPPFLAGS="-I/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/target-mipsel_24kec+dsp_musl-1.1.15/usr/include -I/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/target-mipsel_24kec+dsp_musl-1.1.15/include -I/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/toolchain-mipsel_24kec+dsp_gcc-5.3.0_musl-1.1.15/usr/include -I/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/toolchain-mipsel_24kec+dsp_gcc-5.3.0_musl-1.1.15/include/fortify -I/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/toolchain-mipsel_24kec+dsp_gcc-5.3.0_musl-1.1.15/include " LDFLAGS="-L/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/target-mipsel_24kec+dsp_musl-1.1.15/usr/lib -L/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/target-mipsel_24kec+dsp_musl-1.1.15/lib -L/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/toolchain-mipsel_24kec+dsp_gcc-5.3.0_musl-1.1.15/usr/lib -L/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/toolchain-mipsel_24kec+dsp_gcc-5.3.0_musl-1.1.15/lib -znow -zrelro "   ./configure --target=mipsel-openwrt-linux --host=mipsel-openwrt-linux --build=x86_64-linux-gnu --program-prefix="" --program-suffix="" --prefix=/usr --exec-prefix=/usr --bindir=/usr/bin --sbindir=/usr/sbin --libexecdir=/usr/lib --sysconfdir=/etc --datadir=/usr/share --localstatedir=/var --mandir=/usr/man --infodir=/usr/info --disable-nls   --enable-utf8 --enable-unicode-properties --enable-pcre16  --enable-cpp ; fi; )
+configure: loading site script /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/include/site/mipsel
+checking for a BSD-compatible install... /usr/bin/install -c
+checking whether build environment is sane... yes
+checking for mipsel-openwrt-linux-strip... mipsel-openwrt-linux-musl-strip
+checking for a thread-safe mkdir -p... /bin/mkdir -p
+checking for gawk... gawk
+checking whether make sets $(MAKE)... yes
+checking whether make supports nested variables... yes
+checking whether make supports nested variables... (cached) yes
+checking for style of include used by make... GNU
+checking for mipsel-openwrt-linux-gcc... mipsel-openwrt-linux-musl-gcc
+checking whether the C compiler works... yes
+checking for C compiler default output file name... a.out
+checking for suffix of executables... 
+checking whether we are cross compiling... yes
+checking for suffix of object files... o
+checking whether we are using the GNU C compiler... yes
+checking whether mipsel-openwrt-linux-musl-gcc accepts -g... yes
+checking for mipsel-openwrt-linux-musl-gcc option to accept ISO C89... none needed
+checking whether mipsel-openwrt-linux-musl-gcc understands -c and -o together... yes
+checking dependency style of mipsel-openwrt-linux-musl-gcc... gcc3
+checking for mipsel-openwrt-linux-ar... mipsel-openwrt-linux-musl-gcc-ar
+checking the archiver (mipsel-openwrt-linux-musl-gcc-ar) interface... ar
+checking for mipsel-openwrt-linux-gcc... (cached) mipsel-openwrt-linux-musl-gcc
+checking whether we are using the GNU C compiler... (cached) yes
+checking whether mipsel-openwrt-linux-musl-gcc accepts -g... (cached) yes
+checking for mipsel-openwrt-linux-musl-gcc option to accept ISO C89... (cached) none needed
+checking whether mipsel-openwrt-linux-musl-gcc understands -c and -o together... (cached) yes
+checking dependency style of mipsel-openwrt-linux-musl-gcc... (cached) gcc3
+checking whether we are using the GNU C++ compiler... yes
+checking whether mipsel-openwrt-linux-musl-g++ accepts -g... yes
+checking dependency style of mipsel-openwrt-linux-musl-g++... gcc3
+checking how to run the C preprocessor... mipsel-openwrt-linux-musl-gcc -E
+checking for grep that handles long lines and -e... /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/host/bin/grep
+checking for egrep... /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/host/bin/grep -E
+checking for ANSI C header files... yes
+checking for sys/types.h... yes
+checking for sys/stat.h... yes
+checking for stdlib.h... yes
+checking for string.h... yes
+checking for memory.h... yes
+checking for strings.h... yes
+checking for inttypes.h... yes
+checking for stdint.h... yes
+checking for unistd.h... yes
+checking for int64_t... yes
+checking build system type... x86_64-pc-linux-gnu
+checking host system type... mipsel-openwrt-linux-gnu
+checking how to print strings... printf
+checking for a sed that does not truncate output... /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/host/bin/sed
+checking for fgrep... /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/host/bin/grep -F
+checking for ld used by mipsel-openwrt-linux-musl-gcc... mipsel-openwrt-linux-musl-ld
+checking if the linker (mipsel-openwrt-linux-musl-ld) is GNU ld... yes
+checking for BSD- or MS-compatible name lister (nm)... mipsel-openwrt-linux-musl-gcc-nm
+checking the name lister (mipsel-openwrt-linux-musl-gcc-nm) interface... BSD nm
+checking whether ln -s works... yes
+checking the maximum length of command line arguments... 1572864
+checking whether the shell understands some XSI constructs... yes
+checking whether the shell understands "+="... yes
+checking how to convert x86_64-pc-linux-gnu file names to mipsel-openwrt-linux-gnu format... func_convert_file_noop
+checking how to convert x86_64-pc-linux-gnu file names to toolchain format... func_convert_file_noop
+checking for mipsel-openwrt-linux-musl-ld option to reload object files... -r
+checking for mipsel-openwrt-linux-objdump... mipsel-openwrt-linux-musl-objdump
+checking how to recognize dependent libraries... pass_all
+checking for mipsel-openwrt-linux-dlltool... dlltool
+checking how to associate runtime and link libraries... printf %s\n
+checking for mipsel-openwrt-linux-ar... (cached) mipsel-openwrt-linux-musl-gcc-ar
+checking for archiver @FILE support... @
+checking for mipsel-openwrt-linux-strip... (cached) mipsel-openwrt-linux-musl-strip
+checking for mipsel-openwrt-linux-ranlib... mipsel-openwrt-linux-musl-gcc-ranlib
+checking command to parse mipsel-openwrt-linux-musl-gcc-nm output from mipsel-openwrt-linux-musl-gcc object... ok
+checking for sysroot... no
+checking for mipsel-openwrt-linux-mt... no
+checking for mt... mt
+checking if mt is a manifest tool... no
+checking for dlfcn.h... yes
+checking for objdir... .libs
+checking if mipsel-openwrt-linux-musl-gcc supports -fno-rtti -fno-exceptions... no
+checking for mipsel-openwrt-linux-musl-gcc option to produce PIC... -fPIC -DPIC
+checking if mipsel-openwrt-linux-musl-gcc PIC flag -fPIC -DPIC works... yes
+checking if mipsel-openwrt-linux-musl-gcc static flag -static works... yes
+checking if mipsel-openwrt-linux-musl-gcc supports -c -o file.o... yes
+checking if mipsel-openwrt-linux-musl-gcc supports -c -o file.o... (cached) yes
+checking whether the mipsel-openwrt-linux-musl-gcc linker (mipsel-openwrt-linux-musl-ld) supports shared libraries... yes
+checking whether -lc should be explicitly linked in... no
+checking dynamic linker characteristics... GNU/Linux ld.so
+checking how to hardcode library paths into programs... immediate
+checking whether stripping libraries is possible... yes
+checking if libtool supports shared libraries... yes
+checking whether to build shared libraries... yes
+checking whether to build static libraries... yes
+checking how to run the C++ preprocessor... mipsel-openwrt-linux-musl-g++ -E
+checking for ld used by mipsel-openwrt-linux-musl-g++... mipsel-openwrt-linux-musl-ld
+checking if the linker (mipsel-openwrt-linux-musl-ld) is GNU ld... yes
+checking whether the mipsel-openwrt-linux-musl-g++ linker (mipsel-openwrt-linux-musl-ld) supports shared libraries... yes
+checking for mipsel-openwrt-linux-musl-g++ option to produce PIC... -fPIC -DPIC
+checking if mipsel-openwrt-linux-musl-g++ PIC flag -fPIC -DPIC works... yes
+checking if mipsel-openwrt-linux-musl-g++ static flag -static works... yes
+checking if mipsel-openwrt-linux-musl-g++ supports -c -o file.o... yes
+checking if mipsel-openwrt-linux-musl-g++ supports -c -o file.o... (cached) yes
+checking whether the mipsel-openwrt-linux-musl-g++ linker (mipsel-openwrt-linux-musl-ld) supports shared libraries... yes
+checking dynamic linker characteristics... (cached) GNU/Linux ld.so
+checking how to hardcode library paths into programs... immediate
+checking whether ln -s works... yes
+checking whether the -Werror option is usable... yes
+checking for simple visibility declarations... yes
+checking for ANSI C header files... (cached) yes
+checking limits.h usability... yes
+checking limits.h presence... yes
+checking for limits.h... yes
+checking for sys/types.h... (cached) yes
+checking for sys/stat.h... (cached) yes
+checking dirent.h usability... yes
+checking dirent.h presence... yes
+checking for dirent.h... yes
+checking windows.h usability... no
+checking windows.h presence... no
+checking for windows.h... no
+checking for alias support in the linker... no
+checking for alias support in the linker... no
+checking string usability... yes
+checking string presence... yes
+checking for string... yes
+checking bits/type_traits.h usability... no
+checking bits/type_traits.h presence... no
+checking for bits/type_traits.h... no
+checking type_traits.h usability... no
+checking type_traits.h presence... no
+checking for type_traits.h... no
+checking for strtoq... no
+checking for strtoll... yes
+checking for long long... yes
+checking for unsigned long long... yes
+checking for an ANSI C-conforming const... yes
+checking for size_t... yes
+checking for bcopy... (cached) yes
+checking for memmove... yes
+checking for strerror... (cached) yes
+checking zlib.h usability... no
+checking zlib.h presence... no
+checking for zlib.h... no
+checking for gzopen in -lz... no
+checking bzlib.h usability... no
+checking bzlib.h presence... no
+checking for bzlib.h... no
+checking for libbz2... no
+checking that generated files are newer than configure... done
+configure: creating ./config.status
+config.status: creating Makefile
+config.status: creating libpcre.pc
+config.status: creating libpcre16.pc
+config.status: creating libpcre32.pc
+config.status: creating libpcreposix.pc
+config.status: creating libpcrecpp.pc
+config.status: creating pcre-config
+config.status: creating pcre.h
+config.status: creating pcre_stringpiece.h
+config.status: creating pcrecpparg.h
+config.status: creating config.h
+config.status: executing depfiles commands
+config.status: executing libtool commands
+config.status: executing script-chmod commands
+config.status: executing delete-old-chartables commands
+
+pcre-8.39 configuration summary:
+
+    Install prefix .................. : /usr
+    C preprocessor .................. : mipsel-openwrt-linux-musl-gcc -E
+    C compiler ...................... : mipsel-openwrt-linux-musl-gcc
+    C++ preprocessor ................ : mipsel-openwrt-linux-musl-g++ -E
+    C++ compiler .................... : mipsel-openwrt-linux-musl-g++
+    Linker .......................... : mipsel-openwrt-linux-musl-ld
+    C preprocessor flags ............ : -I/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/target-mipsel_24kec+dsp_musl-1.1.15/usr/include -I/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/target-mipsel_24kec+dsp_musl-1.1.15/include -I/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/toolchain-mipsel_24kec+dsp_gcc-5.3.0_musl-1.1.15/usr/include -I/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/toolchain-mipsel_24kec+dsp_gcc-5.3.0_musl-1.1.15/include/fortify -I/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/toolchain-mipsel_24kec+dsp_gcc-5.3.0_musl-1.1.15/include 
+    C compiler flags ................ : -Os -pipe -mno-branch-likely -mips32r2 -mtune=24kec -mdsp -fno-caller-saves -fno-plt -fhonour-copts -Wno-error=unused-but-set-variable -Wno-error=unused-result -msoft-float -mips16 -minterlink-mips16 -iremap /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39:pcre-8.39 -Wformat -Werror=format-security -fstack-protector -D_FORTIFY_SOURCE=1 -Wl,-z,now -Wl,-z,relro -fpic  -fvisibility=hidden
+    C++ compiler flags .............. : -Os -pipe -mno-branch-likely -mips32r2 -mtune=24kec -mdsp -fno-caller-saves -fno-plt -fhonour-copts -Wno-error=unused-but-set-variable -Wno-error=unused-result -msoft-float -mips16 -minterlink-mips16 -iremap /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39:pcre-8.39 -Wformat -Werror=format-security -fstack-protector -D_FORTIFY_SOURCE=1 -Wl,-z,now -Wl,-z,relro -fpic  -fvisibility=hidden -fvisibility-inlines-hidden
+    Linker flags .................... : -L/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/target-mipsel_24kec+dsp_musl-1.1.15/usr/lib -L/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/target-mipsel_24kec+dsp_musl-1.1.15/lib -L/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/toolchain-mipsel_24kec+dsp_gcc-5.3.0_musl-1.1.15/usr/lib -L/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/toolchain-mipsel_24kec+dsp_gcc-5.3.0_musl-1.1.15/lib -znow -zrelro 
+    Extra libraries ................. : 
+
+    Build 8 bit pcre library ........ : yes
+    Build 16 bit pcre library ....... : yes
+    Build 32 bit pcre library ....... : no
+    Build C++ library ............... : yes
+    Enable JIT compiling support .... : no
+    Enable UTF-8/16/32 support ...... : yes
+    Unicode properties .............. : yes
+    Newline char/sequence ........... : lf
+    \R matches only ANYCRLF ......... : no
+    EBCDIC coding ................... : no
+    EBCDIC code for NL .............. : n/a
+    Rebuild char tables ............. : no
+    Use stack recursion ............. : yes
+    POSIX mem threshold ............. : 10
+    Internal link size .............. : 2
+    Nested parentheses limit ........ : 250
+    Match limit ..................... : 10000000
+    Match limit recursion ........... : MATCH_LIMIT
+    Build shared libs ............... : yes
+    Build static libs ............... : yes
+    Use JIT in pcregrep ............. : no
+    Buffer size for pcregrep ........ : 20480
+    Link pcregrep with libz ......... : no
+    Link pcregrep with libbz2 ....... : no
+    Link pcretest with libedit ...... : no
+    Link pcretest with libreadline .. : no
+    Valgrind support ................ : no
+    Code coverage ................... : no
+
+rm -f /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/.configured_*
+touch /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/.configured_yyyy
+CFLAGS="-Os -pipe -mno-branch-likely -mips32r2 -mtune=24kec -mdsp -fno-caller-saves -fno-plt -fhonour-copts -Wno-error=unused-but-set-variable -Wno-error=unused-result -msoft-float -mips16 -minterlink-mips16 -iremap /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39:pcre-8.39 -Wformat -Werror=format-security -fstack-protector -D_FORTIFY_SOURCE=1 -Wl,-z,now -Wl,-z,relro -fpic  -I/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/target-mipsel_24kec+dsp_musl-1.1.15/usr/include -I/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/target-mipsel_24kec+dsp_musl-1.1.15/include -I/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/toolchain-mipsel_24kec+dsp_gcc-5.3.0_musl-1.1.15/usr/include -I/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/toolchain-mipsel_24kec+dsp_gcc-5.3.0_musl-1.1.15/include/fortify -I/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/toolchain-mipsel_24kec+dsp_gcc-5.3.0_musl-1.1.15/include " CXXFLAGS="-Os -pipe -mno-branch-likely -mips32r2 -mtune=24kec -mdsp -fno-caller-saves -fno-plt -fhonour-copts -Wno-error=unused-but-set-variable -Wno-error=unused-result -msoft-float -mips16 -minterlink-mips16 -iremap /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39:pcre-8.39 -Wformat -Werror=format-security -fstack-protector -D_FORTIFY_SOURCE=1 -Wl,-z,now -Wl,-z,relro -fpic  -I/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/target-mipsel_24kec+dsp_musl-1.1.15/usr/include -I/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/target-mipsel_24kec+dsp_musl-1.1.15/include -I/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/toolchain-mipsel_24kec+dsp_gcc-5.3.0_musl-1.1.15/usr/include -I/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/toolchain-mipsel_24kec+dsp_gcc-5.3.0_musl-1.1.15/include/fortify -I/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/toolchain-mipsel_24kec+dsp_gcc-5.3.0_musl-1.1.15/include " LDFLAGS="-L/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/target-mipsel_24kec+dsp_musl-1.1.15/usr/lib -L/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/target-mipsel_24kec+dsp_musl-1.1.15/lib -L/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/toolchain-mipsel_24kec+dsp_gcc-5.3.0_musl-1.1.15/usr/lib -L/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/toolchain-mipsel_24kec+dsp_gcc-5.3.0_musl-1.1.15/lib -znow -zrelro " make -j1 -C /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/. AR="mipsel-openwrt-linux-musl-gcc-ar" AS="mipsel-openwrt-linux-musl-gcc -c -Os -pipe -mno-branch-likely -mips32r2 -mtune=24kec -mdsp -fno-caller-saves -fno-plt -fhonour-copts -Wno-error=unused-but-set-variable -Wno-error=unused-result -msoft-float -iremap /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39:pcre-8.39 -Wformat -Werror=format-security -fstack-protector -D_FORTIFY_SOURCE=1 -Wl,-z,now -Wl,-z,relro -fpic" LD=mipsel-openwrt-linux-musl-ld NM="mipsel-openwrt-linux-musl-gcc-nm" CC="mipsel-openwrt-linux-musl-gcc" GCC="mipsel-openwrt-linux-musl-gcc" CXX="mipsel-openwrt-linux-musl-g++" RANLIB="mipsel-openwrt-linux-musl-gcc-ranlib" STRIP=mipsel-openwrt-linux-musl-strip OBJCOPY=mipsel-openwrt-linux-musl-objcopy OBJDUMP=mipsel-openwrt-linux-musl-objdump SIZE=mipsel-openwrt-linux-musl-size CROSS="mipsel-openwrt-linux-musl-" ARCH="mipsel" CFLAGS="-Os -pipe -mno-branch-likely -mips32r2 -mtune=24kec -mdsp -fno-caller-saves -fno-plt -fhonour-copts -Wno-error=unused-but-set-variable -Wno-error=unused-result -msoft-float -mips16 -minterlink-mips16 -iremap /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39:pcre-8.39 -Wformat -Werror=format-security -fstack-protector -D_FORTIFY_SOURCE=1 -Wl,-z,now -Wl,-z,relro -fpic" ;
+make[4]: Entering directory '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39'
+rm -f pcre_chartables.c
+ln -s ./pcre_chartables.c.dist pcre_chartables.c
+make  all-am
+make[5]: Entering directory '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39'
+  CC       libpcre_la-pcre_byte_order.lo
+  CC       libpcre_la-pcre_compile.lo
+  CC       libpcre_la-pcre_config.lo
+  CC       libpcre_la-pcre_dfa_exec.lo
+  CC       libpcre_la-pcre_exec.lo
+  CC       libpcre_la-pcre_fullinfo.lo
+  CC       libpcre_la-pcre_get.lo
+  CC       libpcre_la-pcre_globals.lo
+  CC       libpcre_la-pcre_jit_compile.lo
+  CC       libpcre_la-pcre_maketables.lo
+  CC       libpcre_la-pcre_newline.lo
+  CC       libpcre_la-pcre_ord2utf8.lo
+  CC       libpcre_la-pcre_refcount.lo
+  CC       libpcre_la-pcre_string_utils.lo
+  CC       libpcre_la-pcre_study.lo
+  CC       libpcre_la-pcre_tables.lo
+  CC       libpcre_la-pcre_ucd.lo
+  CC       libpcre_la-pcre_valid_utf8.lo
+  CC       libpcre_la-pcre_version.lo
+  CC       libpcre_la-pcre_xclass.lo
+  CC       libpcre_la-pcre_chartables.lo
+  CCLD     libpcre.la
+  CC       libpcre16_la-pcre16_byte_order.lo
+  CC       libpcre16_la-pcre16_chartables.lo
+  CC       libpcre16_la-pcre16_compile.lo
+  CC       libpcre16_la-pcre16_config.lo
+  CC       libpcre16_la-pcre16_dfa_exec.lo
+  CC       libpcre16_la-pcre16_exec.lo
+  CC       libpcre16_la-pcre16_fullinfo.lo
+  CC       libpcre16_la-pcre16_get.lo
+  CC       libpcre16_la-pcre16_globals.lo
+  CC       libpcre16_la-pcre16_jit_compile.lo
+  CC       libpcre16_la-pcre16_maketables.lo
+  CC       libpcre16_la-pcre16_newline.lo
+  CC       libpcre16_la-pcre16_ord2utf16.lo
+  CC       libpcre16_la-pcre16_refcount.lo
+  CC       libpcre16_la-pcre16_string_utils.lo
+  CC       libpcre16_la-pcre16_study.lo
+  CC       libpcre16_la-pcre16_tables.lo
+  CC       libpcre16_la-pcre16_ucd.lo
+  CC       libpcre16_la-pcre16_utf16_utils.lo
+  CC       libpcre16_la-pcre16_valid_utf16.lo
+  CC       libpcre16_la-pcre16_version.lo
+  CC       libpcre16_la-pcre16_xclass.lo
+  CC       libpcre16_la-pcre_chartables.lo
+  CCLD     libpcre16.la
+  CC       libpcreposix_la-pcreposix.lo
+  CCLD     libpcreposix.la
+  CXX      libpcrecpp_la-pcrecpp.lo
+  CXX      libpcrecpp_la-pcre_scanner.lo
+  CXX      libpcrecpp_la-pcre_stringpiece.lo
+  CXXLD    libpcrecpp.la
+  CC       pcretest-pcretest.o
+  CC       pcretest-pcre_printint.o
+  CC       pcretest-pcre16_printint.o
+  CCLD     pcretest
+  CC       pcregrep-pcregrep.o
+  CCLD     pcregrep
+  CXX      pcrecpp_unittest-pcrecpp_unittest.o
+  CXXLD    pcrecpp_unittest
+  CXX      pcre_scanner_unittest-pcre_scanner_unittest.o
+  CXXLD    pcre_scanner_unittest
+  CXX      pcre_stringpiece_unittest-pcre_stringpiece_unittest.o
+  CXXLD    pcre_stringpiece_unittest
+make[5]: Leaving directory '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39'
+make[4]: Leaving directory '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39'
+CFLAGS="-Os -pipe -mno-branch-likely -mips32r2 -mtune=24kec -mdsp -fno-caller-saves -fno-plt -fhonour-copts -Wno-error=unused-but-set-variable -Wno-error=unused-result -msoft-float -mips16 -minterlink-mips16 -iremap /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39:pcre-8.39 -Wformat -Werror=format-security -fstack-protector -D_FORTIFY_SOURCE=1 -Wl,-z,now -Wl,-z,relro -fpic  -I/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/target-mipsel_24kec+dsp_musl-1.1.15/usr/include -I/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/target-mipsel_24kec+dsp_musl-1.1.15/include -I/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/toolchain-mipsel_24kec+dsp_gcc-5.3.0_musl-1.1.15/usr/include -I/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/toolchain-mipsel_24kec+dsp_gcc-5.3.0_musl-1.1.15/include/fortify -I/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/toolchain-mipsel_24kec+dsp_gcc-5.3.0_musl-1.1.15/include " CXXFLAGS="-Os -pipe -mno-branch-likely -mips32r2 -mtune=24kec -mdsp -fno-caller-saves -fno-plt -fhonour-copts -Wno-error=unused-but-set-variable -Wno-error=unused-result -msoft-float -mips16 -minterlink-mips16 -iremap /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39:pcre-8.39 -Wformat -Werror=format-security -fstack-protector -D_FORTIFY_SOURCE=1 -Wl,-z,now -Wl,-z,relro -fpic  -I/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/target-mipsel_24kec+dsp_musl-1.1.15/usr/include -I/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/target-mipsel_24kec+dsp_musl-1.1.15/include -I/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/toolchain-mipsel_24kec+dsp_gcc-5.3.0_musl-1.1.15/usr/include -I/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/toolchain-mipsel_24kec+dsp_gcc-5.3.0_musl-1.1.15/include/fortify -I/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/toolchain-mipsel_24kec+dsp_gcc-5.3.0_musl-1.1.15/include " LDFLAGS="-L/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/target-mipsel_24kec+dsp_musl-1.1.15/usr/lib -L/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/target-mipsel_24kec+dsp_musl-1.1.15/lib -L/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/toolchain-mipsel_24kec+dsp_gcc-5.3.0_musl-1.1.15/usr/lib -L/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/toolchain-mipsel_24kec+dsp_gcc-5.3.0_musl-1.1.15/lib -znow -zrelro " make -C /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/. AR="mipsel-openwrt-linux-musl-gcc-ar" AS="mipsel-openwrt-linux-musl-gcc -c -Os -pipe -mno-branch-likely -mips32r2 -mtune=24kec -mdsp -fno-caller-saves -fno-plt -fhonour-copts -Wno-error=unused-but-set-variable -Wno-error=unused-result -msoft-float -iremap /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39:pcre-8.39 -Wformat -Werror=format-security -fstack-protector -D_FORTIFY_SOURCE=1 -Wl,-z,now -Wl,-z,relro -fpic" LD=mipsel-openwrt-linux-musl-ld NM="mipsel-openwrt-linux-musl-gcc-nm" CC="mipsel-openwrt-linux-musl-gcc" GCC="mipsel-openwrt-linux-musl-gcc" CXX="mipsel-openwrt-linux-musl-g++" RANLIB="mipsel-openwrt-linux-musl-gcc-ranlib" STRIP=mipsel-openwrt-linux-musl-strip OBJCOPY=mipsel-openwrt-linux-musl-objcopy OBJDUMP=mipsel-openwrt-linux-musl-objdump SIZE=mipsel-openwrt-linux-musl-size CROSS="mipsel-openwrt-linux-musl-" ARCH="mipsel" CFLAGS="-Os -pipe -mno-branch-likely -mips32r2 -mtune=24kec -mdsp -fno-caller-saves -fno-plt -fhonour-copts -Wno-error=unused-but-set-variable -Wno-error=unused-result -msoft-float -mips16 -minterlink-mips16 -iremap /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39:pcre-8.39 -Wformat -Werror=format-security -fstack-protector -D_FORTIFY_SOURCE=1 -Wl,-z,now -Wl,-z,relro -fpic" DESTDIR="/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install"  install;
+make[4]: Entering directory '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39'
+make  install-am
+make[5]: Entering directory '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39'
+make[6]: Entering directory '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39'
+ /bin/mkdir -p '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/lib'
+ /bin/bash ./libtool   --mode=install /usr/bin/install -c   libpcre.la libpcre16.la libpcreposix.la libpcrecpp.la '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/lib'
+OpenWrt-libtool: install: /usr/bin/install -c .libs/libpcre.so.1.2.7 /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/lib/libpcre.so.1.2.7
+OpenWrt-libtool: install: (cd /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/lib && { ln -s -f libpcre.so.1.2.7 libpcre.so.1 || { rm -f libpcre.so.1 && ln -s libpcre.so.1.2.7 libpcre.so.1; }; })
+OpenWrt-libtool: install: (cd /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/lib && { ln -s -f libpcre.so.1.2.7 libpcre.so || { rm -f libpcre.so && ln -s libpcre.so.1.2.7 libpcre.so; }; })
+OpenWrt-libtool: install: /usr/bin/install -c .libs/libpcre.lai /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/lib/libpcre.la
+OpenWrt-libtool: install: /usr/bin/install -c .libs/libpcre16.so.0.2.7 /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/lib/libpcre16.so.0.2.7
+OpenWrt-libtool: install: (cd /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/lib && { ln -s -f libpcre16.so.0.2.7 libpcre16.so.0 || { rm -f libpcre16.so.0 && ln -s libpcre16.so.0.2.7 libpcre16.so.0; }; })
+OpenWrt-libtool: install: (cd /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/lib && { ln -s -f libpcre16.so.0.2.7 libpcre16.so || { rm -f libpcre16.so && ln -s libpcre16.so.0.2.7 libpcre16.so; }; })
+OpenWrt-libtool: install: /usr/bin/install -c .libs/libpcre16.lai /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/lib/libpcre16.la
+OpenWrt-libtool: install: (cd /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39; /bin/bash /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/libtool  --silent --tag CC --mode=relink mipsel-openwrt-linux-musl-gcc -fvisibility=hidden -Os -pipe -mno-branch-likely -mips32r2 -mtune=24kec -mdsp -fno-caller-saves -fno-plt -fhonour-copts -Wno-error=unused-but-set-variable -Wno-error=unused-result -msoft-float -mips16 -minterlink-mips16 -iremap /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39:pcre-8.39 -Wformat -Werror=format-security -fstack-protector -D_FORTIFY_SOURCE=1 -Wl,-z,now -Wl,-z,relro -fpic -version-info 0:4:0 -L/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/target-mipsel_24kec+dsp_musl-1.1.15/usr/lib -L/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/target-mipsel_24kec+dsp_musl-1.1.15/lib -L/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/toolchain-mipsel_24kec+dsp_gcc-5.3.0_musl-1.1.15/usr/lib -L/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/toolchain-mipsel_24kec+dsp_gcc-5.3.0_musl-1.1.15/lib -znow -zrelro -o libpcreposix.la -rpath /usr/lib libpcreposix_la-pcreposix.lo libpcre.la -inst-prefix-dir /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install)
+OpenWrt-libtool: install: /usr/bin/install -c .libs/libpcreposix.so.0.0.4T /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/lib/libpcreposix.so.0.0.4
+OpenWrt-libtool: install: (cd /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/lib && { ln -s -f libpcreposix.so.0.0.4 libpcreposix.so.0 || { rm -f libpcreposix.so.0 && ln -s libpcreposix.so.0.0.4 libpcreposix.so.0; }; })
+OpenWrt-libtool: install: (cd /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/lib && { ln -s -f libpcreposix.so.0.0.4 libpcreposix.so || { rm -f libpcreposix.so && ln -s libpcreposix.so.0.0.4 libpcreposix.so; }; })
+OpenWrt-libtool: install: /usr/bin/install -c .libs/libpcreposix.lai /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/lib/libpcreposix.la
+OpenWrt-libtool: install: (cd /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39; /bin/bash /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/libtool  --silent --tag CXX --mode=relink mipsel-openwrt-linux-musl-g++ -fvisibility=hidden -fvisibility-inlines-hidden -Os -pipe -mno-branch-likely -mips32r2 -mtune=24kec -mdsp -fno-caller-saves -fno-plt -fhonour-copts -Wno-error=unused-but-set-variable -Wno-error=unused-result -msoft-float -mips16 -minterlink-mips16 -iremap /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39:pcre-8.39 -Wformat -Werror=format-security -fstack-protector -D_FORTIFY_SOURCE=1 -Wl,-z,now -Wl,-z,relro -fpic -version-info 0:1:0 -L/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/target-mipsel_24kec+dsp_musl-1.1.15/usr/lib -L/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/target-mipsel_24kec+dsp_musl-1.1.15/lib -L/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/toolchain-mipsel_24kec+dsp_gcc-5.3.0_musl-1.1.15/usr/lib -L/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/toolchain-mipsel_24kec+dsp_gcc-5.3.0_musl-1.1.15/lib -znow -zrelro -o libpcrecpp.la -rpath /usr/lib libpcrecpp_la-pcrecpp.lo libpcrecpp_la-pcre_scanner.lo libpcrecpp_la-pcre_stringpiece.lo libpcre.la -inst-prefix-dir /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install)
+OpenWrt-libtool: install: /usr/bin/install -c .libs/libpcrecpp.so.0.0.1T /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/lib/libpcrecpp.so.0.0.1
+OpenWrt-libtool: install: (cd /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/lib && { ln -s -f libpcrecpp.so.0.0.1 libpcrecpp.so.0 || { rm -f libpcrecpp.so.0 && ln -s libpcrecpp.so.0.0.1 libpcrecpp.so.0; }; })
+OpenWrt-libtool: install: (cd /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/lib && { ln -s -f libpcrecpp.so.0.0.1 libpcrecpp.so || { rm -f libpcrecpp.so && ln -s libpcrecpp.so.0.0.1 libpcrecpp.so; }; })
+OpenWrt-libtool: install: /usr/bin/install -c .libs/libpcrecpp.lai /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/lib/libpcrecpp.la
+OpenWrt-libtool: install: /usr/bin/install -c .libs/libpcre.a /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/lib/libpcre.a
+OpenWrt-libtool: install: chmod 644 /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/lib/libpcre.a
+OpenWrt-libtool: install: mipsel-openwrt-linux-musl-gcc-ranlib /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/lib/libpcre.a
+OpenWrt-libtool: install: /usr/bin/install -c .libs/libpcre16.a /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/lib/libpcre16.a
+OpenWrt-libtool: install: chmod 644 /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/lib/libpcre16.a
+OpenWrt-libtool: install: mipsel-openwrt-linux-musl-gcc-ranlib /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/lib/libpcre16.a
+OpenWrt-libtool: install: /usr/bin/install -c .libs/libpcreposix.a /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/lib/libpcreposix.a
+OpenWrt-libtool: install: chmod 644 /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/lib/libpcreposix.a
+OpenWrt-libtool: install: mipsel-openwrt-linux-musl-gcc-ranlib /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/lib/libpcreposix.a
+OpenWrt-libtool: install: /usr/bin/install -c .libs/libpcrecpp.a /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/lib/libpcrecpp.a
+OpenWrt-libtool: install: chmod 644 /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/lib/libpcrecpp.a
+OpenWrt-libtool: install: mipsel-openwrt-linux-musl-gcc-ranlib /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/lib/libpcrecpp.a
+ /bin/mkdir -p '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/bin'
+  /bin/bash ./libtool   --mode=install /usr/bin/install -c pcretest pcregrep '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/bin'
+OpenWrt-libtool: install: /usr/bin/install -c .libs/pcretest /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/bin/pcretest
+OpenWrt-libtool: install: /usr/bin/install -c .libs/pcregrep /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/bin/pcregrep
+ /bin/mkdir -p '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/bin'
+ /usr/bin/install -c pcre-config '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/bin'
+ /bin/mkdir -p '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/share/doc/pcre'
+ /usr/bin/install -c -m 644 doc/pcre.txt doc/pcre-config.txt doc/pcregrep.txt doc/pcretest.txt AUTHORS COPYING ChangeLog LICENCE NEWS README '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/share/doc/pcre'
+ /bin/mkdir -p '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/share/doc/pcre/html'
+ /usr/bin/install -c -m 644 doc/html/NON-AUTOTOOLS-BUILD.txt doc/html/README.txt doc/html/index.html doc/html/pcre-config.html doc/html/pcre.html doc/html/pcre16.html doc/html/pcre32.html doc/html/pcre_assign_jit_stack.html doc/html/pcre_compile.html doc/html/pcre_compile2.html doc/html/pcre_config.html doc/html/pcre_copy_named_substring.html doc/html/pcre_copy_substring.html doc/html/pcre_dfa_exec.html doc/html/pcre_exec.html doc/html/pcre_free_study.html doc/html/pcre_free_substring.html doc/html/pcre_free_substring_list.html doc/html/pcre_fullinfo.html doc/html/pcre_get_named_substring.html doc/html/pcre_get_stringnumber.html doc/html/pcre_get_stringtable_entries.html doc/html/pcre_get_substring.html doc/html/pcre_get_substring_list.html doc/html/pcre_jit_exec.html doc/html/pcre_jit_stack_alloc.html doc/html/pcre_jit_stack_free.html doc/html/pcre_maketables.html doc/html/pcre_pattern_to_host_byte_order.html doc/html/pcre_refcount.html doc/html/pcre_study.html doc/html/pcre_utf16_to_host_byte_order.html doc/html/pcre_utf32_to_host_byte_order.html doc/html/pcre_version.html doc/html/pcreapi.html doc/html/pcrebuild.html doc/html/pcrecallout.html doc/html/pcrecompat.html doc/html/pcredemo.html doc/html/pcregrep.html '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/share/doc/pcre/html'
+ /usr/bin/install -c -m 644 doc/html/pcrejit.html doc/html/pcrelimits.html doc/html/pcrematching.html doc/html/pcrepartial.html doc/html/pcrepattern.html doc/html/pcreperform.html doc/html/pcreposix.html doc/html/pcreprecompile.html doc/html/pcresample.html doc/html/pcrestack.html doc/html/pcresyntax.html doc/html/pcretest.html doc/html/pcreunicode.html '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/share/doc/pcre/html'
+ /bin/mkdir -p '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/share/doc/pcre/html'
+ /usr/bin/install -c -m 644 doc/html/pcrecpp.html '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/share/doc/pcre/html'
+ /bin/mkdir -p '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/include'
+ /usr/bin/install -c -m 644 pcreposix.h pcrecpp.h pcre_scanner.h '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/include'
+ /bin/mkdir -p '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/man/man1'
+ /usr/bin/install -c -m 644 doc/pcre-config.1 doc/pcregrep.1 doc/pcretest.1 '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/man/man1'
+ /bin/mkdir -p '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/man/man3'
+ /usr/bin/install -c -m 644 doc/pcre.3 doc/pcre16.3 doc/pcre32.3 doc/pcre_assign_jit_stack.3 doc/pcre_compile.3 doc/pcre_compile2.3 doc/pcre_config.3 doc/pcre_copy_named_substring.3 doc/pcre_copy_substring.3 doc/pcre_dfa_exec.3 doc/pcre_exec.3 doc/pcre_free_study.3 doc/pcre_free_substring.3 doc/pcre_free_substring_list.3 doc/pcre_fullinfo.3 doc/pcre_get_named_substring.3 doc/pcre_get_stringnumber.3 doc/pcre_get_stringtable_entries.3 doc/pcre_get_substring.3 doc/pcre_get_substring_list.3 doc/pcre_jit_exec.3 doc/pcre_jit_stack_alloc.3 doc/pcre_jit_stack_free.3 doc/pcre_maketables.3 doc/pcre_pattern_to_host_byte_order.3 doc/pcre_refcount.3 doc/pcre_study.3 doc/pcre_utf16_to_host_byte_order.3 doc/pcre_utf32_to_host_byte_order.3 doc/pcre_version.3 doc/pcreapi.3 doc/pcrebuild.3 doc/pcrecallout.3 doc/pcrecompat.3 doc/pcredemo.3 doc/pcrejit.3 doc/pcrelimits.3 doc/pcrematching.3 doc/pcrepartial.3 doc/pcrepattern.3 '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/man/man3'
+ /usr/bin/install -c -m 644 doc/pcreperform.3 doc/pcreposix.3 doc/pcreprecompile.3 doc/pcresample.3 doc/pcrestack.3 doc/pcresyntax.3 doc/pcreunicode.3 doc/pcrecpp.3 '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/man/man3'
+ /bin/mkdir -p '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/include'
+ /usr/bin/install -c -m 644 pcre.h pcrecpparg.h pcre_stringpiece.h '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/include'
+ /bin/mkdir -p '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/lib/pkgconfig'
+ /usr/bin/install -c -m 644 libpcre.pc libpcreposix.pc libpcre16.pc libpcrecpp.pc '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/lib/pkgconfig'
+make  install-data-hook
+make[7]: Entering directory '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39'
+ln -sf pcre_assign_jit_stack.3		 /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/man/man3/pcre16_assign_jit_stack.3
+ln -sf pcre_compile.3			 /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/man/man3/pcre16_compile.3
+ln -sf pcre_compile2.3			 /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/man/man3/pcre16_compile2.3
+ln -sf pcre_config.3			 /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/man/man3/pcre16_config.3
+ln -sf pcre_copy_named_substring.3	 /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/man/man3/pcre16_copy_named_substring.3
+ln -sf pcre_copy_substring.3		 /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/man/man3/pcre16_copy_substring.3
+ln -sf pcre_dfa_exec.3			 /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/man/man3/pcre16_dfa_exec.3
+ln -sf pcre_exec.3			 /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/man/man3/pcre16_exec.3
+ln -sf pcre_free_study.3		 /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/man/man3/pcre16_free_study.3
+ln -sf pcre_free_substring.3		 /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/man/man3/pcre16_free_substring.3
+ln -sf pcre_free_substring_list.3	 /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/man/man3/pcre16_free_substring_list.3
+ln -sf pcre_fullinfo.3			 /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/man/man3/pcre16_fullinfo.3
+ln -sf pcre_get_named_substring.3	 /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/man/man3/pcre16_get_named_substring.3
+ln -sf pcre_get_stringnumber.3		 /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/man/man3/pcre16_get_stringnumber.3
+ln -sf pcre_get_stringtable_entries.3	 /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/man/man3/pcre16_get_stringtable_entries.3
+ln -sf pcre_get_substring.3		 /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/man/man3/pcre16_get_substring.3
+ln -sf pcre_get_substring_list.3	 /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/man/man3/pcre16_get_substring_list.3
+ln -sf pcre_jit_exec.3			 /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/man/man3/pcre16_jit_exec.3
+ln -sf pcre_jit_stack_alloc.3		 /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/man/man3/pcre16_jit_stack_alloc.3
+ln -sf pcre_jit_stack_free.3		 /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/man/man3/pcre16_jit_stack_free.3
+ln -sf pcre_maketables.3		 /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/man/man3/pcre16_maketables.3
+ln -sf pcre_pattern_to_host_byte_order.3 /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/man/man3/pcre16_pattern_to_host_byte_order.3
+ln -sf pcre_refcount.3			 /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/man/man3/pcre16_refcount.3
+ln -sf pcre_study.3			 /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/man/man3/pcre16_study.3
+ln -sf pcre_utf16_to_host_byte_order.3	 /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/man/man3/pcre16_utf16_to_host_byte_order.3
+ln -sf pcre_version.3			 /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/man/man3/pcre16_version.3
+ln -sf pcre_assign_jit_stack.3		 /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/man/man3/pcre32_assign_jit_stack.3
+ln -sf pcre_compile.3			 /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/man/man3/pcre32_compile.3
+ln -sf pcre_compile2.3			 /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/man/man3/pcre32_compile2.3
+ln -sf pcre_config.3			 /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/man/man3/pcre32_config.3
+ln -sf pcre_copy_named_substring.3	 /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/man/man3/pcre32_copy_named_substring.3
+ln -sf pcre_copy_substring.3		 /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/man/man3/pcre32_copy_substring.3
+ln -sf pcre_dfa_exec.3			 /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/man/man3/pcre32_dfa_exec.3
+ln -sf pcre_exec.3			 /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/man/man3/pcre32_exec.3
+ln -sf pcre_free_study.3		 /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/man/man3/pcre32_free_study.3
+ln -sf pcre_free_substring.3		 /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/man/man3/pcre32_free_substring.3
+ln -sf pcre_free_substring_list.3	 /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/man/man3/pcre32_free_substring_list.3
+ln -sf pcre_fullinfo.3			 /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/man/man3/pcre32_fullinfo.3
+ln -sf pcre_get_named_substring.3	 /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/man/man3/pcre32_get_named_substring.3
+ln -sf pcre_get_stringnumber.3		 /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/man/man3/pcre32_get_stringnumber.3
+ln -sf pcre_get_stringtable_entries.3	 /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/man/man3/pcre32_get_stringtable_entries.3
+ln -sf pcre_get_substring.3		 /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/man/man3/pcre32_get_substring.3
+ln -sf pcre_get_substring_list.3	 /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/man/man3/pcre32_get_substring_list.3
+ln -sf pcre_jit_exec.3			 /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/man/man3/pcre32_jit_exec.3
+ln -sf pcre_jit_stack_alloc.3		 /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/man/man3/pcre32_jit_stack_alloc.3
+ln -sf pcre_jit_stack_free.3		 /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/man/man3/pcre32_jit_stack_free.3
+ln -sf pcre_maketables.3		 /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/man/man3/pcre32_maketables.3
+ln -sf pcre_pattern_to_host_byte_order.3 /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/man/man3/pcre32_pattern_to_host_byte_order.3
+ln -sf pcre_refcount.3			 /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/man/man3/pcre32_refcount.3
+ln -sf pcre_study.3			 /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/man/man3/pcre32_study.3
+ln -sf pcre_utf32_to_host_byte_order.3	 /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/man/man3/pcre32_utf32_to_host_byte_order.3
+ln -sf pcre_version.3			 /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/man/man3/pcre32_version.3
+make[7]: Leaving directory '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39'
+make[6]: Leaving directory '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39'
+make[5]: Leaving directory '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39'
+make[4]: Leaving directory '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39'
+touch /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/.built
+mkdir -p /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/bin/ramips/packages /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-ramips/libpcre/CONTROL /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/target-mipsel_24kec+dsp_musl-1.1.15/pkginfo
+install -d -m0755 /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-ramips/libpcre/usr/lib
+cp -fpR /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/lib/libpcre{,posix}.so.* /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-ramips/libpcre/usr/lib/
+cp -fpR /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-install/usr/lib/libpcre.so /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-ramips/libpcre/usr/lib/
+find /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/pcre-8.39/ipkg-ramips/libpcre -name 'CVS' -o -name '.svn' -o -name '.#*' -o -name '*~'| xargs -r rm -rf
+Makefile:99: recipe for target '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/bin/ramips/packages/packages/libpcre_8.39-1_ramips.ipk' failed
+make[3]: Leaving directory '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/feeds/packages/libs/pcre'
+package/Makefile:196: recipe for target 'package/feeds/packages/pcre/compile' failed
+make[2]: Leaving directory '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64'
+package/Makefile:193: recipe for target '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/target-mipsel_24kec+dsp_musl-1.1.15/stamp/.package_compile' failed
+make[1]: Leaving directory '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64'
+/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/include/toplevel.mk:185: recipe for target 'world' failed
+labasky@labasky-Lenovo-B590:~/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64$ 
+
+
+試試
+$ make distclean
+$ make menuconfig
+
+哦哦居然進來了藍色畫面
+確定packages都選了(預設的M)然後Exit離開
+
+刪掉剛才的build.log
+$ rm -rf build.log
+
+編譯
+$ make package/shadowsocks-libev/compile V=99 | tee build.log
+
+失敗了
+輸出的訊息是
+labasky@labasky-Lenovo-B590:~/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64$ make package/shadowsocks-libev/compile V=99 | tee build.log
+#
+# configuration written to .config
+#
+make[1]: Entering directory '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64'
+make[2]: Entering directory '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/package/shadowsocks-libev'
+mkdir -p /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/dl
+/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/scripts/download.pl "/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/dl" "shadowsocks-libev-2.5.6.tar.gz" "bb99e090640c8af8d7da961a6230c70b" "" "https://github.com/shadowsocks/openwrt-shadowsocks/releases/download/v2.5.6"
+--2016-12-24 03:01:27--  https://github.com/shadowsocks/openwrt-shadowsocks/releases/download/v2.5.6/shadowsocks-libev-2.5.6.tar.gz
+Resolving github.com (github.com)... 192.30.253.113, 192.30.253.112
+Connecting to github.com (github.com)|192.30.253.113|:443... connected.
+HTTP request sent, awaiting response... 302 Found
+Location: https://github-cloud.s3.amazonaws.com/releases/21731829/73bf8ec0-a01d-11e6-9a6a-7327858bfd2b.gz?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAISTNZFOVBIJMK3TQ%2F20161223%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20161223T190128Z&X-Amz-Expires=300&X-Amz-Signature=e72ef92462bfa415cba494d8a8461ca27fa0e67a1e3e939ac0e08a942a715ebb&X-Amz-SignedHeaders=host&actor_id=0&response-content-disposition=attachment%3B%20filename%3Dshadowsocks-libev-2.5.6.tar.gz&response-content-type=application%2Foctet-stream [following]
+--2016-12-24 03:01:28--  https://github-cloud.s3.amazonaws.com/releases/21731829/73bf8ec0-a01d-11e6-9a6a-7327858bfd2b.gz?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAISTNZFOVBIJMK3TQ%2F20161223%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20161223T190128Z&X-Amz-Expires=300&X-Amz-Signature=e72ef92462bfa415cba494d8a8461ca27fa0e67a1e3e939ac0e08a942a715ebb&X-Amz-SignedHeaders=host&actor_id=0&response-content-disposition=attachment%3B%20filename%3Dshadowsocks-libev-2.5.6.tar.gz&response-content-type=application%2Foctet-stream
+Resolving github-cloud.s3.amazonaws.com (github-cloud.s3.amazonaws.com)... 54.231.49.146
+Connecting to github-cloud.s3.amazonaws.com (github-cloud.s3.amazonaws.com)|54.231.49.146|:443... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: 840924 (821K) [application/octet-stream]
+Saving to: 'STDOUT'
+
+-                                     100%[=======================================================================>] 821.21K   265KB/s    in 3.1s    
+
+2016-12-24 03:01:32 (265 KB/s) - written to stdout [840924/840924]
+
+. /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/include/shell.sh; gzip -dc /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/dl/shadowsocks-libev-2.5.6.tar.gz | tar -C /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/shadowsocks-libev/openssl/shadowsocks-libev-2.5.6/.. -xf - 
+touch /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/shadowsocks-libev/openssl/shadowsocks-libev-2.5.6/.prepared_e2719b1700a36426a77a249b339fe7fc
+rm -f /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/target-mipsel_24kec+dsp_musl-1.1.15/stamp/.shadowsocks-libev.openssl_installed
+(cd /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/shadowsocks-libev/openssl/shadowsocks-libev-2.5.6; rm -f aclocal.m4; if [ -f ./configure.ac ] || [ -f ./configure.in ]; then [ -d ./autom4te.cache ] && rm -rf autom4te.cache; [ -e ./config.rpath ] || ln -s /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/scripts/config.rpath ./config.rpath; touch NEWS AUTHORS COPYING ABOUT-NLS ChangeLog; AUTOM4TE=/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/host/bin/autom4te AUTOCONF=/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/host/bin/autoconf AUTOMAKE=/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/host/bin/automake ACLOCAL=/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/host/bin/aclocal AUTOHEADER=/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/host/bin/autoheader LIBTOOLIZE=/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/host/bin/libtoolize LIBTOOL=/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/host/bin/libtool M4=/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/host/bin/m4 AUTOPOINT=true /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/host/bin/autoreconf -v -f -i -s -B /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/host/share/aclocal -I /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/target-mipsel_24kec+dsp_musl-1.1.15/host/share/aclocal -I /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/target-mipsel_24kec+dsp_musl-1.1.15/usr/share/aclocal -I m4 -I . . || true; fi; );
+bash: /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/host/bin/autoreconf: No such file or directory
+(cd /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/shadowsocks-libev/openssl/shadowsocks-libev-2.5.6/./; if [ -x ./configure ]; then find /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/shadowsocks-libev/openssl/shadowsocks-libev-2.5.6/ -name config.guess | xargs -r chmod u+w; find /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/shadowsocks-libev/openssl/shadowsocks-libev-2.5.6/ -name config.guess | xargs -r -n1 cp --remove-destination /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/scripts/config.guess; find /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/shadowsocks-libev/openssl/shadowsocks-libev-2.5.6/ -name config.sub | xargs -r chmod u+w; find /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/shadowsocks-libev/openssl/shadowsocks-libev-2.5.6/ -name config.sub | xargs -r -n1 cp --remove-destination /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/scripts/config.sub; AR="mipsel-openwrt-linux-musl-gcc-ar" AS="mipsel-openwrt-linux-musl-gcc -c -Os -pipe -mno-branch-likely -mips32r2 -mtune=24kec -mdsp -fno-caller-saves -fno-plt -fhonour-copts -Wno-error=unused-but-set-variable -Wno-error=unused-result -msoft-float -iremap /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/shadowsocks-libev/openssl/shadowsocks-libev-2.5.6:shadowsocks-libev-2.5.6 -Wformat -Werror=format-security -fstack-protector -D_FORTIFY_SOURCE=1 -Wl,-z,now -Wl,-z,relro" LD=mipsel-openwrt-linux-musl-ld NM="mipsel-openwrt-linux-musl-gcc-nm" CC="mipsel-openwrt-linux-musl-gcc" GCC="mipsel-openwrt-linux-musl-gcc" CXX="mipsel-openwrt-linux-musl-g++" RANLIB="mipsel-openwrt-linux-musl-gcc-ranlib" STRIP=mipsel-openwrt-linux-musl-strip OBJCOPY=mipsel-openwrt-linux-musl-objcopy OBJDUMP=mipsel-openwrt-linux-musl-objdump SIZE=mipsel-openwrt-linux-musl-size CFLAGS="-Os -pipe -mno-branch-likely -mips32r2 -mtune=24kec -mdsp -fno-caller-saves -fno-plt -fhonour-copts -Wno-error=unused-but-set-variable -Wno-error=unused-result -msoft-float -iremap /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/shadowsocks-libev/openssl/shadowsocks-libev-2.5.6:shadowsocks-libev-2.5.6 -Wformat -Werror=format-security -fstack-protector -D_FORTIFY_SOURCE=1 -Wl,-z,now -Wl,-z,relro " CXXFLAGS="-Os -pipe -mno-branch-likely -mips32r2 -mtune=24kec -mdsp -fno-caller-saves -fno-plt -fhonour-copts -Wno-error=unused-but-set-variable -Wno-error=unused-result -msoft-float -iremap /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/shadowsocks-libev/openssl/shadowsocks-libev-2.5.6:shadowsocks-libev-2.5.6 -Wformat -Werror=format-security -fstack-protector -D_FORTIFY_SOURCE=1 -Wl,-z,now -Wl,-z,relro " CPPFLAGS="-I/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/target-mipsel_24kec+dsp_musl-1.1.15/usr/include -I/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/target-mipsel_24kec+dsp_musl-1.1.15/include -I/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/toolchain-mipsel_24kec+dsp_gcc-5.3.0_musl-1.1.15/usr/include -I/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/toolchain-mipsel_24kec+dsp_gcc-5.3.0_musl-1.1.15/include/fortify -I/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/toolchain-mipsel_24kec+dsp_gcc-5.3.0_musl-1.1.15/include " LDFLAGS="-L/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/target-mipsel_24kec+dsp_musl-1.1.15/usr/lib -L/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/target-mipsel_24kec+dsp_musl-1.1.15/lib -L/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/toolchain-mipsel_24kec+dsp_gcc-5.3.0_musl-1.1.15/usr/lib -L/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/toolchain-mipsel_24kec+dsp_gcc-5.3.0_musl-1.1.15/lib -znow -zrelro "   ./configure --target=mipsel-openwrt-linux --host=mipsel-openwrt-linux --build=x86_64-linux-gnu --program-prefix="" --program-suffix="" --prefix=/usr --exec-prefix=/usr --bindir=/usr/bin --sbindir=/usr/sbin --libexecdir=/usr/lib --sysconfdir=/etc --datadir=/usr/share --localstatedir=/var --mandir=/usr/man --infodir=/usr/info --disable-nls   --disable-ssp --disable-documentation --disable-assert ; fi; )
+rm -f /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/shadowsocks-libev/openssl/shadowsocks-libev-2.5.6/.configured_*
+touch /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/shadowsocks-libev/openssl/shadowsocks-libev-2.5.6/.configured_yyy
+CFLAGS="-Os -pipe -mno-branch-likely -mips32r2 -mtune=24kec -mdsp -fno-caller-saves -fno-plt -fhonour-copts -Wno-error=unused-but-set-variable -Wno-error=unused-result -msoft-float -iremap /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/shadowsocks-libev/openssl/shadowsocks-libev-2.5.6:shadowsocks-libev-2.5.6 -Wformat -Werror=format-security -fstack-protector -D_FORTIFY_SOURCE=1 -Wl,-z,now -Wl,-z,relro  -I/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/target-mipsel_24kec+dsp_musl-1.1.15/usr/include -I/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/target-mipsel_24kec+dsp_musl-1.1.15/include -I/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/toolchain-mipsel_24kec+dsp_gcc-5.3.0_musl-1.1.15/usr/include -I/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/toolchain-mipsel_24kec+dsp_gcc-5.3.0_musl-1.1.15/include/fortify -I/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/toolchain-mipsel_24kec+dsp_gcc-5.3.0_musl-1.1.15/include " CXXFLAGS="-Os -pipe -mno-branch-likely -mips32r2 -mtune=24kec -mdsp -fno-caller-saves -fno-plt -fhonour-copts -Wno-error=unused-but-set-variable -Wno-error=unused-result -msoft-float -iremap /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/shadowsocks-libev/openssl/shadowsocks-libev-2.5.6:shadowsocks-libev-2.5.6 -Wformat -Werror=format-security -fstack-protector -D_FORTIFY_SOURCE=1 -Wl,-z,now -Wl,-z,relro  -I/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/target-mipsel_24kec+dsp_musl-1.1.15/usr/include -I/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/target-mipsel_24kec+dsp_musl-1.1.15/include -I/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/toolchain-mipsel_24kec+dsp_gcc-5.3.0_musl-1.1.15/usr/include -I/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/toolchain-mipsel_24kec+dsp_gcc-5.3.0_musl-1.1.15/include/fortify -I/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/toolchain-mipsel_24kec+dsp_gcc-5.3.0_musl-1.1.15/include " LDFLAGS="-L/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/target-mipsel_24kec+dsp_musl-1.1.15/usr/lib -L/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/target-mipsel_24kec+dsp_musl-1.1.15/lib -L/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/toolchain-mipsel_24kec+dsp_gcc-5.3.0_musl-1.1.15/usr/lib -L/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/toolchain-mipsel_24kec+dsp_gcc-5.3.0_musl-1.1.15/lib -znow -zrelro " make   -C /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/shadowsocks-libev/openssl/shadowsocks-libev-2.5.6/. AR="mipsel-openwrt-linux-musl-gcc-ar" AS="mipsel-openwrt-linux-musl-gcc -c -Os -pipe -mno-branch-likely -mips32r2 -mtune=24kec -mdsp -fno-caller-saves -fno-plt -fhonour-copts -Wno-error=unused-but-set-variable -Wno-error=unused-result -msoft-float -iremap /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/shadowsocks-libev/openssl/shadowsocks-libev-2.5.6:shadowsocks-libev-2.5.6 -Wformat -Werror=format-security -fstack-protector -D_FORTIFY_SOURCE=1 -Wl,-z,now -Wl,-z,relro" LD=mipsel-openwrt-linux-musl-ld NM="mipsel-openwrt-linux-musl-gcc-nm" CC="mipsel-openwrt-linux-musl-gcc" GCC="mipsel-openwrt-linux-musl-gcc" CXX="mipsel-openwrt-linux-musl-g++" RANLIB="mipsel-openwrt-linux-musl-gcc-ranlib" STRIP=mipsel-openwrt-linux-musl-strip OBJCOPY=mipsel-openwrt-linux-musl-objcopy OBJDUMP=mipsel-openwrt-linux-musl-objdump SIZE=mipsel-openwrt-linux-musl-size CROSS="mipsel-openwrt-linux-musl-" ARCH="mipsel" ;
+make[3]: *** No targets specified and no makefile found.  Stop.
+make[3]: Entering directory '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/shadowsocks-libev/openssl/shadowsocks-libev-2.5.6'
+make[3]: Leaving directory '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/shadowsocks-libev/openssl/shadowsocks-libev-2.5.6'
+make[2]: *** [/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/shadowsocks-libev/openssl/shadowsocks-libev-2.5.6/.built] Error 2
+Makefile:83: recipe for target '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/shadowsocks-libev/openssl/shadowsocks-libev-2.5.6/.built' failed
+make[2]: Leaving directory '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/package/shadowsocks-libev'
+make[1]: *** [package/shadowsocks-libev/compile] Error 2
+package/Makefile:196: recipe for target 'package/shadowsocks-libev/compile' failed
+make[1]: Leaving directory '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64'
+make: *** [package/shadowsocks-libev/compile] Error 2
+/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/include/toplevel.mk:185: recipe for target 'package/shadowsocks-libev/compile' failed
+labasky@labasky-Lenovo-B590:~/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64$
+
+
+
+==========================================================================
+大師回答了SDK缺少文件
+bash: /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/host/bin/autoreconf: No such file or directory
+
+我看了一下我的
+$ which autoreconf
+
+終端機回答了
+/usr/bin/autoreconf
+
+所以我手動作連結過去
+$ ln -s /usr/bin/autoreconf /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/host/bin/autoreconf
+
+還有這個aclocal應該也少了
+$ ln -s /usr/bin/aclocal /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/host/bin/aclocal
+
+
+回SDK根目錄再試試
+$ make clean
+$ make package/shadowsocks-libev/compile V=99 | tee build.log
+
+然後又
+labasky@labasky-Lenovo-B590:~/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64$ make package/shadowsocks-libev/compile V=99 | tee build.log
+#
+# configuration written to .config
+#
+make[1]: Entering directory '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64'
+make[2]: Entering directory '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/package/shadowsocks-libev'
+CFLAGS="-Os -pipe -mno-branch-likely -mips32r2 -mtune=24kec -mdsp -fno-caller-saves -fno-plt -fhonour-copts -Wno-error=unused-but-set-variable -Wno-error=unused-result -msoft-float -iremap /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/shadowsocks-libev/openssl/shadowsocks-libev-2.5.6:shadowsocks-libev-2.5.6 -Wformat -Werror=format-security -fstack-protector -D_FORTIFY_SOURCE=1 -Wl,-z,now -Wl,-z,relro  -I/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/target-mipsel_24kec+dsp_musl-1.1.15/usr/include -I/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/target-mipsel_24kec+dsp_musl-1.1.15/include -I/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/toolchain-mipsel_24kec+dsp_gcc-5.3.0_musl-1.1.15/usr/include -I/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/toolchain-mipsel_24kec+dsp_gcc-5.3.0_musl-1.1.15/include/fortify -I/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/toolchain-mipsel_24kec+dsp_gcc-5.3.0_musl-1.1.15/include " CXXFLAGS="-Os -pipe -mno-branch-likely -mips32r2 -mtune=24kec -mdsp -fno-caller-saves -fno-plt -fhonour-copts -Wno-error=unused-but-set-variable -Wno-error=unused-result -msoft-float -iremap /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/shadowsocks-libev/openssl/shadowsocks-libev-2.5.6:shadowsocks-libev-2.5.6 -Wformat -Werror=format-security -fstack-protector -D_FORTIFY_SOURCE=1 -Wl,-z,now -Wl,-z,relro  -I/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/target-mipsel_24kec+dsp_musl-1.1.15/usr/include -I/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/target-mipsel_24kec+dsp_musl-1.1.15/include -I/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/toolchain-mipsel_24kec+dsp_gcc-5.3.0_musl-1.1.15/usr/include -I/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/toolchain-mipsel_24kec+dsp_gcc-5.3.0_musl-1.1.15/include/fortify -I/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/toolchain-mipsel_24kec+dsp_gcc-5.3.0_musl-1.1.15/include " LDFLAGS="-L/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/target-mipsel_24kec+dsp_musl-1.1.15/usr/lib -L/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/target-mipsel_24kec+dsp_musl-1.1.15/lib -L/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/toolchain-mipsel_24kec+dsp_gcc-5.3.0_musl-1.1.15/usr/lib -L/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/toolchain-mipsel_24kec+dsp_gcc-5.3.0_musl-1.1.15/lib -znow -zrelro " make   -C /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/shadowsocks-libev/openssl/shadowsocks-libev-2.5.6/. AR="mipsel-openwrt-linux-musl-gcc-ar" AS="mipsel-openwrt-linux-musl-gcc -c -Os -pipe -mno-branch-likely -mips32r2 -mtune=24kec -mdsp -fno-caller-saves -fno-plt -fhonour-copts -Wno-error=unused-but-set-variable -Wno-error=unused-result -msoft-float -iremap /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/shadowsocks-libev/openssl/shadowsocks-libev-2.5.6:shadowsocks-libev-2.5.6 -Wformat -Werror=format-security -fstack-protector -D_FORTIFY_SOURCE=1 -Wl,-z,now -Wl,-z,relro" LD=mipsel-openwrt-linux-musl-ld NM="mipsel-openwrt-linux-musl-gcc-nm" CC="mipsel-openwrt-linux-musl-gcc" GCC="mipsel-openwrt-linux-musl-gcc" CXX="mipsel-openwrt-linux-musl-g++" RANLIB="mipsel-openwrt-linux-musl-gcc-ranlib" STRIP=mipsel-openwrt-linux-musl-strip OBJCOPY=mipsel-openwrt-linux-musl-objcopy OBJDUMP=mipsel-openwrt-linux-musl-objdump SIZE=mipsel-openwrt-linux-musl-size CROSS="mipsel-openwrt-linux-musl-" ARCH="mipsel" ;
+make[3]: *** No targets specified and no makefile found.  Stop.
+make[3]: Entering directory '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/shadowsocks-libev/openssl/shadowsocks-libev-2.5.6'
+make[3]: Leaving directory '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/shadowsocks-libev/openssl/shadowsocks-libev-2.5.6'
+make[2]: *** [/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/shadowsocks-libev/openssl/shadowsocks-libev-2.5.6/.built] Error 2
+Makefile:83: recipe for target '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/shadowsocks-libev/openssl/shadowsocks-libev-2.5.6/.built' failed
+make[2]: Leaving directory '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/package/shadowsocks-libev'
+make[1]: *** [package/shadowsocks-libev/compile] Error 2
+package/Makefile:196: recipe for target 'package/shadowsocks-libev/compile' failed
+make[1]: Leaving directory '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64'
+/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/include/toplevel.mk:185: recipe for target 'package/shadowsocks-libev/compile' failed
+make: *** [package/shadowsocks-libev/compile] Error 2
+
+
+看了一下SDK根目錄下的/package/shadowsocks-libev子目錄裡的README.md
+居然有這三行（我沒執行到)
+# 如果是 musl 函数库的 SDK (LEDE), 需要额外添加的 feeds
+   ./scripts/feeds update base
+   ./scripts/feeds install libc zlib libopenssl libpolarssl libmbedtls
+   rm -rf package/feeds/base/mbedtls/patches
+

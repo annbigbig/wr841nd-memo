@@ -1,0 +1,293 @@
+
+需要的套件
+pptpd
+kmod-mppe
+ppp
+
+
+修改 /etc/ppp/options.pptpd
+把這兩行前面的#拿掉
+debug
+logfile /tmp/pptp-server.log
+
+
+修改 /etc/pptpd.conf
+把這行前面的#拿掉
+debug
+
+
+設定檔/etc/config/pptpd
+
+config service 'pptpd'
+	option 'enabled' '1'
+	option 'localip' '10.17.32.1'
+
+config 'login'
+	option 'username' 'kenny'
+	option 'password' 'kennypassword'
+	option 'remoteip' '10.17.32.23'
+
+config 'login'
+	option 'username' 'lucci'
+	option 'password' 'luccipassword'
+	option 'remoteip' '10.17.32.25'
+
+加一個靜態路由到/etc/config/network
+
+config route                                   
+        option interface 'lan'
+        option target '10.17.32.0'
+        option netmask '255.255.255.0'
+        option gateway '10.17.32.1'
+
+
+防火牆設定 /etc/config/firewall 加入下面兩個區塊
+
+config rule                                     
+        option name 'Allow-PPTP'                
+        option src 'wan'                        
+        option proto 'tcp'                      
+        option dest_port '1723'                 
+        option target 'ACCEPT'                  
+                                                
+                                                
+config rule                                     
+        option name 'Allow-GRE'                 
+        option src 'wan'                        
+        option proto '47'                       
+        option target 'ACCEPT' 
+
+防火牆設定 /etc/firewall.user 加入下面這個區塊 
+# Allow all traffic in and out of the ppp interface. No reason to specify nets.
+iptables -A input_rule -i ppp+ -j ACCEPT
+iptables -A output_rule -o ppp+ -j ACCEPT
+# This rule will allow traffic towards internet
+iptables -A forwarding_rule -i ppp+ -j ACCEPT
+iptables -A forwarding_rule -o ppp+ -j ACCEPT
+
+
+可能要作這些動作
+在/etc/config/network 加入這個區塊
+config interface 'vpn2'       
+        option proto 'none'   
+        option auto '1'       
+        option ifname 'ppp0' 
+
+修改 /etc/config/firewall
+把剛才的vpn2加入vpn zone
+config zone                  
+        option name 'vpn'    
+        option input 'ACCEPT'             
+        option forward 'REJECT'
+        option output 'ACCEPT' 
+        option network 'vpn0 vpn1 vpn2'  
+
+
+啟動服務，並重啟網路和重新載入防火牆
+# /etc/init.d/pptpd enable
+# /etc/init.d/pptpd start
+# /etc/init.d/network restart
+# /etc/init.d/firewall reload
+
+
+可是不能連
+這是client端的/var/log/syslog摘錄
+Dec 14 03:25:58 labasky-Lenovo-B590 nm-pptp-service[24031]: pppd started with pid 24041
+Dec 14 03:25:58 labasky-Lenovo-B590 NetworkManager[738]: <info>  [1481657158.9586] vpn-connection[0x55c3366b11f0,da668481-63d7-4cd8-a123-1b0ec197923e,"VPN_PPTP",0]: VPN plugin: state changed: starting (3)
+Dec 14 03:25:58 labasky-Lenovo-B590 pppd[24041]: Plugin /usr/lib/pppd/2.4.7/nm-pptp-pppd-plugin.so loaded.
+Dec 14 03:25:58 labasky-Lenovo-B590 NetworkManager[738]: Plugin /usr/lib/pppd/2.4.7/nm-pptp-pppd-plugin.so loaded.
+Dec 14 03:25:58 labasky-Lenovo-B590 pppd[24041]: nm-pptp-ppp-plugin: (plugin_init): initializing
+Dec 14 03:25:58 labasky-Lenovo-B590 pppd[24041]: pppd 2.4.7 started by root, uid 0
+Dec 14 03:25:58 labasky-Lenovo-B590 pppd[24041]: nm-pptp-ppp-plugin: (nm_phasechange): status 3 / phase 'serial connection'
+Dec 14 03:25:58 labasky-Lenovo-B590 pppd[24041]: Using interface ppp0
+Dec 14 03:25:58 labasky-Lenovo-B590 pppd[24041]: nm-pptp-ppp-plugin: (nm_phasechange): status 5 / phase 'establish'
+Dec 14 03:25:58 labasky-Lenovo-B590 NetworkManager[738]: Using interface ppp0
+Dec 14 03:25:58 labasky-Lenovo-B590 NetworkManager[738]: Connect: ppp0 <--> /dev/pts/1
+Dec 14 03:25:58 labasky-Lenovo-B590 pppd[24041]: Connect: ppp0 <--> /dev/pts/1
+Dec 14 03:25:58 labasky-Lenovo-B590 NetworkManager[738]: nm_device_get_device_type: assertion 'NM_IS_DEVICE (self)' failed
+Dec 14 03:25:58 labasky-Lenovo-B590 NetworkManager[738]: <info>  [1481657158.9781] manager: (ppp0): new Generic device (/org/freedesktop/NetworkManager/Devices/3)
+Dec 14 03:25:58 labasky-Lenovo-B590 pptp[24045]: nm-pptp-service-24031 log[main:pptp.c:350]: The synchronous pptp option is NOT activated
+Dec 14 03:25:58 labasky-Lenovo-B590 NetworkManager[738]: <info>  [1481657158.9934] devices added (path: /sys/devices/virtual/net/ppp0, iface: ppp0)
+Dec 14 03:25:58 labasky-Lenovo-B590 NetworkManager[738]: <info>  [1481657158.9934] device added (path: /sys/devices/virtual/net/ppp0, iface: ppp0): no ifupdown configuration found.
+Dec 14 03:25:59 labasky-Lenovo-B590 pptp[24060]: nm-pptp-service-24031 log[ctrlp_rep:pptp_ctrl.c:259]: Sent control packet type is 1 'Start-Control-Connection-Request'
+Dec 14 03:25:59 labasky-Lenovo-B590 pptp[24060]: nm-pptp-service-24031 log[ctrlp_disp:pptp_ctrl.c:781]: Received Start Control Connection Reply
+Dec 14 03:25:59 labasky-Lenovo-B590 pptp[24060]: nm-pptp-service-24031 log[ctrlp_disp:pptp_ctrl.c:815]: Client connection established.
+Dec 14 03:26:00 labasky-Lenovo-B590 pptp[24060]: nm-pptp-service-24031 log[ctrlp_rep:pptp_ctrl.c:259]: Sent control packet type is 7 'Outgoing-Call-Request'
+Dec 14 03:26:00 labasky-Lenovo-B590 pptp[24060]: nm-pptp-service-24031 log[ctrlp_disp:pptp_ctrl.c:900]: Received Outgoing Call Reply.
+Dec 14 03:26:00 labasky-Lenovo-B590 pptp[24060]: nm-pptp-service-24031 log[ctrlp_disp:pptp_ctrl.c:939]: Outgoing call established (call ID 15974, peer's call ID 0).
+Dec 14 03:26:30 labasky-Lenovo-B590 pppd[24041]: LCP: timeout sending Config-Requests
+Dec 14 03:26:30 labasky-Lenovo-B590 NetworkManager[738]: LCP: timeout sending Config-Requests
+Dec 14 03:26:30 labasky-Lenovo-B590 NetworkManager[738]: Connection terminated.
+Dec 14 03:26:30 labasky-Lenovo-B590 pppd[24041]: nm-pptp-ppp-plugin: (nm_phasechange): status 11 / phase 'disconnect'
+Dec 14 03:26:30 labasky-Lenovo-B590 pppd[24041]: Connection terminated.
+
+
+
+找到這篇
+https://ubuntuforums.org/showthread.php?t=2305819
+
+解決方法是在/etc/modules-load.d目錄下
+新增一個netfilter.conf檔案
+內容只有三行
+nf_nat_pptp
+nf_conntrack_pptp
+nf_conntrack_proto_gre
+
+然後重新開機，再試連一次，但還是不行
+client端的/var/log/syslog
+Dec 14 03:41:28 labasky-Lenovo-B590 NetworkManager[715]: <error> [1481658088.0983] platform-linux: do-change-link[4]: failure changing link: failure 19 (沒有此一裝置)
+Dec 14 03:41:28 labasky-Lenovo-B590 NetworkManager[715]: <warn>  [1481658088.0990] device (ppp0): failed to disable userspace IPv6LL address handling
+Dec 14 03:41:28 labasky-Lenovo-B590 NetworkManager[715]: <info>  [1481658088.0999] vpn-connection[0x55cf626eb210,da668481-63d7-4cd8-a123-1b0ec197923e,"VPN_PPTP",0]: VPN service disappeared
+Dec 14 03:41:28 labasky-Lenovo-B590 NetworkManager[715]: <info>  [1481658088.1041] devices removed (path: /sys/devices/virtual/net/ppp0, iface: ppp0)
+Dec 14 03:41:28 labasky-Lenovo-B590 pppd[2964]: nm-pptp-ppp-plugin: (nm_phasechange): status 1 / phase 'dead'
+Dec 14 03:41:28 labasky-Lenovo-B590 NetworkManager[715]: Terminating on signal 15
+Dec 14 03:41:28 labasky-Lenovo-B590 NetworkManager[715]: Modem hangup
+Dec 14 03:41:28 labasky-Lenovo-B590 pppd[2964]: Terminating on signal 15
+Dec 14 03:41:28 labasky-Lenovo-B590 pppd[2964]: Modem hangup
+Dec 14 03:41:28 labasky-Lenovo-B590 pppd[2964]: Child process /usr/sbin/pptp 192.168.0.10 --nolaunchpppd --loglevel 0 --logstring nm-pptp-service-2957 (pid 2967) terminated with signal 15
+Dec 14 03:41:28 labasky-Lenovo-B590 pppd[2964]: nm-pptp-ppp-plugin: (nm_exit_notify): cleaning up
+Dec 14 03:41:28 labasky-Lenovo-B590 NetworkManager[715]: Child process /usr/sbin/pptp 192.168.0.10 --nolaunchpppd --loglevel 0 --logstring nm-pptp-service-2957 (pid 2967) terminated with signal 15
+Dec 14 03:41:28 labasky-Lenovo-B590 pppd[2964]: Exit.
+Dec 14 03:41:28 labasky-Lenovo-B590 pptp[2969]: nm-pptp-service-2957 warn[decaps_hdlc:pptp_gre.c:220]: short read (-1): Input/output error
+
+
+又找到了這篇，大意是Network Manager裡面PPTP連線，有一個「進階(V)...」的按鈕，請把
+「使用點對對加密 (MPPE)」給打勾
+https://support.ivacy.com/kb/how-to-setup-ivacy-pptp-protocol-manually-on-ubuntu/
+
+
+也是沒用
+使用關鍵字nm_device_get_device_type: assertion 'NM_IS_DEVICE (self)' failed
+找到了
+https://bugs.launchpad.net/network-manager/+bug/1568560
+這是bug嗎？
+
+
+不要用Network Manager了，找個command line tool來連
+
+搜尋關鍵字
+ubuntu 16.04 pptp client command line
+
+參考資料
+https://help.ubuntu.com/community/VPNClient#PPTP
+https://torguard.net/knowledgebase.php?action=displayarticle&id=154
+http://sw360cab.blogspot.tw/2013/02/connect-to-pptp-vpn-from-ubuntu-server.html#.WFEPDXV9600
+http://askubuntu.com/questions/269399/failed-to-connect-to-pptp-vpn-server-on-ubuntu
+https://datahunter.org/openwrt_pptp
+
+安裝套件
+# apt-get install ppp pptp-linux
+
+編輯/etc/ppp/chap-secrets
+# Secrets for authentication using CHAP
+# client        server  secret                  IP addresses
+kenny   PPTP    kennypassword   *
+
+修改 /etc/ppp/options，把
+silent
+前面的#拿掉
+
+產生一個空白的 /etc/ppp/peers/my_pptp
+# touch /etc/ppp/peers/my_pptp
+
+編輯 /etc/ppp/peers/my_pptp
+內容如下
+pty "pptp 192.168.0.11 --nolaunchpppd"
+name kenny
+remotename PPTP
+require-mppe-128
+file /etc/ppp/options.pptp
+ipparam my_pptp
+usepeerdns
+defaultroute
+persist
+
+產生一個空白的/etc/ppp/ip-up.local檔案，並為它加上執行權限
+這個檔案的功能，是置換掉default route，讓流量從ppp0接口出去
+# touch /etc/ppp/ip-up.local
+# chmod +x /etc/ppp/ip-up.local
+
+編輯 /etc/ppp/ip-up.local
+內容如下
+#!/bin/bash
+H=`ps aux | grep 'pppd pty' | grep -v grep | awk '{print $14}'`
+DG=`route -n | grep UG | awk '{print $2}'`
+DEV=`route -n | grep UG | awk '{print $8}'`
+route add -host $H gw $DG dev $DEV
+route del default $DEV
+route add default dev ppp0
+
+
+連線前請先撤掉防火牆 (我寫在 /etc/network/if-up/firewall 裡的那些規則全清空)
+# iptables -t filter -P INPUT ACCEPT
+# iptables -t filter -F
+# iptables -t filter -L -n
+
+如果不要全撤掉防火牆，請修改/etc/network/if-up/firewall
+加入這一行規則 (假設pptp server的IP地址是192.168.0.11）
+$iptables -t filter -A INPUT -s 192.168.0.11 -p all -j ACCEPT
+
+
+vpn連線
+# pon my_pptp debug dump logfd 2 nodetach
+
+vpn斷線
+# poff my_pptp
+
+
+補充（目前我是這樣接）
+                      (ADSL modem)
+                           |
+                (房東太太的不知什麼牌路由器)
+                   |                 |
+            192.168.0.10          192.168.0.11
+         (OpenWRT router1)     (OpenWRT router2)
+            10.1.1.0/24            10.2.2.0/24
+                   |
+              (我的筆電)
+
+pptp pass through的官方資料
+https://wiki.openwrt.org/doc/howto/vpn.nat.pptp
+(如果要讓路由器有pptp pass through的功能，請確定產生的image裡有安裝kmod-ipt-nathelper-extra套件）
+注意：已經更名為kmod-nf-nathelper-extra套件
+
+要安裝它，有其他的依賴，請注意
+root@OpenWrt:~# opkg update
+Downloading http://downloads.openwrt.org/snapshots/trunk/ramips/mt7620/packages/base/Packages.gz.
+Updated list of available packages in /var/opkg-lists/designated_driver_base.
+Downloading http://downloads.openwrt.org/snapshots/trunk/ramips/mt7620/packages/base/Packages.sig.
+Signature check passed.
+Downloading http://downloads.openwrt.org/snapshots/trunk/ramips/mt7620/packages/kernel/Packages.gz.
+Updated list of available packages in /var/opkg-lists/designated_driver_kernel.
+Downloading http://downloads.openwrt.org/snapshots/trunk/ramips/mt7620/packages/kernel/Packages.sig.
+Signature check passed.
+Downloading http://downloads.openwrt.org/snapshots/trunk/ramips/mt7620/packages/telephony/Packages.gz.
+Updated list of available packages in /var/opkg-lists/designated_driver_telephony.
+Downloading http://downloads.openwrt.org/snapshots/trunk/ramips/mt7620/packages/telephony/Packages.sig.
+Signature check passed.
+Downloading http://downloads.openwrt.org/snapshots/trunk/ramips/mt7620/packages/packages/Packages.gz.
+Updated list of available packages in /var/opkg-lists/designated_driver_packages.
+Downloading http://downloads.openwrt.org/snapshots/trunk/ramips/mt7620/packages/packages/Packages.sig.
+Signature check passed.
+Downloading http://downloads.openwrt.org/snapshots/trunk/ramips/mt7620/packages/routing/Packages.gz.
+Updated list of available packages in /var/opkg-lists/designated_driver_routing.
+Downloading http://downloads.openwrt.org/snapshots/trunk/ramips/mt7620/packages/routing/Packages.sig.
+Signature check passed.
+Downloading http://downloads.openwrt.org/snapshots/trunk/ramips/mt7620/packages/luci/Packages.gz.
+Updated list of available packages in /var/opkg-lists/designated_driver_luci.
+Downloading http://downloads.openwrt.org/snapshots/trunk/ramips/mt7620/packages/luci/Packages.sig.
+Signature check passed.
+Downloading http://downloads.openwrt.org/snapshots/trunk/ramips/mt7620/packages/management/Packages.gz.
+Updated list of available packages in /var/opkg-lists/designated_driver_management.
+Downloading http://downloads.openwrt.org/snapshots/trunk/ramips/mt7620/packages/management/Packages.sig.
+Signature check passed.
+root@OpenWrt:~# opkg install kmod-nf-nathelper-extra
+Installing kmod-nf-nathelper-extra (4.4.14-1) to root...
+Downloading http://downloads.openwrt.org/snapshots/trunk/ramips/mt7620/packages/kernel/kmod-nf-nathelper-extra_4.4.14-1_ramips.ipk.
+Installing kmod-lib-textsearch (4.4.14-1) to root...
+Downloading http://downloads.openwrt.org/snapshots/trunk/ramips/mt7620/packages/kernel/kmod-lib-textsearch_4.4.14-1_ramips.ipk.
+Configuring kmod-lib-textsearch.
+Configuring kmod-nf-nathelper-extra.
+root@OpenWrt:~# 
+
+

@@ -1,0 +1,216 @@
+概述：
+因為chinadns還有ss-server這兩個ipk沒有在
+https://downloads.openwrt.org/snapshots/trunk/ramips/
+這個目錄下的任何子目錄裡存在
+
+在這個連結
+http://blog.lihanming.me/2015-07-18-Compile-a-OpenWRT-Router-with-Shadowsocks-using-Image-Builder.html
+
+曾經看到板主自已編譯好了packages的ipk檔案
+然後把它丟到Image Builder下的packages子目錄
+
+
+先編譯chinadns試試
+我的Lenovo y1s是mt7620要選ramips平台
+
+這兩行是一次性的，安裝需要的dependencies，執行一次就夠，日後再編譯不需執行
+$ sudo apt-get update
+$ sudo apt-get install build-essential subversion libncurses5-dev zlib1g-dev gawk gcc-multilib flex git-core gettext libssl-dev
+
+$ cd ~
+$ mkdir temp
+$ cd temp
+$ wget https://downloads.openwrt.org/snapshots/trunk/ramips/mt7620/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64.tar.bz2
+$ tar xjf ./OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64.tar.bz2
+$ cd OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/
+$ git clone https://github.com/aa65535/openwrt-chinadns.git package/chinadns
+$ ./scripts/feeds update -a
+$ ./scripts/feeds install -a
+$ make distclean
+$ make defconfig
+（終端機畫面放到最大）
+$ make menuconfig
+$ make package/chinadns/compile V=99
+
+
+
+
+可是出現了這個該死的錯誤訊息
+labasky@labasky-Lenovo-B590:~/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64$ make menuconfig
+make -s -C scripts/config all CC=cc: build failed. Please re-run make with -j1 V=s to see what's going on
+/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/include/toplevel.mk:100: recipe for target 'scripts/config/mconf' failed
+make: *** [scripts/config/mconf] Error 1
+labasky@labasky-Lenovo-B590:~/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64$ 
+
+沒啥頭緒只好照它講的作
+$ make -j1 V=s
+
+出現了這樣的錯誤
+Package ChinaDNS is missing dependencies for the following libraries:
+libc.so
+libgcc_s.so.1
+Makefile:58: recipe for target '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/bin/ramips/packages/base/ChinaDNS_1.3.2-4_ramips.ipk' failed
+make[3]: *** [/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/bin/ramips/packages/base/ChinaDNS_1.3.2-4_ramips.ipk] Error 1
+make[3]: Leaving directory '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/package/chinadns'
+package/Makefile:196: recipe for target 'package/chinadns/compile' failed
+make[2]: *** [package/chinadns/compile] Error 2
+make[2]: Leaving directory '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64'
+package/Makefile:193: recipe for target '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/target-mipsel_24kec+dsp_musl-1.1.15/stamp/.package_compile' failed
+make[1]: *** [/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/target-mipsel_24kec+dsp_musl-1.1.15/stamp/.package_compile] Error 2
+make[1]: Leaving directory '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64'
+/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/include/toplevel.mk:185: recipe for target 'world' failed
+make: *** [world] Error 2
+
+
+原因會是
+Package ChinaDNS is missing dependencies for the following libraries:
+libc.so
+libgcc_s.so.1
+這個嗎？
+
+
+猜猜看，是不是少裝了這個
+$ sudo apt-get install libc6-dbg-mipsel-cross
+$ sudo apt-get install libc6-dev-mipsel-cross
+(不是你猜錯了)
+
+昇級看看這個
+# apt-get --only-upgrade install libc-bin
+（也沒屁用）
+
+# ln -s /lib/x86_64-linux-gnu/libc.so.6 /lib64/libc.so.6
+(沒屁用）
+
+又找到
+https://forum.creatordev.io/t/unable-to-build-hello-world/115/5
+
+叫你執行
+./scripts/feeds update base
+./scripts/feeds install -a
+make package/toolchain/compile
+
+上面的第三行還沒執行，跳了
+Makefile:1783: recipe for target '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/linux-ramips_mt7620/compat-wireless-2016-01-10/.configured_yynyyyyyyyyyyynyyyyyyyyyyyyyyyyyynyyyyyyyyyyyyyyyyyyyyyyyyynnnyyynynnyyyyynnnnyyyy' failed
+make[3]: *** [/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/linux-ramips_mt7620/compat-wireless-2016-01-10/.configured_yynyyyyyyyyyyynyyyyyyyyyyyyyyyyyynyyyyyyyyyyyyyyyyyyyyyyyyynnnyyynynnyyyyynnnnyyyy] Error 1
+make[3]: Leaving directory '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/feeds/base/package/kernel/mac80211'
+package/Makefile:196: recipe for target 'package/feeds/base/mac80211/compile' failed
+make[2]: *** [package/feeds/base/mac80211/compile] Error 2
+make[2]: Leaving directory '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64'
+package/Makefile:193: recipe for target '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/target-mipsel_24kec+dsp_musl-1.1.15/stamp/.package_compile' failed
+make[1]: *** [/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/target-mipsel_24kec+dsp_musl-1.1.15/stamp/.package_compile] Error 2
+make[1]: Leaving directory '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64'
+/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/include/toplevel.mk:185: recipe for target 'world' failed
+make: *** [world] Error 2
+
+又找到
+https://forum.openwrt.org/viewtopic.php?id=65311
+than try make dirclean ; make defconfig ; make V=s -j1
+
+但是我是跑
+$ make distclean
+$ make defconfig
+$ make menuconfig
+
+
+執行make package/chinadns/compile V=99又報錯
+make[3]: Entering directory '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/ChinaDNS/ChinaDNS-1.3.2'
+make[3]: *** No targets specified and no makefile found.  Stop.
+make[3]: Leaving directory '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/ChinaDNS/ChinaDNS-1.3.2'
+Makefile:58: recipe for target '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/ChinaDNS/ChinaDNS-1.3.2/.built' failed
+make[2]: *** [/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/ChinaDNS/ChinaDNS-1.3.2/.built] Error 2
+make[2]: Leaving directory '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/package/chinadns'
+package/Makefile:196: recipe for target 'package/chinadns/compile' failed
+make[1]: *** [package/chinadns/compile] Error 2
+make[1]: Leaving directory '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64'
+/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/include/toplevel.mk:185: recipe for target 'package/chinadns/compile' failed
+make: *** [package/chinadns/compile] Error 2
+
+
+看起來是找不到Makefile，所以我
+labasky@labasky-Lenovo-B590:~/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/package/chinadns$ cp ./Makefile ../../../OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/ChinaDNS/ChinaDNS-1.3.2/
+
+然後又
+make[3]: Entering directory '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/ChinaDNS/ChinaDNS-1.3.2'
+Makefile:58: *** DESCRIPTION:= is obsolete, use Package/PKG_NAME/description.  Stop.
+make[3]: Leaving directory '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/ChinaDNS/ChinaDNS-1.3.2'
+Makefile:58: recipe for target '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/ChinaDNS/ChinaDNS-1.3.2/.built' failed
+make[2]: *** [/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/ChinaDNS/ChinaDNS-1.3.2/.built] Error 2
+make[2]: Leaving directory '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/package/chinadns'
+package/Makefile:196: recipe for target 'package/chinadns/compile' failed
+make[1]: *** [package/chinadns/compile] Error 2
+make[1]: Leaving directory '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64'
+/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/include/toplevel.mk:185: recipe for target 'package/chinadns/compile' failed
+make: *** [package/chinadns/compile] Error 2
+
+
+注意上面的
+Makefile:58: *** DESCRIPTION:= is obsolete, use Package/PKG_NAME/description.  Stop.
+
+
+這是因為
+OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/include/package.mk 
+
+有這個區塊
+ifdef DESCRIPTION
+$$(error DESCRIPTION:= is obsolete, use Package/PKG_NAME/description)
+endif
+
+這三行前面加上#注解掉再編譯試試
+沒用，出現
+
+shell-init: error retrieving current directory: getcwd: cannot access parent directories: No such file or directory
+make: getcwd: No such file or directory
+make[4]: Entering directory '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/ChinaDNS/ChinaDNS-1.3.2'
+make[4]: *** No targets specified and no makefile found.  Stop.
+make[4]: Leaving directory '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/ChinaDNS/ChinaDNS-1.3.2'
+Makefile:58: recipe for target '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/ChinaDNS/ChinaDNS-1.3.2/.built' failed
+make[3]: *** [/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/ChinaDNS/ChinaDNS-1.3.2/.built] Error 2
+make[3]: Leaving directory '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/ChinaDNS/ChinaDNS-1.3.2'
+Makefile:58: recipe for target '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/ChinaDNS/ChinaDNS-1.3.2/.built' failed
+make[2]: *** [/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/ChinaDNS/ChinaDNS-1.3.2/.built] Error 2
+make[2]: Leaving directory '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/package/chinadns'
+package/Makefile:196: recipe for target 'package/chinadns/compile' failed
+make[1]: *** [package/chinadns/compile] Error 2
+make[1]: Leaving directory '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64'
+/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/include/toplevel.mk:185: recipe for target 'package/chinadns/compile' failed
+make: *** [package/chinadns/compile] Error 2
+
+找到這篇
+http://askubuntu.com/questions/103348/error-when-installing-makefile-make-no-targets-specified-and-no-makefile
+
+說
+That happens because there is no file named Makefile in that directory. To create that Makefile, you need to execute
+
+$ ./configure
+
+再試我幹
+沒用
+
+把這個chinadns的github clone下來的代碼刪了
+換成tar.gz版的試試
+
+
+$ cd temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/package/
+$ rm -rf ./chinadns/
+$ cd /tmp
+$ wget https://github.com/shadowsocks/ChinaDNS/releases/download/1.3.2/chinadns-1.3.2.tar.gz
+$ tar zxvf ./chinadns-1.3.2.tar.gz
+$ mv ./chinadns-1.3.2 ~/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/package/
+
+
+這裡又寫著其他的安裝方法？？？
+https://github.com/shadowsocks/ChinaDNS
+
+OpenWRT
+
+Download precompiled for OpenWRT trunk and CPU: ar71xx, brcm63xx, brcm47xx, ramips_24kec. Open an issue if you think your CPU is a popular one but not listed here.
+If you use other CPU or other OpenWRT versions, build yourself: cd into SDK root, then
+
+  pushd package
+  git clone https://github.com/clowwindy/ChinaDNS.git
+  popd
+  make menuconfig # select Network/ChinaDNS
+  make -j
+  make V=99 package/ChinaDNS/openwrt/compile
+
+

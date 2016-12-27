@@ -1,0 +1,128 @@
+線索config.log裡的
+./configure: line 3078: mipsel-openwrt-linux-musl-gcc: command not found
+
+configure:3178: error: C compiler cannot create executables
+
+
+下載的SDK，解壓縮之後，根目錄下面沒有toolchain是原因嗎？
+http://forum.ixbt.com/topic.cgi?id=14:63027-61
+
+make toolchain/clean
+make V=99
+
+
+你是不是應該下載toolchain
+然後把toolchain/bin這個路徑加到PATH環境變數裡？？？
+https://wiki.openwrt.org/doc/devel/crosscompile
+
+
+重來一次
+$ cd ~/temp
+$ wget https://downloads.openwrt.org/snapshots/trunk/ramips/mt7620/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64.tar.bz2
+$ wget https://downloads.openwrt.org/snapshots/trunk/ramips/mt7620/OpenWrt-Toolchain-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64.tar.bz2
+$ tar jxf ./OpenWrt-SDK-*.tar.bz2
+$ tar jxf ./OpenWrt-Toolchain-*.tar.bz2
+$ cd OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/
+$ ./scripts/feeds update base
+$ ./scripts/feeds install -a
+$ pushd package
+$ git clone https://github.com/clowwindy/ChinaDNS.git
+$ popd
+$ make distclean
+$ PATH=~/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/host/bin:$PATH  
+$ PATH=~/temp/OpenWrt-Toolchain-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/toolchain-mipsel_24kec+dsp_gcc-5.3.0_musl-1.1.15/bin:$PATH
+$ echo $PATH
+$ make menuconfig
+$ cd package/ChinaDNS/
+$ ./autogen.sh
+$ cd ../..
+$ make distclean
+$ make menuconfig
+$ make -j
+
+#
+# configuration written to .config
+#
+ make[1] world
+ make[2] package/compile
+ make[3] -C package/ChinaDNS/openwrt compile
+make -r world: build failed. Please re-run make with -j1 V=s to see what's going on
+/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/include/toplevel.mk:185: recipe for target 'world' failed
+make: *** [world] Error 1
+
+$ make -j1 V=s
+
+#
+# configuration written to .config
+#
+make[1]: Entering directory '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64'
+make[2]: Entering directory '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64'
+make[3]: Entering directory '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/package/ChinaDNS/openwrt'
+CFLAGS="-Os -pipe -mno-branch-likely -mips32r2 -mtune=24kec -mdsp -fno-caller-saves -fno-plt -fhonour-copts -Wno-error=unused-but-set-variable -Wno-error=unused-result -msoft-float -iremap /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/ChinaDNS-/chinadns-1.3.2:chinadns-1.3.2 -Wformat -Werror=format-security -fstack-protector -D_FORTIFY_SOURCE=1 -Wl,-z,now -Wl,-z,relro  -I/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/target-mipsel_24kec+dsp_musl-1.1.15/usr/include -I/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/target-mipsel_24kec+dsp_musl-1.1.15/include -I/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/toolchain-mipsel_24kec+dsp_gcc-5.3.0_musl-1.1.15/usr/include -I/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/toolchain-mipsel_24kec+dsp_gcc-5.3.0_musl-1.1.15/include/fortify -I/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/toolchain-mipsel_24kec+dsp_gcc-5.3.0_musl-1.1.15/include " CXXFLAGS="-Os -pipe -mno-branch-likely -mips32r2 -mtune=24kec -mdsp -fno-caller-saves -fno-plt -fhonour-copts -Wno-error=unused-but-set-variable -Wno-error=unused-result -msoft-float -iremap /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/ChinaDNS-/chinadns-1.3.2:chinadns-1.3.2 -Wformat -Werror=format-security -fstack-protector -D_FORTIFY_SOURCE=1 -Wl,-z,now -Wl,-z,relro  -I/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/target-mipsel_24kec+dsp_musl-1.1.15/usr/include -I/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/target-mipsel_24kec+dsp_musl-1.1.15/include -I/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/toolchain-mipsel_24kec+dsp_gcc-5.3.0_musl-1.1.15/usr/include -I/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/toolchain-mipsel_24kec+dsp_gcc-5.3.0_musl-1.1.15/include/fortify -I/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/toolchain-mipsel_24kec+dsp_gcc-5.3.0_musl-1.1.15/include " LDFLAGS="-L/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/target-mipsel_24kec+dsp_musl-1.1.15/usr/lib -L/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/target-mipsel_24kec+dsp_musl-1.1.15/lib -L/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/toolchain-mipsel_24kec+dsp_gcc-5.3.0_musl-1.1.15/usr/lib -L/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/toolchain-mipsel_24kec+dsp_gcc-5.3.0_musl-1.1.15/lib -znow -zrelro " make   -C /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/ChinaDNS-/chinadns-1.3.2/. AR="mipsel-openwrt-linux-musl-gcc-ar" AS="mipsel-openwrt-linux-musl-gcc -c -Os -pipe -mno-branch-likely -mips32r2 -mtune=24kec -mdsp -fno-caller-saves -fno-plt -fhonour-copts -Wno-error=unused-but-set-variable -Wno-error=unused-result -msoft-float -iremap /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/ChinaDNS-/chinadns-1.3.2:chinadns-1.3.2 -Wformat -Werror=format-security -fstack-protector -D_FORTIFY_SOURCE=1 -Wl,-z,now -Wl,-z,relro" LD=mipsel-openwrt-linux-musl-ld NM="mipsel-openwrt-linux-musl-gcc-nm" CC="mipsel-openwrt-linux-musl-gcc" GCC="mipsel-openwrt-linux-musl-gcc" CXX="mipsel-openwrt-linux-musl-g++" RANLIB="mipsel-openwrt-linux-musl-gcc-ranlib" STRIP=mipsel-openwrt-linux-musl-strip OBJCOPY=mipsel-openwrt-linux-musl-objcopy OBJDUMP=mipsel-openwrt-linux-musl-objdump SIZE=mipsel-openwrt-linux-musl-size CROSS="mipsel-openwrt-linux-musl-" ARCH="mipsel" ;
+make[4]: Entering directory '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/ChinaDNS-/chinadns-1.3.2'
+CDPATH="${ZSH_VERSION+.}:" && cd . && /bin/bash /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/ChinaDNS-/chinadns-1.3.2/missing --run autoconf
+autom4te: need GNU m4 1.4 or later: /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/host/bin/m4
+Makefile:280: recipe for target 'configure' failed
+make[4]: *** [configure] Error 1
+make[4]: Leaving directory '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/ChinaDNS-/chinadns-1.3.2'
+Makefile:49: recipe for target '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/ChinaDNS-/chinadns-1.3.2/.built' failed
+make[3]: *** [/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/ChinaDNS-/chinadns-1.3.2/.built] Error 2
+make[3]: Leaving directory '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/package/ChinaDNS/openwrt'
+package/Makefile:196: recipe for target 'package/ChinaDNS/openwrt/compile' failed
+make[2]: *** [package/ChinaDNS/openwrt/compile] Error 2
+make[2]: Leaving directory '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64'
+package/Makefile:193: recipe for target '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/target-mipsel_24kec+dsp_musl-1.1.15/stamp/.package_compile' failed
+make[1]: *** [/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/target-mipsel_24kec+dsp_musl-1.1.15/stamp/.package_compile] Error 2
+make[1]: Leaving directory '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64'
+/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/include/toplevel.mk:185: recipe for target 'world' failed
+make: *** [world] Error 2
+labasky@labasky-Lenovo-B590:~/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64$
+
+這一行是？
+autom4te: need GNU m4 1.4 or later: /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/host/bin/m4
+在這個目錄下沒有發現有 m4 執行檔的存在
+
+執行
+$ which m4
+
+回答了
+/usr/bin/m4
+
+手動連結
+$ ln -s /usr/bin/m4 /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/host/bin/m4
+
+
+$ make clean
+$ make -j
+$ make -j1 V=s
+
+#
+# configuration written to .config
+#
+make[1]: Entering directory '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64'
+make[2]: Entering directory '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64'
+make[3]: Entering directory '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/package/ChinaDNS/openwrt'
+CFLAGS="-Os -pipe -mno-branch-likely -mips32r2 -mtune=24kec -mdsp -fno-caller-saves -fno-plt -fhonour-copts -Wno-error=unused-but-set-variable -Wno-error=unused-result -msoft-float -iremap /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/ChinaDNS-/chinadns-1.3.2:chinadns-1.3.2 -Wformat -Werror=format-security -fstack-protector -D_FORTIFY_SOURCE=1 -Wl,-z,now -Wl,-z,relro  -I/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/target-mipsel_24kec+dsp_musl-1.1.15/usr/include -I/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/target-mipsel_24kec+dsp_musl-1.1.15/include -I/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/toolchain-mipsel_24kec+dsp_gcc-5.3.0_musl-1.1.15/usr/include -I/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/toolchain-mipsel_24kec+dsp_gcc-5.3.0_musl-1.1.15/include/fortify -I/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/toolchain-mipsel_24kec+dsp_gcc-5.3.0_musl-1.1.15/include " CXXFLAGS="-Os -pipe -mno-branch-likely -mips32r2 -mtune=24kec -mdsp -fno-caller-saves -fno-plt -fhonour-copts -Wno-error=unused-but-set-variable -Wno-error=unused-result -msoft-float -iremap /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/ChinaDNS-/chinadns-1.3.2:chinadns-1.3.2 -Wformat -Werror=format-security -fstack-protector -D_FORTIFY_SOURCE=1 -Wl,-z,now -Wl,-z,relro  -I/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/target-mipsel_24kec+dsp_musl-1.1.15/usr/include -I/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/target-mipsel_24kec+dsp_musl-1.1.15/include -I/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/toolchain-mipsel_24kec+dsp_gcc-5.3.0_musl-1.1.15/usr/include -I/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/toolchain-mipsel_24kec+dsp_gcc-5.3.0_musl-1.1.15/include/fortify -I/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/toolchain-mipsel_24kec+dsp_gcc-5.3.0_musl-1.1.15/include " LDFLAGS="-L/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/target-mipsel_24kec+dsp_musl-1.1.15/usr/lib -L/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/target-mipsel_24kec+dsp_musl-1.1.15/lib -L/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/toolchain-mipsel_24kec+dsp_gcc-5.3.0_musl-1.1.15/usr/lib -L/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/toolchain-mipsel_24kec+dsp_gcc-5.3.0_musl-1.1.15/lib -znow -zrelro " make   -C /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/ChinaDNS-/chinadns-1.3.2/. AR="mipsel-openwrt-linux-musl-gcc-ar" AS="mipsel-openwrt-linux-musl-gcc -c -Os -pipe -mno-branch-likely -mips32r2 -mtune=24kec -mdsp -fno-caller-saves -fno-plt -fhonour-copts -Wno-error=unused-but-set-variable -Wno-error=unused-result -msoft-float -iremap /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/ChinaDNS-/chinadns-1.3.2:chinadns-1.3.2 -Wformat -Werror=format-security -fstack-protector -D_FORTIFY_SOURCE=1 -Wl,-z,now -Wl,-z,relro" LD=mipsel-openwrt-linux-musl-ld NM="mipsel-openwrt-linux-musl-gcc-nm" CC="mipsel-openwrt-linux-musl-gcc" GCC="mipsel-openwrt-linux-musl-gcc" CXX="mipsel-openwrt-linux-musl-g++" RANLIB="mipsel-openwrt-linux-musl-gcc-ranlib" STRIP=mipsel-openwrt-linux-musl-strip OBJCOPY=mipsel-openwrt-linux-musl-objcopy OBJDUMP=mipsel-openwrt-linux-musl-objdump SIZE=mipsel-openwrt-linux-musl-size CROSS="mipsel-openwrt-linux-musl-" ARCH="mipsel" ;
+make[4]: Entering directory '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/ChinaDNS-/chinadns-1.3.2'
+/bin/bash ./config.status --recheck
+running CONFIG_SHELL=/bin/bash /bin/bash ./configure --target=mipsel-openwrt-linux --host=mipsel-openwrt-linux --build=x86_64-linux-gnu --program-prefix= --program-suffix= --prefix=/usr --exec-prefix=/usr --bindir=/usr/bin --sbindir=/usr/sbin --libexecdir=/usr/lib --sysconfdir=/etc --datadir=/usr/share --localstatedir=/var --mandir=/usr/man --infodir=/usr/info --disable-nls build_alias=x86_64-linux-gnu host_alias=mipsel-openwrt-linux target_alias=mipsel-openwrt-linux CC=mipsel-openwrt-linux-musl-gcc CFLAGS=-Os -pipe -mno-branch-likely -mips32r2 -mtune=24kec -mdsp -fno-caller-saves -fno-plt -fhonour-copts -Wno-error=unused-but-set-variable -Wno-error=unused-result -msoft-float -iremap /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/ChinaDNS-/chinadns-1.3.2:chinadns-1.3.2 -Wformat -Werror=format-security -fstack-protector -D_FORTIFY_SOURCE=1 -Wl,-z,now -Wl,-z,relro  LDFLAGS=-L/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/target-mipsel_24kec+dsp_musl-1.1.15/usr/lib -L/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/target-mipsel_24kec+dsp_musl-1.1.15/lib -L/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/toolchain-mipsel_24kec+dsp_gcc-5.3.0_musl-1.1.15/usr/lib -L/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/toolchain-mipsel_24kec+dsp_gcc-5.3.0_musl-1.1.15/lib -znow -zrelro  CPPFLAGS=-I/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/target-mipsel_24kec+dsp_musl-1.1.15/usr/include -I/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/target-mipsel_24kec+dsp_musl-1.1.15/include -I/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/toolchain-mipsel_24kec+dsp_gcc-5.3.0_musl-1.1.15/usr/include -I/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/toolchain-mipsel_24kec+dsp_gcc-5.3.0_musl-1.1.15/include/fortify -I/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/toolchain-mipsel_24kec+dsp_gcc-5.3.0_musl-1.1.15/include  --no-create --no-recursion
+configure: WARNING: unrecognized options: --disable-nls
+configure: loading site script /home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/include/site/mipsel
+./configure: line 2222: syntax error near unexpected token `foreign'
+./configure: line 2222: `AM_INIT_AUTOMAKE(foreign -Wall)'
+Makefile:277: recipe for target 'config.status' failed
+make[4]: *** [config.status] Error 2
+make[4]: Leaving directory '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/ChinaDNS-/chinadns-1.3.2'
+Makefile:49: recipe for target '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/ChinaDNS-/chinadns-1.3.2/.built' failed
+make[3]: *** [/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/build_dir/target-mipsel_24kec+dsp_musl-1.1.15/ChinaDNS-/chinadns-1.3.2/.built] Error 2
+make[3]: Leaving directory '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/package/ChinaDNS/openwrt'
+package/Makefile:196: recipe for target 'package/ChinaDNS/openwrt/compile' failed
+make[2]: *** [package/ChinaDNS/openwrt/compile] Error 2
+make[2]: Leaving directory '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64'
+package/Makefile:193: recipe for target '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/target-mipsel_24kec+dsp_musl-1.1.15/stamp/.package_compile' failed
+make[1]: *** [/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/staging_dir/target-mipsel_24kec+dsp_musl-1.1.15/stamp/.package_compile] Error 2
+make[1]: Leaving directory '/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64'
+/home/labasky/temp/OpenWrt-SDK-ramips-mt7620_gcc-5.3.0_musl-1.1.15.Linux-x86_64/include/toplevel.mk:185: recipe for target 'world' failed
+make: *** [world] Error 2
+
+

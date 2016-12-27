@@ -1,0 +1,39 @@
+（我沒有用它…我只想簡單限制上傳/下載的頻寬，故我選擇了qos-scripts)
+
+
+主題
+Smart Queue Management (SQM) - Minimizing Bufferbloat
+
+
+參考資料
+
+http://www.right.com.cn/forum/thread-159094-1-1.html
+https://wiki.openwrt.org/doc/howto/sqm
+https://fixmynix.com/openwrt-qos-settings-luci-app-sqm/
+https://www.bufferbloat.net/projects/cerowrt/wiki/Setting_up_SQM_for_CeroWrt_310/
+
+
+測量目前網路下載/上傳的速度
+http://www.dslreports.com/speedtest
+（我的測試結果是下載25.6 Mb/s，上傳4.7Mb/s)
+
+
+順便連ping time也測量
+（我的ping time是 10ms)
+http://www.speedtest.net/
+
+
+安裝包
+# cd /tmp
+# wget https://downloads.openwrt.org/snapshots/trunk/ramips/mt7620/packages/kernel/kmod-sched-connmark_4.4.14-1_ramips.ipk
+# wget https://downloads.openwrt.org/snapshots/trunk/ramips/mt7620/packages/kernel/kmod-sched-core_4.4.14-1_ramips.ipk
+# wget https://downloads.openwrt.org/snapshots/trunk/ramips/mt7620/packages/kernel/kmod-sched-esfq_4.4.14-1_ramips.ipk
+# wget https://downloads.openwrt.org/snapshots/trunk/ramips/mt7620/packages/kernel/kmod-sched_4.4.14-1_ramips.ipk
+# wget https://downloads.openwrt.org/snapshots/trunk/ramips/mt7620/packages/packages/luci-app-sqm_1.0.9-1_all.ipk
+# wget https://downloads.openwrt.org/snapshots/trunk/ramips/mt7620/packages/packages/sqm-scripts_1.0.9-1_all.ipk
+
+如果這兩個包存在，請移除它們
+opkg remove qos-scripts luci-app-qos
+
+可是看到了白種大說sqm-scripts不是用來限制每個ip頻寬的，應該用qos-scripts
+https://github.com/tohojo/sqm-scripts/issues/23

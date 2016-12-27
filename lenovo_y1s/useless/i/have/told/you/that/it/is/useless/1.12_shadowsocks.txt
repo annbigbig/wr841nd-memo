@@ -1,0 +1,87 @@
+史上最详细的OpenWrt shadowsocks路由器自动翻墙教程
+https://softwaredownload.gitbooks.io/openwrt-fanqiang/content/index.html
+https://www.gitbook.com/book/softwaredownload/openwrt-fanqiang/details
+
+
+在 OpenWRT 上使用 ShadowSocks 建立透明代理
+http://undownding.me/2015/02/10/use-shadowsocks-on-openwrt/
+
+part1
+路由器刷OpenWRT安裝shadowsocks使用透明代理+去DNS污染
+https://www.logcg.com/zh-tw/archives/860.html
+
+part2
+路由器刷OpenWRT使用ShadowSocks透明代理進階配置
+https://www.logcg.com/zh-tw/archives/868.html
+
+
+openwrt+pdnsd+ss实现透明代理（防dns污染）
+http://www.m3306.com/archives/41.html
+
+
+史上最詳盡 shadowsocks 從零開始一站式教程
+http://como0925.pixnet.net/blog/post/33121306-%5B%E4%BB%A3%E7%90%86%E4%BC%BA%E6%9C%8D%E5%99%A8%5D-%E5%8F%B2%E4%B8%8A%E6%9C%80%E8%A9%B3%E7%9B%A1-shadowsocks-%E5%BE%9E%E9%9B%B6%E9%96%8B%E5%A7%8B
+
+
+openwrt-shadowsocks-libev-full專案於github
+https://github.com/bettermanbao/openwrt-shadowsocks-libev-full
+
+Shadowsocks-libev for OpenWrt專案於github
+https://github.com/shadowsocks/openwrt-shadowsocks
+
+
+[OpenWRT] OpenWRT 路由器搭建 Shadowsocks 服务器 （ss-server on ramips、71xx、bc47xx）
+http://forum.anywlan.com/thread-389150-1-1.html
+
+
+OpenWRT路由器上的ShadowSocks+ChinaDNS搭梯子方案
+https://blog.chionlab.moe/2016/01/23/openwrt-bypass-gfw-solution/
+
+
+dnsmasq配合dnscrypt解决DNS污染openwrt
+http://lixingcong.github.io/2016/05/01/DNSCrypt-with-dnsmasq/
+
+
+Shadowsocks & ChinaDNS on OpenWRT
+http://maykiller.com/2015/Shadowsocks-ChinaDNS-on-OpenWRT/
+
+
+GFW BLOG（功夫网与翻墙）用 ShadowSocks 和 DigitalOcean 科学上网
+http://www.chinagfw.org/2016/08/shadowsocks-digitalocean.html
+
+
+Digital Ocean上搭建VPS小记 (多用戶)
+http://kiss2.me/2016/05/06/VPS%E6%90%AD%E5%BB%BA/
+
+
+shadowsocks server要跑多個port給多用戶
+https://github.com/shadowsocks/shadowsocks/wiki/Configure-Multiple-Users
+
+Ubuntu 16.04 安装配置 Shadowsocks 服务端
+http://blog.topspeedsnail.com/archives/5119
+
+
+OpenWRT 自动翻墙路由器 DNS 解析的改善
+https://cokebar.info/archives/1410
+
+
+一些ipk包．像是chinadns
+http://openwrt-dist.sourceforge.net/
+
+
+Compile a OpenWRT Router with Shadowsocks using Image Builder
+http://blog.lihanming.me/2015-07-18-Compile-a-OpenWRT-Router-with-Shadowsocks-using-Image-Builder.html
+
+
+dnsmasq配合dnscrypt解决DNS污染openwrt
+http://lixingcong.github.io/2016/05/01/DNSCrypt-with-dnsmasq/
+
+在TL-WR841N上安装OpenWRT并配置dnscrypt 
+https://neoatlantis.github.io/%E7%94%B5%E5%B7%A5%E7%94%B5%E5%AD%90%E5%8F%8A%E4%BF%A1%E6%81%AF%E6%8A%80%E6%9C%AF/2016/01/05/openwrt-and-dnscrypt.html
+
+
+Openwrt路由器DNSCrypt配置&&私人DNSCrypt服务器搭建小记
+https://frank1998sj.space/archives/162
+
+利用OpenWrt SDK 編譯自定義軟件
+https://www.dannysite.com/blog/240/
