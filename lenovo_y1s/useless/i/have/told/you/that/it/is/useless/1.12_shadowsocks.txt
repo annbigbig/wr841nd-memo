@@ -85,3 +85,10 @@ https://frank1998sj.space/archives/162
 
 利用OpenWrt SDK 編譯自定義軟件
 https://www.dannysite.com/blog/240/
+
+
+如何使用shadowsocks透明代理反向翻墙（回国内）使用虾米音乐教程 – 简洁整理版
+https://ilmvfx.wordpress.com/2015/09/23/shadowsocks-transparent-proxy-and-gfwlist-for-xiami-tutorial/
+
+使用 Shadowsocks 自建翻墙服务器，实现全平台 100% 翻墙无障碍
+https://www.loyalsoldier.me/fuck-the-gfw-with-my-own-shadowsocks-server/

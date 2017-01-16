@@ -231,3 +231,7 @@ Build dependency: Please install the openssl library (with development headers)
 因為你要先安裝這些依賴
 # apt-get install subversion build-essential libncurses5-dev zlib1g-dev gawk git ccache gettext libssl-dev xsltproc wget
 
+
+
+
+

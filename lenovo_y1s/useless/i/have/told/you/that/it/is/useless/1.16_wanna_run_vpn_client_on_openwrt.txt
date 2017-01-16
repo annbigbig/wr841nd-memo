@@ -1,0 +1,33 @@
+關鍵字
+openwrt router as openvpn client
+
+OpenWrt with OpenVPN client on TP-Link TL-MR3020
+https://www.loganmarchione.com/2015/02/openwrt-with-openvpn-client-on-tp-link-tl-mr3020-3/
+
+
+What routers should PureVPN offer support for?
+http://ideas.purevpn.com/forums/263687-purevpn-router-support/suggestions/7054233-please-support-openwrt-pptp-l2tp-and-openvpn
+
+裡面有如何設定openvpn client的提示
+Fiver Hoo fiver commented  ·  March 09, 2016 23:11  ·  Flag as inappropriate
+I haven't done it through LuCI, but it's easy enough from a shell. Download routers.zip from purevpn to get the Wdc.key and ca.crt. Create a tunnel interface and create a forward from your lan in the firewall. I use the following openvpn config:
+
+client 
+float 
+dev tun 
+proto udp 
+remote fastest-usserver.ptoserver.com 53 
+persist-key 
+persist-tun 
+ca ca.crt 
+tls-auth Wdc.key 1 
+cipher AES-256-CBC 
+comp-lzo 
+verb 1 
+mute 20 
+route-method exe 
+route-delay 2 
+auth-user-pass authuser 
+auth-retry interact 
+ifconfig-nowarn 
+auth-nocache

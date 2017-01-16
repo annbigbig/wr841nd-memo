@@ -1,0 +1,476 @@
+理由:人在台灣，需要一個被gfw屏蔽了網路汙染了dns的模擬環境，來測試稍後的shadowsocks+dnscrypt配置是否可以翻牆？
+（先作出被牆的環境，然後再翻牆）
+
+目標：
+1.產生image並刷入路由器
+2.路由器為vpn client端，連接至vpn provider的vpn中國服務器，確認IP已在境內，且wifi用戶端不再能正常訪問外國網站
+3.在路由器配置dnscrypt，並確認wifi用戶端nslookup解析域名>IP都是正確結果
+4.在路由器配置shadowsocks，並確認wifi用戶端可以正常連通外國網站 (facebook/youtube/github等…)
+
+
+細節：1.產生image並刷入路由器
+	$ cd ~
+	$ mkdir openwrt_img_generator && cd openwrt_img_generator
+	$ wget https://downloads.openwrt.org/snapshots/trunk/ramips/mt7620/OpenWrt-ImageBuilder-ramips-mt7620.Linux-x86_64.tar.bz2
+	$ tar -xvjf OpenWrt-ImageBuilder-ramips-mt7620.Linux-x86_64.tar.bz2
+	$ cd OpenWrt-ImageBuilder-ramips-mt7620.Linux-x86_64/
+	$ IMAGE_GENERATOR_BASE=~/openwrt_img_generator/OpenWrt-ImageBuilder-ramips-mt7620.Linux-x86_64
+	$ echo $IMAGE_GENERATOR_BASE
+
+	修改$IMAGE_GENERATOR_BASE/repositories.conf
+	$ vi $IMAGE_GENERATOR_BASE/repositories.conf
+
+	請改成這樣
+	## Place your custom repositories here, they must match the architecture and version.
+	# src/gz designated_driver http://downloads.openwrt.org/snapshots/trunk/ramips/mt7620/packages
+	# src custom file:///usr/src/openwrt/bin/ramips/packages
+
+	#src/gz designated_driver_generic https://downloads.openwrt.org/snapshots/trunk/ramips/generic/packages/packages
+	src/gz designated_driver_base file://$IMAGE_GENERATOR_BASE/packages/base
+	src/gz designated_driver_kernel file://$IMAGE_GENERATOR_BASE/packages/kernel
+	src/gz designated_driver_luci file://$IMAGE_GENERATOR_BASE/packages/luci
+	src/gz designated_driver_management file://$IMAGE_GENERATOR_BASE/packages/management
+	src/gz designated_driver_packages file://$IMAGE_GENERATOR_BASE/packages/packages
+	src/gz designated_driver_routing file://$IMAGE_GENERATOR_BASE/packages/routing
+	src/gz designated_driver_telephony file://$IMAGE_GENERATOR_BASE/packages/telephony
+
+	## This is the local package repository, do not remove!
+	src imagebuilder file:packages
+
+	在$IMAGE_GENERATOR_BASE目錄下執行
+	$ make info
+
+	得到
+	Current Target: "ramips (MT7620 based boards)"
+	Default Packages: base-files libc libgcc busybox dropbear mtd uci opkg netifd fstools uclient-fetch logd kmod-leds-gpio kmod-gpio-button-hotplug wpad-mini swconfig kmod-rt2800-pci kmod-rt2800-soc kmod-mt76 dnsmasq iptables ip6tables ppp ppp-mod-pppoe firewall odhcpd odhcp6c
+	Available Profiles:
+
+	Default:
+		Default Profile
+		Packages: kmod-usb-core kmod-usb2 kmod-usb-ohci kmod-ledtrig-usbdev
+
+	修改$IMAGE_GENERATOR_BASE/target/linux/ramips/image/mt7620.mk
+
+	只留下y1s的這個區塊，其他都注解掉(在每一行前面加上#)
+	define Device/y1s
+		DTS := Y1S
+		IMAGE_SIZE := $(ralink_default_fw_size_16M)
+		DEVICE_TITLE := Lenovo Y1S
+	endef
+	TARGET_DEVICES += y1s
+
+
+	補充：給2015年買的mw300rv6路由產生image，請保留這個區塊
+	define Device/rt-n14u
+		DTS := RT-N14U
+		IMAGE_SIZE := $(ralink_default_fw_size_8M)
+	DEVICE_TITLE := Asus RT-N14u
+	endef
+	TARGET_DEVICES += rt-n14u
+
+	並將原來的
+	$(ralink_default_fw_size_8M)
+	改成這樣
+	$(ralink_default_fw_size_16M)
+
+	補充：
+	更快的方法是直接把mt7620.mk這個檔案裡所有的
+	$(ralink_default_fw_size_4M)
+	$(ralink_default_fw_size_8M)
+	改成
+	$(ralink_default_fw_size_16M)
+
+	指令是
+	$ sed -i -- 's/$(ralink_default_fw_size_4M)/$(ralink_default_fw_size_16M)/g' ./mt7620.mk
+	$ sed -i -- 's/$(ralink_default_fw_size_8M)/$(ralink_default_fw_size_16M)/g' ./mt7620.mk
+
+
+	在這份image裡，我需要的套件是
+	openvpn-easy-rsa openvpn-openssl luci-app-openvpn libc openssl-util
+	shadowsocks-libev libc libopenssl libpthread ipset ip iptables-mod-tproxy luci-app-shadowsocks-libev
+	dnscrypt-proxy dnscrypt-proxy-resolvers libc libsodium
+
+	在$IMAGE_GENERATOR_BASE目錄下，使用這個指令產生image
+	$ make image PROFILE=Default PACKAGES="base-files bind-libs bind-client busybox ca-certificates collectd collectd-mod-cpu collectd-mod-interface collectd-mod-iwinfo collectd-mod-load collectd-mod-memory collectd-mod-network collectd-mod-rrdtool curl ddns-scripts ddns-scripts_cloudflare ddns-scripts_no-ip_com ddns-scripts_nsupdate dnscrypt-proxy dnscrypt-proxy-resolvers dnsmasq dropbear firewall fstools hostapd-common htop ip ipset ip6tables iptables iptables-mod-conntrack-extra iptables-mod-ipopt iptables-mod-tproxy iw iwinfo jshn jsonfilter kernel kmod-cfg80211 kmod-eeprom-93cx6 kmod-gpio-button-hotplug kmod-ifb kmod-ip6tables kmod-ipt-conntrack kmod-ipt-conntrack-extra kmod-ipt-core kmod-ipt-ipopt kmod-ipt-nat kmod-leds-gpio kmod-ledtrig-usbdev kmod-lib-crc-ccitt kmod-lib-crc-itu-t kmod-mac80211 kmod-mt76 kmod-nf-conntrack kmod-nf-conntrack6 kmod-nf-ipt kmod-nf-ipt6 kmod-nf-nat kmod-nls-base kmod-ppp kmod-pppoe kmod-pppox kmod-rt2800-lib kmod-rt2800-mmio kmod-rt2800-pci kmod-rt2800-soc kmod-rt2x00-lib kmod-rt2x00-mmio kmod-rt2x00-pci kmod-sched-connmark kmod-sched-core kmod-slhc kmod-tun kmod-usb-core kmod-usb-ohci kmod-usb2 libblobmsg-json libc libcurl libgcc libip4tc libip6tc libiwinfo libiwinfo-lua libjson-c libjson-script libltdl liblua liblzo libncursesw libnl-tiny libopenssl libpolarssl libpthread librrd1 librt libsodium libubox libubus libubus-lua libuci libuci-lua libuclient libustream-openssl libuuid libxtables logd lua luci luci-app-ddns luci-app-diag-core luci-app-firewall luci-app-ntpc luci-app-openvpn luci-app-shadowsocks-libev luci-app-qos luci-app-statistics luci-base luci-i18n-base-en luci-i18n-diag-core-en luci-i18n-firewall-en luci-i18n-ntpc-en luci-i18n-openvpn-en luci-i18n-qos-en luci-i18n-statistics-en luci-lib-ip luci-lib-jsonc luci-lib-nixio luci-mod-admin-full luci-mod-failsafe luci-proto-ipv6 luci-proto-ppp luci-ssl-openssl luci-theme-bootstrap monit mtd netdata netifd ntpclient odhcp6c odhcpd openssl-util openvpn-easy-rsa openvpn-openssl opkg ppp ppp-mod-pppoe procd px5g qos-scripts rpcd rrdtool1 rt2800-pci-firmware shadowsocks-libev sudo swconfig tc terminfo ubox ubus ubusd uci uclient-fetch uhttpd uhttpd-mod-ubus usign wpad-mini zlib"
+
+	如果順利產生image的話，可以在這裡看到
+	labasky@labasky-Lenovo-B590:~/openwrt_img_generator/OpenWrt-ImageBuilder-ramips-mt7620.Linux-x86_64/bin/ramips$ ls -al
+	總計 142936
+	drwxrwxr-x 2 labasky labasky    4096 12月 30 03:26 .
+	drwxrwxr-x 3 labasky labasky    4096 12月 30 03:23 ..
+	-rw-rw-r-- 1 labasky labasky    1583 12月 30 03:26 md5sums
+	-rw-rw-r-- 1 labasky labasky 8126468 12月 30 03:26 openwrt-ramips-mt7620-gl-mt300a-squashfs-sysupgrade.bin
+	-rw-rw-r-- 1 labasky labasky 8126468 12月 30 03:26 openwrt-ramips-mt7620-gl-mt300n-squashfs-sysupgrade.bin
+	-rw-rw-r-- 1 labasky labasky 8126468 12月 30 03:26 openwrt-ramips-mt7620-gl-mt750-squashfs-sysupgrade.bin
+	-rw-rw-r-- 1 labasky labasky 8126468 12月 30 03:26 openwrt-ramips-mt7620-hc5661-squashfs-sysupgrade.bin
+	-rw-rw-r-- 1 labasky labasky 8126468 12月 30 03:26 openwrt-ramips-mt7620-hc5761-squashfs-sysupgrade.bin
+	-rw-rw-r-- 1 labasky labasky 8126468 12月 30 03:26 openwrt-ramips-mt7620-hc5861-squashfs-sysupgrade.bin
+	-rw-rw-r-- 1 labasky labasky 8126468 12月 30 03:26 openwrt-ramips-mt7620-miwifi-mini-squashfs-sysupgrade.bin
+	-rw-rw-r-- 1 labasky labasky 8126468 12月 30 03:26 openwrt-ramips-mt7620-mlw221-squashfs-sysupgrade.bin
+	-rw-rw-r-- 1 labasky labasky 8126468 12月 30 03:26 openwrt-ramips-mt7620-mlwg2-squashfs-sysupgrade.bin
+	-rw-rw-r-- 1 labasky labasky 8126468 12月 30 03:26 openwrt-ramips-mt7620-oy-0001-squashfs-sysupgrade.bin
+	-rw-rw-r-- 1 labasky labasky 8126468 12月 30 03:26 openwrt-ramips-mt7620-rt-n14u-squashfs-sysupgrade.bin
+	-rw-rw-r-- 1 labasky labasky 8130560 12月 30 03:26 openwrt-ramips-mt7620-wrh-300cr-squashfs-factory.bin
+	-rw-rw-r-- 1 labasky labasky 8126468 12月 30 03:26 openwrt-ramips-mt7620-wrh-300cr-squashfs-sysupgrade.bin
+	-rw-rw-r-- 1 labasky labasky 8126468 12月 30 03:26 openwrt-ramips-mt7620-wrtnode-squashfs-sysupgrade.bin
+	-rw-rw-r-- 1 labasky labasky 8126468 12月 30 03:26 openwrt-ramips-mt7620-y1-squashfs-sysupgrade.bin
+	-rw-rw-r-- 1 labasky labasky 8126468 12月 30 03:26 openwrt-ramips-mt7620-y1s-squashfs-sysupgrade.bin
+	-rw-rw-r-- 1 labasky labasky 8126468 12月 30 03:26 openwrt-ramips-mt7620-youku-yk1-squashfs-sysupgrade.bin
+	-rw-rw-r-- 1 labasky labasky 8126468 12月 30 03:26 openwrt-ramips-mt7620-zbt-we826-squashfs-sysupgrade.bin
+	-rw-rw-r-- 1 labasky labasky    2388 12月 30 03:26 sha256sums
+
+
+細節：2.路由器為vpn client端，連接至vpn provider的vpn中國服務器，確認IP已在境內，且wifi用戶端不再能正常訪問外國網站
+
+==============================================================================================================
+
+(先把筆記型電腦當openvpn client試連中國服務器，如果沒辦法連就不用再試路由器了)
+
+到公共Vpn服務器列表
+http://www.vpngate.net/cn/
+
+找看看有沒有中國的vpn服務器
+在這裡我下載了一個vpngate_27.20.73.27_udp_1526.ovpn的檔案
+這個檔案包含了連至某一台中國vpn服務器(openvpn server)需要的ca、key、cert
+為了將這個.ovpn的檔案分割成三個各自獨立的ca、key、cert
+需要安裝openvpn-config-splitter，在安裝它之前需要安裝npm
+所以請執行
+	# apt install curl
+	# curl -s https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add -
+	# sh -c "echo deb https://deb.nodesource.com/node_7.x yakkety main \ > /etc/apt/sources.list.d/nodesource.list"
+	# apt-get update && apt-get install nodejs
+	# apt autoremove
+	# which node
+	# which npm
+	# node -v
+	# npm -v
+
+安裝
+	# npm install -g openvpn-config-splitter
+	# which ovpnsplit
+
+然後假設我剛下載的.ovpn檔案的完整路徑是在/etc/openvpn/china01/vpngate_27.20.73.27_udp_1526.ovpn
+執行
+	# ovpnsplit /etc/openvpn/china01/vpngate_27.20.73.27_udp_1526.ovpn 
+執行完指令，我會得到
+	root@labasky-Lenovo-B590:/etc/openvpn/china01# ls -al
+	總計 48
+	drwxr-xr-x 2 root    root    4096  1月  2 19:53 .
+	drwxr-xr-x 3 root    root    4096  1月  2 19:53 ..
+	-rw-r--r-- 1 root    root    1140  1月  2 19:53 ca.crt
+	-rw-r--r-- 1 root    root    1704  1月  2 19:53 client.key
+	-rw-r--r-- 1 root    root    1036  1月  2 19:53 user.crt
+	-rw-rw-r-- 1 labasky labasky 8603 12月 30 04:20 vpngate_27.20.73.27_udp_1526.ovpn
+	-rw-r--r-- 1 root    root    8691  1月  2 19:53 vpngate_27.20.73.27_udp_1526.split.ovpn
+
+照著vpngate_27.20.73.27_udp_1526.ovpn的內容
+產生一個/etc/openvpn/china01.conf
+內容如下
+dev tun
+proto udp
+log openvpn_china01.log
+remote 27.20.73.27 1526
+cipher AES-128-CBC
+auth SHA1
+resolv-retry infinite
+nobind
+persist-key
+persist-tun
+client
+verb 3
+ca /etc/openvpn/china01/ca.crt
+cert /etc/openvpn/china01/user.crt
+key /etc/openvpn/china01/client.key
+redirect-gateway def1
+
+補充：從astrill vpn下載的試用，執行完ovpnsplit之後多了一個ta.key
+那麼/etc/openvpn/usa01.conf
+內容如下
+setenv FORWARD_COMPATIBLE 1
+setenv UV_SERVERID 159
+client
+dev tun
+proto udp
+log openvpn_usa01.log
+remote 170.178.162.99 8292
+nobind
+persist-key
+persist-tun
+ns-cert-type server
+tls-version-min 1.2 or-highest
+key-direction 1
+push-peer-info
+cipher AES-256-CBC
+comp-lzo
+explicit-exit-notify
+verb 3
+mute 20
+reneg-sec 86400
+mute-replay-warnings
+max-routes 1000
+ca /etc/openvpn/usa01/ca.crt
+cert /etc/openvpn/usa01/user.crt
+key /etc/openvpn/usa01/client.key
+tls-auth /etc/openvpn/usa01/ta.key 1
+redirect-gateway def1
+
+
+啟動Openvpn client發起連線
+# systemctl start openvpn@china01
+
+檢查vpn連線狀態
+# systemctl status openvpn@china01
+
+停止vpn連線
+# systemctl stop openvpn@china01
+
+==============================================================================================================
+
+確認過把筆記型電腦當成openvpn client，可以對vpn服務商提供的中國服務器正常連線後
+配置OpenWRT路由器，讓它成為openvpn client端
+
+把ca.crt、user.crt、和client.key複製到路由器的/tmp目錄下
+$ scp *.key root@10.1.1.1:/tmp
+$ scp *.crt root@10.1.1.1:/tmp
+
+ssh連入OpenWRT路由器
+$ ssh root@10.1.1.1
+
+把剛才的crt和key複製到/etc/openvpn目錄中，注意兩隻key的權限值要是600，不然openvpn.log裡會報warning
+# mv /tmp/*.key /etc/openvpn
+# mv /tmp/*.crt /etc/openvpn
+# chmod 600 /etc/openvpn/*.key
+
+編輯/etc/config/network，加入一個vpn接口
+config interface 'vpn0'                         
+        option proto 'none'      
+        option ifname 'tun0'
+		option auto '1'
+
+編輯/etc/config/openvpn
+內容如下
+config openvpn 'client_tun_0'
+	option enabled '1'
+	option setenv 'FORWARD_COMPATIBLE 1'
+	option setenv 'UV_SERVERID 159'
+	option client '1'
+	option dev 'tun'
+	option proto 'udp'
+	option log '/tmp/openvpn.log'
+	option remote '170.178.162.99 8292'
+	option nobind '1'
+	option persist_key '1'
+	option persist_tun '1'
+	option ns_cert_type 'server'
+	option tls_version_min '1.2 or-highest'
+	option key_direction '1'
+	option push_peer_info '1'
+	option cipher 'AES-256-CBC'
+	option comp_lzo 'yes'
+	option explicit_exit_notify '1'
+	option verb '3'
+	option mute '20'
+	option reneg_sec '86400'
+	option mute_replay_warnings '1'
+	option max_routes '1000'
+	option ca '/etc/openvpn/ca.crt'
+	option cert '/etc/openvpn/user.crt'
+	option key '/etc/openvpn/client.key'
+	option tls_auth '/etc/openvpn/ta.key'
+	#option tls_client '1'
+	#option enable '1'
+
+
+編輯/etc/config/firewall
+內容如下
+config zone
+	option name 'vpn'
+	option input 'ACCEPT'
+	option output 'ACCEPT'
+	option forward 'ACCEPT'
+	option masq '1'
+	option network 'vpn0'
+
+config forwarding
+	option src 'vpn'
+	option dest 'lan'
+
+config forwarding
+	option dest 'vpn'
+	option src 'lan'
+
+
+重載網路、防火牆並啟動vpn client
+/etc/init.d/network restart
+/etc/init.d/firewall restart
+/etc/init.d/openvpn start
+
+可是不能連線，/tmp/openvpn.log裡面是寫這樣
+Mon Jan  2 19:33:01 2017 OpenVPN 2.3.11 mipsel-openwrt-linux-gnu [SSL (OpenSSL)] [LZO] [EPOLL] [MH] [IPv6]
+Mon Jan  2 19:33:01 2017 library versions: OpenSSL 1.0.2j  26 Sep 2016, LZO 2.09
+Mon Jan  2 19:33:01 2017 Control Channel Authentication: using '/etc/openvpn/ta.key' as a OpenVPN static key file
+Mon Jan  2 19:33:01 2017 Outgoing Control Channel Authentication: Using 160 bit message hash 'SHA1' for HMAC authentication
+Mon Jan  2 19:33:01 2017 Incoming Control Channel Authentication: Using 160 bit message hash 'SHA1' for HMAC authentication
+Mon Jan  2 19:33:01 2017 Socket Buffers: R=[163840->163840] S=[163840->163840]
+Mon Jan  2 19:33:01 2017 UDPv4 link local: [undef]
+Mon Jan  2 19:33:01 2017 UDPv4 link remote: [AF_INET]170.178.162.99:8292
+Mon Jan  2 19:34:01 2017 TLS Error: TLS key negotiation failed to occur within 60 seconds (check your network connectivity)
+Mon Jan  2 19:34:01 2017 TLS Error: TLS handshake failed
+Mon Jan  2 19:34:01 2017 SIGUSR1[soft,tls-error] received, process restarting
+Mon Jan  2 19:34:01 2017 Restart pause, 2 second(s)
+Mon Jan  2 19:34:03 2017 Socket Buffers: R=[163840->163840] S=[163840->163840]
+Mon Jan  2 19:34:03 2017 UDPv4 link local: [undef]
+Mon Jan  2 19:34:03 2017 UDPv4 link remote: [AF_INET]170.178.162.99:8292
+Mon Jan  2 19:35:03 2017 TLS Error: TLS key negotiation failed to occur within 60 seconds (check your network connectivity)
+Mon Jan  2 19:35:03 2017 TLS Error: TLS handshake failed
+Mon Jan  2 19:35:03 2017 SIGUSR1[soft,tls-error] received, process restarting
+Mon Jan  2 19:35:03 2017 Restart pause, 2 second(s)
+Mon Jan  2 19:35:05 2017 Socket Buffers: R=[163840->163840] S=[163840->163840]
+Mon Jan  2 19:35:05 2017 UDPv4 link local: [undef]
+Mon Jan  2 19:35:05 2017 UDPv4 link remote: [AF_INET]170.178.162.99:8292
+Mon Jan  2 19:36:05 2017 TLS Error: TLS key negotiation failed to occur within 60 seconds (check your network connectivity)
+Mon Jan  2 19:36:05 2017 TLS Error: TLS handshake failed
+Mon Jan  2 19:36:05 2017 SIGUSR1[soft,tls-error] received, process restarting
+Mon Jan  2 19:36:05 2017 Restart pause, 2 second(s)
+Mon Jan  2 19:36:07 2017 Socket Buffers: R=[163840->163840] S=[163840->163840]
+Mon Jan  2 19:36:07 2017 UDPv4 link local: [undef]
+Mon Jan  2 19:36:07 2017 UDPv4 link remote: [AF_INET]170.178.162.99:8292
+Mon Jan  2 19:37:07 2017 TLS Error: TLS key negotiation failed to occur within 60 seconds (check your network connectivity)
+Mon Jan  2 19:37:07 2017 TLS Error: TLS handshake failed
+Mon Jan  2 19:37:07 2017 SIGUSR1[soft,tls-error] received, process restarting
+Mon Jan  2 19:37:07 2017 Restart pause, 2 second(s)
+Mon Jan  2 19:37:09 2017 Socket Buffers: R=[163840->163840] S=[163840->163840]
+Mon Jan  2 19:37:09 2017 UDPv4 link local: [undef]
+Mon Jan  2 19:37:09 2017 UDPv4 link remote: [AF_INET]170.178.162.99:8292
+Mon Jan  2 19:38:09 2017 TLS Error: TLS key negotiation failed to occur within 60 seconds (check your network connectivity)
+Mon Jan  2 19:38:09 2017 TLS Error: TLS handshake failed
+Mon Jan  2 19:38:09 2017 SIGUSR1[soft,tls-error] received, process restarting
+Mon Jan  2 19:38:09 2017 Restart pause, 2 second(s)
+Mon Jan  2 19:38:11 2017 Socket Buffers: R=[163840->163840] S=[163840->163840]
+Mon Jan  2 19:38:11 2017 UDPv4 link local: [undef]
+Mon Jan  2 19:38:11 2017 UDPv4 link remote: [AF_INET]170.178.162.99:8292
+Mon Jan  2 19:38:44 2017 event_wait : Interrupted system call (code=4)
+Mon Jan  2 19:38:44 2017 SIGTERM received, sending exit notification to peer
+Mon Jan  2 19:38:45 2017 SIGTERM[soft,exit-with-notification] received, process exiting
+
+
+
+？？？？？
+關鍵字
+openwrt openvpn client possible options
+
+
+線索
+https://forum.openwrt.org/viewtopic.php?id=64663
+
+重點
+Rename .ovpn file to .conf file, drop it into /etc/openvpn/ and restart the OpenVPN service
+
+Hi all, if your config file is /etc/openvpn/xxx.conf, you must edit /etc/config/openvpn and put inside something like this:
+
+config openvpn 'vpn0'
+    option enabled 1
+    option config '/etc/openvpn/xxx.conf'
+
+
+不知道是真是假，只好試一下
+從vpn供應商astrill得到一個7天試用的UDP-543-USA-China-Optimized-3.ovpn
+把它複製到OpenWRT路由器裡，並重新命名為UDP-543-USA-China-Optimized-3.conf
+
+(筆記型電腦上執行）
+$ scp ./UDP-543-USA-China-Optimized-3.ovpn root@10.1.1.1:/tmp
+
+(路由器上執行)
+# cd /tmp
+# mv ./UDP-543-USA-China-Optimized-3.ovpn /etc/openvpn/./UDP-543-USA-China-Optimized-3.conf
+
+修改/etc/config/openvpn
+改成這樣
+config openvpn 'vpn_usa_0'
+    option enabled 1
+    option config '/etc/openvpn/UDP-543-USA-China-Optimized-3.conf'
+
+
+補充:
+在 /etc/openvpn/UDP-543-USA-China-Optimized-3.conf 這個檔案裡我多加了一行
+log /tmp/openvpn_usa01.log
+還有這個檔案的每一行的最後面我都看到有^M
+所以（在這一行的最後面）我也有加上^M
+
+然後重新啟動openvpn
+# /etc/init.d/openvpn start
+
+看一下有沒有啟動成功？
+root@OpenWrt:/etc/openvpn# netstat -anp|grep openvpn
+udp        0      0 0.0.0.0:32828           0.0.0.0:*                           2789/openvpn
+
+如果失敗可以查看/tmp/openvpn_usa01.log
+
+成功的話，在路由器可以發現，default gateway變成tun0了
+root@OpenWrt:~# ifconfig tun0
+tun0      Link encap:UNSPEC  HWaddr 00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00  
+          inet addr:198.18.18.253  P-t-P:198.18.18.253  Mask:255.255.252.0
+          UP POINTOPOINT RUNNING NOARP MULTICAST  MTU:1500  Metric:1
+          RX packets:36255 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:25815 errors:0 dropped:2215 overruns:0 carrier:0
+          collisions:0 txqueuelen:100 
+          RX bytes:34557984 (32.9 MiB)  TX bytes:4274846 (4.0 MiB)
+
+root@OpenWrt:~# route -n
+Kernel IP routing table
+Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
+0.0.0.0         198.18.16.1     128.0.0.0       UG    0      0        0 tun0
+0.0.0.0         192.168.0.1     0.0.0.0         UG    0      0        0 eth0.2
+10.1.1.0        0.0.0.0         255.255.255.0   U     0      0        0 br-lan
+128.0.0.0       198.18.16.1     128.0.0.0       UG    0      0        0 tun0
+170.178.162.99  192.168.0.1     255.255.255.255 UGH   0      0        0 eth0.2
+192.168.0.0     0.0.0.0         255.255.255.0   U     0      0        0 eth0.2
+192.168.0.1     0.0.0.0         255.255.255.255 UH    0      0        0 eth0.2
+198.18.16.0     0.0.0.0         255.255.252.0   U     0      0        0 tun0
+root@OpenWrt:~# traceroute tw.yahoo.com
+traceroute to tw.yahoo.com (203.188.200.67), 30 hops max, 38 byte packets
+ 1  198.18.16.1 (198.18.16.1)  161.341 ms  166.841 ms  157.961 ms
+ 2  170.178.162.97 (170.178.162.97)  158.641 ms  159.461 ms  159.521 ms
+ 3  10.0.0.5 (10.0.0.5)  158.401 ms  159.121 ms  159.461 ms
+ 4  be4796.ccr41.lax04.atlas.cogentco.com (38.142.32.97)  174.341 ms  170.881 ms  169.161 ms
+ 5  be2964.ccr21.lax01.atlas.cogentco.com (154.54.44.77)  169.881 ms  169.301 ms  be2965.ccr22.lax01.atlas.cogentco.com (154.54.45.1)  170.021 ms
+ 6  be3033.ccr41.lax05.atlas.cogentco.com (154.54.26.42)  170.661 ms  be3032.ccr41.lax05.atlas.cogentco.com (154.54.31.54)  170.261 ms  be3033.ccr41.lax05.atlas.cogentco.com (154.54.26.42)  174.141 ms
+ 7  38.104.84.42 (38.104.84.42)  168.261 ms  158.161 ms  159.601 ms
+ 8  te0-3-0-1.wr1.osa0.10026.telstraglobal.net (61.14.157.237)  276.601 ms  278.502 ms  276.182 ms
+ 9  te0-0-0-0.wr1.tpe0.10026.telstraglobal.net (61.14.157.194)  300.721 ms  308.762 ms  307.741 ms
+10  xe-0-2-0.gw5.tpe3.10026.telstraglobal.net (61.14.157.202)  301.802 ms  300.142 ms  299.742 ms
+11  YAP-0002.10026.telstraglobal.net (203.192.143.34)  300.222 ms  299.542 ms  299.981 ms
+12  UNKNOWN-203-84-213-X.yahoo.com (203.84.213.37)  304.122 ms  296.382 ms  296.362 ms
+13  xe-7-1-0.msr2.tp2.yahoo.com (203.84.209.99)  308.822 ms  so-3-0-0.pat1.krx.yahoo.com (203.84.211.43)  302.921 ms  xe-7-1-0.msr2.tp2.yahoo.com (203.84.209.99)  296.181 ms
+14  te-9-1.bas-b1.tp2.yahoo.com (203.188.192.166)  297.282 ms  te-8-1.bas-b1.tp2.yahoo.com (203.188.192.174)  297.601 ms  297.182 ms
+15^C
+root@OpenWrt:~#
+
+
+還有所有連接路由器WIFI的DHCP client端（像是你的筆記型電腦、平板電腦、手機）
+全都變成自動翻牆的狀態，它們的外部IP現在都變成是VPN provider的VPN服務器的IP
+
+補充：
+到http://www.vpngate.net/cn/
+下載免錢的.ovpn檔案，這樣用就很順了，如果只是測試用途的話
+雖然說列表裡的vpn服務器好像只會運作幾天，然後就失效了
+目前的/etc/config/openvpn配置大概如下
+
+# astrill 7-day trial account
+# config openvpn 'vpn_usa_0'
+#    option enabled 1
+#    option config '/etc/openvpn/UDP-543-USA-China-Optimized-3.conf'
+
+# japan node from vpngate
+config openvpn 'vpn_japan_0'
+    option enabled 1
+    option config '/etc/openvpn/vpngate_143.189.133.236_udp_1229.ovpn'
+
+想停止vpn連接的話，就執行
+/etc/init.d/openvpn stop
+
+如果想要開機就自動vpn連接的話，就執行
+/etc/init.d/openvpn enable
+
+補充：不要在/etc/openvpn目錄下面放兩份.conf(從.ovpn改名而來的）
+

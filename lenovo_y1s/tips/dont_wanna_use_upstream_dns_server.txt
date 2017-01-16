@@ -1,0 +1,15 @@
+剛才發現了
+如果/etc/config/dhcp
+裡面的
+config dnsmasq
+這一個區塊
+多了一行
+option noresolv '1'
+然後把
+option resolvfile '/tmp/resolv.conf.auto'
+也註解掉的話
+就不會使用上游的dns了
+
+then
+/etc/init.d/dnsmasq restart
+

@@ -1,0 +1,932 @@
+在淘寶找到的vps (馬蜂云)
+https://item.taobao.com/item.htm?id=540314805942&toSite=main#detail
+
+買了之後，老板會給你這樣的連線資訊
+(這裡寫的是假的，不要試了，不要浪費你的時間，要就花點小錢去買一個)
+
+用來ssh連入的帳號和密碼
+vps37.mafengyun.com:22678 
+root 
+B7C4MFQ6y5 
+
+用來pppoe撥號的帳號和密碼
+053710803722 
+332789
+
+接著打開自已的console，執行下面的指令連入vps
+$ ssh -o PubkeyAuthentication=no -p22678 root@vps37.mafengyun.com
+
+
+連進去之後，先更改root密碼
+# passwd
+
+
+然後查看網路接口，你會發現，目前vps主機上並沒有任何Public IP
+[root@asiouqwlekn ~]# ifconfig
+eth0      Link encap:Ethernet  HWaddr 00:15:5D:01:03:8D  
+          inet addr:10.88.11.22  Bcast:10.88.11.255  Mask:255.255.255.0
+          inet6 addr: fe80::215:5dff:fe01:38d/64 Scope:Link
+          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+          RX packets:2356044 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:66132 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:1000 
+          RX bytes:650699107 (620.5 MiB)  TX bytes:20039716 (19.1 MiB)
+
+lo        Link encap:Local Loopback  
+          inet addr:127.0.0.1  Mask:255.0.0.0
+          inet6 addr: ::1/128 Scope:Host
+          UP LOOPBACK RUNNING  MTU:16436  Metric:1
+          RX packets:0 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:0 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:0 
+          RX bytes:0 (0.0 b)  TX bytes:0 (0.0 b)
+
+[root@asiouqwlekn ~]# 
+[root@asiouqwlekn ~]# 
+[root@asiouqwlekn ~]# route -n
+Kernel IP routing table
+Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
+10.88.11.0      0.0.0.0         255.255.255.0   U     0      0        0 eth0
+169.254.0.0     0.0.0.0         255.255.0.0     U     1002   0        0 eth0
+0.0.0.0         10.88.11.1      0.0.0.0         UG    0      0        0 eth0
+[root@asiouqwlekn ~]# 
+
+
+賣家已經在vps上面安裝了rp-pppoe套件，如果沒有
+可以使用下面指令安裝
+# yum install rp-pppoe -y 
+
+設定pppoe連線，執行
+# pppoe-setup
+
+然後回答一些問題，賣家的提示是
+步骤概述： 
+
+1、搜寻PPPoE相关软件，本人使用的是rp-pppoe 
+
+　　yum search pppoe 
+
+2、使用yum安装rp-pppoe 
+
+　　yum install rp-pppoe -y 
+
+3、开始配置PPPoE连接 {虚拟机已经自带pppoe软件请从此处开始配置} 
+
+　　pppoe-setup 
+
+4、输入ISP提供的账户 
+
+5、输入以太网卡代号，默认是eth0（注：CentOS 7已不是默认eth0，自行使用ifconfig命令即可找到） 
+
+6、配置：若长时间连线，连线会被自动中断（我不干，选no） 
+
+7、配置主DNS服务器 （我填了114.114.114.114)
+
+8、配置次DNS服务器 (我填了阿里的DNS，223.5.5.5)
+
+9、两次输入账户密码以确认 
+
+10、配置普通账户是否有网络连接权限 
+
+11、配置防火墙（没有特殊需求选0就OK） (我選2，基礎的防火牆配置)
+
+12、配置是否开机自动拨号连接 (我選yes)
+
+13、确认刚填写的配置信息 
+
+14、连接网络尽情享受吧！ 
+
+相关命令@ 连接网络：/sbin/ifup ppp0，断开连接：/sbin/ifdown ppp0，查看网络状态：/sbin/pppoe-status
+
+設定完成之後
+可能需要重啟防火牆
+# /etc/init.d/iptables restart
+
+查看現在的防火牆規則
+# iptables -L -n
+Chain INPUT (policy ACCEPT)
+target     prot opt source               destination         
+ACCEPT     all  --  0.0.0.0/0            0.0.0.0/0           state RELATED,ESTABLISHED 
+ACCEPT     icmp --  0.0.0.0/0            0.0.0.0/0           
+ACCEPT     all  --  0.0.0.0/0            0.0.0.0/0           
+ACCEPT     tcp  --  0.0.0.0/0            0.0.0.0/0           state NEW tcp dpt:22 
+REJECT     all  --  0.0.0.0/0            0.0.0.0/0           reject-with icmp-host-prohibited 
+
+Chain FORWARD (policy ACCEPT)
+target     prot opt source               destination         
+REJECT     all  --  0.0.0.0/0            0.0.0.0/0           reject-with icmp-host-prohibited 
+
+Chain OUTPUT (policy ACCEPT)
+target     prot opt source               destination
+
+
+防火牆規則似乎是放在這裡
+[root@asiouqwlekn ~]# cat /etc/sysconfig/iptables
+# Firewall configuration written by system-config-firewall
+# Manual customization of this file is not recommended.
+*filter
+:INPUT ACCEPT [0:0]
+:FORWARD ACCEPT [0:0]
+:OUTPUT ACCEPT [0:0]
+-A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+-A INPUT -p icmp -j ACCEPT
+-A INPUT -i lo -j ACCEPT
+-A INPUT -m state --state NEW -m tcp -p tcp --dport 22 -j ACCEPT
+-A INPUT -j REJECT --reject-with icmp-host-prohibited
+-A FORWARD -j REJECT --reject-with icmp-host-prohibited
+COMMIT
+
+
+執行pppoe連線，取得ppp0接口
+# ifup ppp0
+
+撥號之後
+[root@asiouqwlekn ~]# ifconfig
+eth0      Link encap:Ethernet  HWaddr 00:15:5D:01:03:8D  
+          inet addr:10.88.11.22  Bcast:10.88.11.255  Mask:255.255.255.0
+          inet6 addr: fe80::215:5dff:fe01:38d/64 Scope:Link
+          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+          RX packets:2508897 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:66843 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:1000 
+          RX bytes:689250535 (657.3 MiB)  TX bytes:20112310 (19.1 MiB)
+
+lo        Link encap:Local Loopback  
+          inet addr:127.0.0.1  Mask:255.0.0.0
+          inet6 addr: ::1/128 Scope:Host
+          UP LOOPBACK RUNNING  MTU:16436  Metric:1
+          RX packets:0 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:0 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:0 
+          RX bytes:0 (0.0 b)  TX bytes:0 (0.0 b)
+
+ppp0      Link encap:Point-to-Point Protocol  
+          inet addr:49.89.34.74  P-t-P:49.89.32.1  Mask:255.255.255.255
+          UP POINTOPOINT RUNNING NOARP MULTICAST  MTU:1492  Metric:1
+          RX packets:147 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:140 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:3 
+          RX bytes:10584 (10.3 KiB)  TX bytes:8717 (8.5 KiB)
+
+[root@asiouqwlekn ~]# route -n
+Kernel IP routing table
+Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
+49.89.32.1      0.0.0.0         255.255.255.255 UH    0      0        0 ppp0
+10.88.11.0      0.0.0.0         255.255.255.0   U     0      0        0 eth0
+169.254.0.0     0.0.0.0         255.255.0.0     U     1002   0        0 eth0
+0.0.0.0         0.0.0.0         0.0.0.0         U     0      0        0 ppp0
+[root@asiouqwlekn ~]# 
+
+安裝一些網路工具套件、像是nslookup/traceroute指令，ssh client工具，和網路測速工具
+# yum install bind-utils
+# yum install traceroute
+# yum install openssh-clients
+# wget -O speedtest  https://raw.githubusercontent.com/sivel/speedtest-cli/master/speedtest.py
+# chmod +x speedtest
+
+網路測速看看，結果是下載 24.30 Mbit/s，上傳 5.25 Mbit/s
+[root@asiouqwlekn ~]# ./speedtest 
+Retrieving speedtest.net configuration...
+Testing from China Telecom (49.89.34.74)...
+Retrieving speedtest.net server list...
+Selecting best server based on ping...
+Hosted by CHINA UNICOM JIANGSU COMPANY (Nanjing) [1.67 km]: 13.432 ms
+Testing download speed................................................................................
+Download: 24.30 Mbit/s
+Testing upload speed....................................................................................................
+Upload: 5.25 Mbit/s
+
+而PPPoe撥接成功後，使用traceroute，第一個hop應該是ADSL貓的IP
+[root@asiouqwlekn ~]# traceroute 114.114.114.114
+traceroute to 114.114.114.114 (114.114.114.114), 30 hops max, 60 byte packets
+ 1  49.89.32.1 (49.89.32.1)  18.376 ms  18.325 ms  18.296 ms
+ 2  61.147.253.33 (61.147.253.33)  35.422 ms  35.397 ms  35.249 ms
+(後面省略)
+
+還有想知道vps上安裝的CentOS的版本，就執行下面指令，可以知道是6.5的版本
+# cat /etc/centos-release
+CentOS release 6.5 (Final)
+
+==================================================================================================================================
+開始安裝OpenVPN Server
+==================================================================================================================================
+參考文件來源
+https://www.unixmen.com/setup-openvpn-server-client-centos-6-5/
+
+加入EPEL Repository
+# wget http://epel.mirror.net.in/epel/6/i386/epel-release-6-8.noarch.rpm
+# rpm -Uvh epel-release-6-8.noarch.rpm
+# yum repolist
+
+更新套件
+# yum update
+
+安裝OpenVPN
+# yum install openvpn easy-rsa
+
+建立/etc/openvpn/easy-rsa/keys目錄
+並把easy-rsa scripts複製到/etc/openvpn/easy-rsa/目錄裡
+# mkdir -p /etc/openvpn/easy-rsa/keys
+# cp -rf /usr/share/easy-rsa/2.0/* /etc/openvpn/easy-rsa/
+
+修改這個檔案
+# vi /etc/openvpn/easy-rsa/vars
+
+找到這個部分
+export KEY_COUNTRY="US"
+export KEY_PROVINCE="CA"
+export KEY_CITY="SanFrancisco"
+export KEY_ORG="Fort-Funston"
+export KEY_EMAIL="me@myhost.mydomain"
+export KEY_OU="MyOrganizationalUnit"
+
+改成下面這樣，注意asiouqwlekn是我vps的主機名稱
+export KEY_COUNTRY="TW"
+export KEY_PROVINCE="TP"
+export KEY_CITY="NewTaipei"
+export KEY_ORG="LightingCorp"
+export KEY_EMAIL="annbigbig@gmail.com"
+export KEY_OU="asiouqwlekn"
+
+產生CA ( certificate authority)
+# cd /etc/openvpn/easy-rsa/
+# cp openssl-1.0.0.cnf openssl.cnf
+# source ./vars
+# ./clean-all
+# ./build-ca
+
+輸出會像這樣
+[root@asiouqwlekn easy-rsa]# ./build-ca
+Generating a 2048 bit RSA private key
+................+++
+..................+++
+writing new private key to 'ca.key'
+-----
+You are about to be asked to enter information that will be incorporated
+into your certificate request.
+What you are about to enter is what is called a Distinguished Name or a DN.
+There are quite a few fields but you can leave some blank
+For some fields there will be a default value,
+If you enter '.', the field will be left blank.
+-----
+Country Name (2 letter code) [TW]:
+State or Province Name (full name) [TP]:
+Locality Name (eg, city) [NewTaipei]:
+Organization Name (eg, company) [LightingCorp]:
+Organizational Unit Name (eg, section) [asiouqwlekn]:
+Common Name (eg, your name or your server's hostname) [LightingCorp CA]:
+Name [EasyRSA]:
+Email Address [annbigbig@gmail.com]:
+
+剛才已經產生ca.crt和ca.key在/etc/openvpn/easy-rsa/keys目錄裡
+現在繼續產生服務器端的crt和key
+./build-key-server server
+
+輸出會像這樣
+[root@asiouqwlekn easy-rsa]# ./build-key-server server
+Generating a 2048 bit RSA private key
+...................+++
+...............................................................+++
+writing new private key to 'server.key'
+-----
+You are about to be asked to enter information that will be incorporated
+into your certificate request.
+What you are about to enter is what is called a Distinguished Name or a DN.
+There are quite a few fields but you can leave some blank
+For some fields there will be a default value,
+If you enter '.', the field will be left blank.
+-----
+Country Name (2 letter code) [TW]:
+State or Province Name (full name) [TP]:
+Locality Name (eg, city) [NewTaipei]:
+Organization Name (eg, company) [LightingCorp]:
+Organizational Unit Name (eg, section) [asiouqwlekn]:
+Common Name (eg, your name or your server's hostname) [server]:
+Name [EasyRSA]:
+Email Address [annbigbig@gmail.com]:
+
+Please enter the following 'extra' attributes
+to be sent with your certificate request
+A challenge password []:
+An optional company name []:
+Using configuration from /etc/openvpn/easy-rsa/openssl-1.0.0.cnf
+Check that the request matches the signature
+Signature ok
+The Subject's Distinguished Name is as follows
+countryName           :PRINTABLE:'TW'
+stateOrProvinceName   :PRINTABLE:'TP'
+localityName          :PRINTABLE:'NewTaipei'
+organizationName      :PRINTABLE:'LightingCorp'
+organizationalUnitName:PRINTABLE:'asiouqwlekn'
+commonName            :PRINTABLE:'server'
+name                  :PRINTABLE:'EasyRSA'
+emailAddress          :IA5STRING:'annbigbig@gmail.com'
+Certificate is to be certified until Jan 10 18:29:12 2027 GMT (3650 days)
+Sign the certificate? [y/n]:y
+
+
+1 out of 1 certificate requests certified, commit? [y/n]y
+Write out database with 1 new entries
+Data Base Updated
+
+這時候/etc/openvpn/easy-rsa/keys目錄裡會多了server.crt  server.key
+
+接下來產生client端的crt和key
+# ./build-key client01
+輸出會像這樣
+[root@asiouqwlekn easy-rsa]# ./build-key client01
+Generating a 2048 bit RSA private key
+.............+++
+.........+++
+writing new private key to 'client01.key'
+-----
+You are about to be asked to enter information that will be incorporated
+into your certificate request.
+What you are about to enter is what is called a Distinguished Name or a DN.
+There are quite a few fields but you can leave some blank
+For some fields there will be a default value,
+If you enter '.', the field will be left blank.
+-----
+Country Name (2 letter code) [TW]:
+State or Province Name (full name) [TP]:
+Locality Name (eg, city) [NewTaipei]:
+Organization Name (eg, company) [LightingCorp]:
+Organizational Unit Name (eg, section) [asiouqwlekn]:
+Common Name (eg, your name or your server's hostname) [client01]:
+Name [EasyRSA]:
+Email Address [annbigbig@gmail.com]:
+
+Please enter the following 'extra' attributes
+to be sent with your certificate request
+A challenge password []:
+An optional company name []:
+Using configuration from /etc/openvpn/easy-rsa/openssl-1.0.0.cnf
+Check that the request matches the signature
+Signature ok
+The Subject's Distinguished Name is as follows
+countryName           :PRINTABLE:'TW'
+stateOrProvinceName   :PRINTABLE:'TP'
+localityName          :PRINTABLE:'NewTaipei'
+organizationName      :PRINTABLE:'LightingCorp'
+organizationalUnitName:PRINTABLE:'asiouqwlekn'
+commonName            :PRINTABLE:'client01'
+name                  :PRINTABLE:'EasyRSA'
+emailAddress          :IA5STRING:'annbigbig@gmail.com'
+Certificate is to be certified until Jan 10 18:33:09 2027 GMT (3650 days)
+Sign the certificate? [y/n]:y
+
+
+1 out of 1 certificate requests certified, commit? [y/n]y
+Write out database with 1 new entries
+Data Base Updated
+
+
+這時候/etc/openvpn/easy-rsa/keys目錄裡又會多了client01.crt、client01.key
+然後再來產生DH parameter，執行
+# ./build-dh
+
+現在所有Server端和Client端需要的key和crt都產生了
+請把它們複製到它們該去的地方
+
+Server需要的檔案複製到/etc/openvpn目錄下
+# cd /etc/openvpn/easy-rsa/keys/
+# cp dh2048.pem ca.crt server.crt server.key /etc/openvpn/
+
+
+Client需要的檔案先複製到vps主機的/tmp目錄下
+# cp ca.crt client01.crt client01.key /tmp
+# chmod 644 /tmp/client01.key
+
+看一下vps的ppp0接口的Public IP是多少？
+[root@asiouqwlekn keys]# ifconfig ppp0
+ppp0      Link encap:Point-to-Point Protocol  
+          inet addr:49.89.34.76  P-t-P:49.89.32.1  Mask:255.255.255.255
+          UP POINTOPOINT RUNNING NOARP MULTICAST  MTU:1492  Metric:1
+          RX packets:168831 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:80096 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:3 
+          RX bytes:236190055 (225.2 MiB)  TX bytes:11403505 (10.8 MiB)
+
+
+回到你筆記型電腦的console，複製它們到本地
+$ cd ~
+$ mkdir openvpn_client_files
+$ cd openvpn_client_files
+$ scp -o PubkeyAuthentication=no root@49.89.34.74:/tmp/ca.crt .
+$ scp -o PubkeyAuthentication=no root@49.89.34.74:/tmp/client01.crt .
+$ scp -o PubkeyAuthentication=no root@49.89.34.74:/tmp/client01.key .
+
+產生一個client.conf
+$ touch client.conf
+
+內容如下
+(範本是從vps服務器上的/usr/share/doc/openvpn-2.3.14/sample/sample-config-files/client.conf抄來的)
+client
+dev tun
+proto udp
+log /tmp/openvpn.log
+remote my-server-1 5678
+resolv-retry infinite
+nobind
+persist-key
+persist-tun
+cipher AES-256-CBC
+verb 3
+
+這裡這篇有介紹.ovpn檔案的格式
+https://www.brainfart.sg/index.php/2012/05/embedding-certificate-into-openvpn-config/
+
+剛才抓下來的client01.crt只需要留
+-----BEGIN CERTIFICATE-----
+-----END CERTIFICATE-----
+之間的部分就好（包含這兩行），請自已用vi編輯器編輯client01.crt
+
+接下來再把它們(client.conf / ca.crt / client01.crt / client01.key)拼起來
+
+$ echo '<ca>' >> client.conf
+$ cat ca.crt >> client.conf
+$ echo '</ca>' >> client.conf
+$ echo '<cert>' >> client.conf
+$ cat client01.crt >> client.conf
+$ echo '</cert>' >> client.conf
+$ echo '<key>' >> client.conf
+$ cat client01.key >> client.conf
+$ echo '</key>' >> client.conf
+
+
+接下來配置OpenVPN Server，一樣從範本複製過來改比較快
+# cp /usr/share/doc/openvpn-2.3.14/sample/sample-config-files/server.conf /etc/openvpn
+# vi /etc/openvpn/server.conf
+
+我改的設定值有
+port 5678
+log         openvpn.log
+#explicit-exit-notify 1
+push "route 10.0.8.0 255.255.255.0"
+push "redirect-gateway def1"
+push "dhcp-option DNS 119.29.29.29"
+push "dhcp-option DNS 223.6.6.6"
+user nobody
+group nobody
+
+
+再修改/etc/sysctl.conf
+把這行
+net.ipv4.ip_forward = 0
+改成
+net.ipv4.ip_forward = 1
+
+改完後要執行一次（重開機應該也可以）
+# sysctl -p
+
+
+防火牆打開port udp 5678，注意，請清空FORWARD CHAIN，再加一行10.8.0.0/24的SNAT規則
+# iptables -I INPUT -p udp -m udp --dport 5678 -j ACCEPT
+# iptables -t nat -A POSTROUTING -s 10.8.0.0/24 -j MASQUERADE
+# iptables -F FORWARD
+# iptables -A FORWARD -s 10.8.0.0/24 -j ACCEPT
+# service iptables save
+# service iptables restart
+# iptables -L -n
+# iptables -t nat -L -n
+
+因為你讓vps服務器把OpenVPN server啟動在非正規port 5678
+所以你必須告訴SELinux你很高興這樣子（亂）搞
+參考資料
+https://www.jacobtomlinson.co.uk/2014/12/08/openvpn-non-standard-port-selinux-centos-6/
+
+安裝套件，並執行命令，告訴SELinux，udp 5678是用來當openvpn服務的
+# yum install policycoreutils-python
+# semanage port -a -t openvpn_port_t -p udp 5678
+
+啟動Openvpn服務，並設定成開機自動啟動
+# service openvpn start
+# chkconfig openvpn on
+
+重新啟動服務的指令是
+# service openvpn restart
+
+要看log檔的話，路徑在/etc/openvpn/openvpn.log
+
+查看一下udp 5678有沒有listening？
+# netstat -anp|grep 5678
+udp        0      0 0.0.0.0:5678                0.0.0.0:*                               20676/openvpn
+
+查看一下tun device有沒有跑起來？
+[root@asiouqwlekn openvpn]# ifconfig tun0
+tun0      Link encap:UNSPEC  HWaddr 00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00  
+          inet addr:10.8.0.1  P-t-P:10.8.0.2  Mask:255.255.255.255
+          UP POINTOPOINT RUNNING NOARP MULTICAST  MTU:1500  Metric:1
+          RX packets:0 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:0 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:100 
+          RX bytes:0 (0.0 b)  TX bytes:0 (0.0 b)
+
+這樣就是OpenVPN服務器啟動成功了，查看一下vps的ppp0的公共IP地址，現在要來設定當openvpn client端的路由器
+[root@asiouqwlekn openvpn]# ifconfig ppp0
+ppp0      Link encap:Point-to-Point Protocol  
+          inet addr:180.117.193.178  P-t-P:180.117.193.1  Mask:255.255.255.255
+          UP POINTOPOINT RUNNING NOARP MULTICAST  MTU:1492  Metric:1
+          RX packets:9912 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:5052 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:3 
+          RX bytes:12774397 (12.1 MiB)  TX bytes:316810 (309.3 KiB)
+
+到筆記型電腦，剛才放client.conf的目錄下
+$ cd ~
+$ cd openvpn_client_files/
+
+打開vi文字編輯器
+$ vi client.conf
+
+把這一行
+remote my-server-1 5678
+換成vps的ppp0接口的Public IP地址
+remote 180.117.193.178 5678
+
+然後把client.conf複製到路由器的/tmp目錄下
+$ scp client.conf root@10.1.1.1:/tmp
+
+然後ssh連入路由器
+$ ssh root@10.1.1.1
+進入後
+# cd /tmp
+# cp client.conf /etc/openvpn
+
+編輯設定檔
+# vi /etc/config/openvpn
+
+內容如下
+# mafeng china vps
+config openvpn 'vpn_china_01'
+    option enabled 1
+    option config '/etc/openvpn/client.conf'
+
+啟動vpn連線
+# /etc/init.d/openvpn start
+
+如果敲指令可以看到下面這些訊息，就是vpn連線成功了
+root@OpenWrt:~# ifconfig tun0
+tun0      Link encap:UNSPEC  HWaddr 00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00  
+          inet addr:10.8.0.6  P-t-P:10.8.0.5  Mask:255.255.255.255
+          UP POINTOPOINT RUNNING NOARP MULTICAST  MTU:1500  Metric:1
+          RX packets:7792 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:8738 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:100 
+          RX bytes:2825944 (2.6 MiB)  TX bytes:1538465 (1.4 MiB)
+
+root@OpenWrt:~# route -n
+Kernel IP routing table
+Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
+0.0.0.0         10.8.0.5        128.0.0.0       UG    0      0        0 tun0
+0.0.0.0         192.168.0.1     0.0.0.0         UG    0      0        0 eth0.2
+10.1.1.0        0.0.0.0         255.255.255.0   U     0      0        0 br-lan
+10.8.0.0        10.8.0.5        255.255.255.0   UG    0      0        0 tun0
+10.8.0.1        10.8.0.5        255.255.255.255 UGH   0      0        0 tun0
+10.8.0.5        0.0.0.0         255.255.255.255 UH    0      0        0 tun0
+128.0.0.0       10.8.0.5        128.0.0.0       UG    0      0        0 tun0
+180.117.193.179 192.168.0.1     255.255.255.255 UGH   0      0        0 eth0.2
+192.168.0.0     0.0.0.0         255.255.255.0   U     0      0        0 eth0.2
+192.168.0.1     0.0.0.0         255.255.255.255 UH    0      0        0 eth0.2
+root@OpenWrt:~# 
+root@OpenWrt:~# traceroute 114.114.114.114
+traceroute to 114.114.114.114 (114.114.114.114), 30 hops max, 38 byte packets
+ 1  10.8.0.1 (10.8.0.1)  73.140 ms  73.660 ms  71.720 ms
+ 2  180.117.193.1 (180.117.193.1)  109.120 ms  84.660 ms  76.600 ms
+ 3  61.147.244.165 (61.147.244.165)  77.280 ms  78.100 ms  77.380 ms
+ 4  222.187.208.189 (222.187.208.189)  91.480 ms  222.187.241.173 (222.187.241.173)  92.900 ms  222.187.252.121 (222.187.252.121)  89.720 ms
+ 5  218.2.134.2 (218.2.134.2)  92.040 ms  88.080 ms  88.560 ms
+ 6  *  *^C
+root@OpenWrt:~# 
+
+
+現在把筆記型電腦的WIFI連到這顆路由器，然後試著打開瀏覽器
+看能不能連線facebook.com / twitter.com / google.com ？
+還有看能不能連線到 www.sina.com.cn (新浪) / www.taobao.com (淘寶) / www.baidu.com (百度) / www.qq.com (騰訊) ？
+你會發現你只能連線到中國境內的網站，所有的歐美國家網站都是不能連線的狀態
+恭喜你，你得到了一個被防火長城屏蔽的網路環境，看起來好像沒啥屁用，但是稍後可以測試shadowsocks client能否突破這個屏障
+
+
+
+
+
+附：vps服務器上，完整的/etc/openvpn/server.conf檔案內容如下
+#開頭的沒什麼用，就是註解而已，可以全部刪掉
+
+#################################################
+# Sample OpenVPN 2.0 config file for            #
+# multi-client server.                          #
+#                                               #
+# This file is for the server side              #
+# of a many-clients <-> one-server              #
+# OpenVPN configuration.                        #
+#                                               #
+# OpenVPN also supports                         #
+# single-machine <-> single-machine             #
+# configurations (See the Examples page         #
+# on the web site for more info).               #
+#                                               #
+# This config should work on Windows            #
+# or Linux/BSD systems.  Remember on            #
+# Windows to quote pathnames and use            #
+# double backslashes, e.g.:                     #
+# "C:\\Program Files\\OpenVPN\\config\\foo.key" #
+#                                               #
+# Comments are preceded with '#' or ';'         #
+#################################################
+
+# Which local IP address should OpenVPN
+# listen on? (optional)
+;local a.b.c.d
+
+# Which TCP/UDP port should OpenVPN listen on?
+# If you want to run multiple OpenVPN instances
+# on the same machine, use a different port
+# number for each one.  You will need to
+# open up this port on your firewall.
+port 5678
+
+# TCP or UDP server?
+;proto tcp
+proto udp
+
+# "dev tun" will create a routed IP tunnel,
+# "dev tap" will create an ethernet tunnel.
+# Use "dev tap0" if you are ethernet bridging
+# and have precreated a tap0 virtual interface
+# and bridged it with your ethernet interface.
+# If you want to control access policies
+# over the VPN, you must create firewall
+# rules for the the TUN/TAP interface.
+# On non-Windows systems, you can give
+# an explicit unit number, such as tun0.
+# On Windows, use "dev-node" for this.
+# On most systems, the VPN will not function
+# unless you partially or fully disable
+# the firewall for the TUN/TAP interface.
+;dev tap
+dev tun
+
+# Windows needs the TAP-Win32 adapter name
+# from the Network Connections panel if you
+# have more than one.  On XP SP2 or higher,
+# you may need to selectively disable the
+# Windows firewall for the TAP adapter.
+# Non-Windows systems usually don't need this.
+;dev-node MyTap
+
+# SSL/TLS root certificate (ca), certificate
+# (cert), and private key (key).  Each client
+# and the server must have their own cert and
+# key file.  The server and all clients will
+# use the same ca file.
+#
+# See the "easy-rsa" directory for a series
+# of scripts for generating RSA certificates
+# and private keys.  Remember to use
+# a unique Common Name for the server
+# and each of the client certificates.
+#
+# Any X509 key management system can be used.
+# OpenVPN can also use a PKCS #12 formatted key file
+# (see "pkcs12" directive in man page).
+ca ca.crt
+cert server.crt
+key server.key  # This file should be kept secret
+
+# Diffie hellman parameters.
+# Generate your own with:
+#   openssl dhparam -out dh2048.pem 2048
+dh dh2048.pem
+
+# Network topology
+# Should be subnet (addressing via IP)
+# unless Windows clients v2.0.9 and lower have to
+# be supported (then net30, i.e. a /30 per client)
+# Defaults to net30 (not recommended)
+;topology subnet
+
+# Configure server mode and supply a VPN subnet
+# for OpenVPN to draw client addresses from.
+# The server will take 10.8.0.1 for itself,
+# the rest will be made available to clients.
+# Each client will be able to reach the server
+# on 10.8.0.1. Comment this line out if you are
+# ethernet bridging. See the man page for more info.
+server 10.8.0.0 255.255.255.0
+
+# Maintain a record of client <-> virtual IP address
+# associations in this file.  If OpenVPN goes down or
+# is restarted, reconnecting clients can be assigned
+# the same virtual IP address from the pool that was
+# previously assigned.
+ifconfig-pool-persist ipp.txt
+
+# Configure server mode for ethernet bridging.
+# You must first use your OS's bridging capability
+# to bridge the TAP interface with the ethernet
+# NIC interface.  Then you must manually set the
+# IP/netmask on the bridge interface, here we
+# assume 10.8.0.4/255.255.255.0.  Finally we
+# must set aside an IP range in this subnet
+# (start=10.8.0.50 end=10.8.0.100) to allocate
+# to connecting clients.  Leave this line commented
+# out unless you are ethernet bridging.
+;server-bridge 10.8.0.4 255.255.255.0 10.8.0.50 10.8.0.100
+
+# Configure server mode for ethernet bridging
+# using a DHCP-proxy, where clients talk
+# to the OpenVPN server-side DHCP server
+# to receive their IP address allocation
+# and DNS server addresses.  You must first use
+# your OS's bridging capability to bridge the TAP
+# interface with the ethernet NIC interface.
+# Note: this mode only works on clients (such as
+# Windows), where the client-side TAP adapter is
+# bound to a DHCP client.
+;server-bridge
+
+# Push routes to the client to allow it
+# to reach other private subnets behind
+# the server.  Remember that these
+# private subnets will also need
+# to know to route the OpenVPN client
+# address pool (10.8.0.0/255.255.255.0)
+# back to the OpenVPN server.
+;push "route 192.168.10.0 255.255.255.0"
+push "route 10.8.0.0 255.255.255.0"
+
+# To assign specific IP addresses to specific
+# clients or if a connecting client has a private
+# subnet behind it that should also have VPN access,
+# use the subdirectory "ccd" for client-specific
+# configuration files (see man page for more info).
+
+# EXAMPLE: Suppose the client
+# having the certificate common name "Thelonious"
+# also has a small subnet behind his connecting
+# machine, such as 192.168.40.128/255.255.255.248.
+# First, uncomment out these lines:
+;client-config-dir ccd
+;route 192.168.40.128 255.255.255.248
+# Then create a file ccd/Thelonious with this line:
+#   iroute 192.168.40.128 255.255.255.248
+# This will allow Thelonious' private subnet to
+# access the VPN.  This example will only work
+# if you are routing, not bridging, i.e. you are
+# using "dev tun" and "server" directives.
+
+# EXAMPLE: Suppose you want to give
+# Thelonious a fixed VPN IP address of 10.9.0.1.
+# First uncomment out these lines:
+;client-config-dir ccd
+;route 10.9.0.0 255.255.255.252
+# Then add this line to ccd/Thelonious:
+#   ifconfig-push 10.9.0.1 10.9.0.2
+
+# Suppose that you want to enable different
+# firewall access policies for different groups
+# of clients.  There are two methods:
+# (1) Run multiple OpenVPN daemons, one for each
+#     group, and firewall the TUN/TAP interface
+#     for each group/daemon appropriately.
+# (2) (Advanced) Create a script to dynamically
+#     modify the firewall in response to access
+#     from different clients.  See man
+#     page for more info on learn-address script.
+;learn-address ./script
+
+# If enabled, this directive will configure
+# all clients to redirect their default
+# network gateway through the VPN, causing
+# all IP traffic such as web browsing and
+# and DNS lookups to go through the VPN
+# (The OpenVPN server machine may need to NAT
+# or bridge the TUN/TAP interface to the internet
+# in order for this to work properly).
+push "redirect-gateway def1 bypass-dhcp"
+# push "redirect-gateway def1"
+
+# Certain Windows-specific network settings
+# can be pushed to clients, such as DNS
+# or WINS server addresses.  CAVEAT:
+# http://openvpn.net/faq.html#dhcpcaveats
+# The addresses below refer to the public
+# DNS servers provided by opendns.com.
+push "dhcp-option DNS 119.29.29.29"
+push "dhcp-option DNS 223.6.6.6"
+
+# Uncomment this directive to allow different
+# clients to be able to "see" each other.
+# By default, clients will only see the server.
+# To force clients to only see the server, you
+# will also need to appropriately firewall the
+# server's TUN/TAP interface.
+;client-to-client
+
+# Uncomment this directive if multiple clients
+# might connect with the same certificate/key
+# files or common names.  This is recommended
+# only for testing purposes.  For production use,
+# each client should have its own certificate/key
+# pair.
+#
+# IF YOU HAVE NOT GENERATED INDIVIDUAL
+# CERTIFICATE/KEY PAIRS FOR EACH CLIENT,
+# EACH HAVING ITS OWN UNIQUE "COMMON NAME",
+# UNCOMMENT THIS LINE OUT.
+;duplicate-cn
+
+# The keepalive directive causes ping-like
+# messages to be sent back and forth over
+# the link so that each side knows when
+# the other side has gone down.
+# Ping every 10 seconds, assume that remote
+# peer is down if no ping received during
+# a 120 second time period.
+keepalive 10 120
+
+# For extra security beyond that provided
+# by SSL/TLS, create an "HMAC firewall"
+# to help block DoS attacks and UDP port flooding.
+#
+# Generate with:
+#   openvpn --genkey --secret ta.key
+#
+# The server and each client must have
+# a copy of this key.
+# The second parameter should be '0'
+# on the server and '1' on the clients.
+;tls-auth ta.key 0 # This file is secret
+
+# Select a cryptographic cipher.
+# This config item must be copied to
+# the client config file as well.
+# Note that 2.4 client/server will automatically
+# negotiate AES-256-GCM in TLS mode.
+# See also the ncp-cipher option in the manpage
+cipher AES-256-CBC
+
+# Enable compression on the VPN link and push the
+# option to the client (2.4+ only, for earlier
+# versions see below)
+;compress lz4-v2
+;push "compress lz4-v2"
+
+# For compression compatible with older clients use comp-lzo
+# If you enable it here, you must also
+# enable it in the client config file.
+comp-lzo
+
+# The maximum number of concurrently connected
+# clients we want to allow.
+;max-clients 100
+
+# It's a good idea to reduce the OpenVPN
+# daemon's privileges after initialization.
+#
+# You can uncomment this out on
+# non-Windows systems.
+user nobody
+group nobody
+
+# The persist options will try to avoid
+# accessing certain resources on restart
+# that may no longer be accessible because
+# of the privilege downgrade.
+persist-key
+persist-tun
+
+# Output a short status file showing
+# current connections, truncated
+# and rewritten every minute.
+status openvpn-status.log
+
+# By default, log messages will go to the syslog (or
+# on Windows, if running as a service, they will go to
+# the "\Program Files\OpenVPN\log" directory).
+# Use log or log-append to override this default.
+# "log" will truncate the log file on OpenVPN startup,
+# while "log-append" will append to it.  Use one
+# or the other (but not both).
+log         openvpn.log
+;log-append  openvpn.log
+
+# Set the appropriate level of log
+# file verbosity.
+#
+# 0 is silent, except for fatal errors
+# 4 is reasonable for general usage
+# 5 and 6 can help to debug connection problems
+# 9 is extremely verbose
+verb 6
+
+# Silence repeating messages.  At most 20
+# sequential messages of the same message
+# category will be output to the log.
+;mute 20
+
+# Notify the client that when the server restarts so it
+# can automatically reconnect.
+#explicit-exit-notify 1
+
